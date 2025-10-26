@@ -515,6 +515,7 @@ Func SelectEvent(ByRef $aSelectChallenges)
 			ExitLoop
 		EndIf
 		If _Sleep(1000) Then Return
+		$i += 1
 	WEnd
 	$aSelectChallenges = $aTmp
 	
