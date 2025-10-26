@@ -502,20 +502,23 @@ Func SelectEvent(ByRef $aSelectChallenges)
 	Local $hTimer = TimerInit()
 	Local $aTmp = $aSelectChallenges
 
-	For $i = 0 To UBound($aTmp) - 1
+	Local $i = 0
+	While $i < UBound($aTmp)
 		If Not $g_bRunState Then Return
 		Local $aEventInfo = GetEventInfo($aTmp[$i][1], $aTmp[$i][2])
 		If IsArray($aEventInfo) Then
 			Setlog("Detected " & $aTmp[$i][0] & " difficulty of " & $aTmp[$i][3] & " [score:" & $aEventInfo[0] & ", " & $aEventInfo[1] & " min]", $COLOR_INFO)
-			If $g_bChkClanGames3H And Number($aEventInfo[1]) >= 180 Then ;Filter under 3 Hour event
+			If $g_bChkClanGames3H And Number($aEventInfo[1]) <= 180 Then ;Filter under 3 Hour event
 				_ArrayDelete($aSelectChallenges, $i)
 				ContinueLoop 
 			EndIf
 			$aTmp[$i][4] = Number($aEventInfo[1])
 			$aTmp[$i][6] = Number($aEventInfo[0])
+			ExitLoop
 		EndIf
 		If _Sleep(1000) Then Return
-	Next
+		$i += 1
+	WEnd
 	$aSelectChallenges = $aTmp
 	
 	If $g_bChkClanGamesDebug Then Setlog("Benchmark SelectEvent: (in " & Round(TimerDiff($hTimer) / 1000, 2) & " seconds)", $COLOR_DEBUG)
