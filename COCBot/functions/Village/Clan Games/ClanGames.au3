@@ -61,6 +61,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 		If Not _ColorCheck(_GetPixelColor(300, 284, True), Hex(0x53E052, 6), 10) Then ;no greenbar = there is active event or completed event
 			If _ColorCheck(_GetPixelColor(405, 220, True), Hex(0x4F85C5, 6), 20) Then 
 				SetLog("Event cooldown detected", $COLOR_DEBUG2)
+				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = True
 				CloseClangamesWindow()
 				Return False
 			EndIf
@@ -81,7 +82,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 			If $aiScoreLimit[0] = $aiScoreLimit[1] Then
 				SetLog("Your score limit is reached! Congrats")
 				$g_bIsCGPointMaxed = True
-				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;almost max point, account will only purge now, so allow to attack on BB
+				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;max point, account will only purge now, so allow to attack on BB
 				CloseClangamesWindow()
 				Return False
 			EndIf
@@ -207,6 +208,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 			If _Sleep(1000) Then Return
 			Return False
 		EndIf
+		If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = True
 	Else
 		SetLog("No Event found, Check your settings", $COLOR_WARNING)
 		CloseClangamesWindow()
