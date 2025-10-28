@@ -1256,7 +1256,7 @@ Func GetCGRewardList($X = 270, $OnlyClaimMax = False)
 					Switch $aTmp[$j][0]
 						Case "Books"
 							$Value = 6
-						Case "BBGoldRune", "BBElixRune", "DERune", "ElixRune", "Shovel", "SuperPot", "GoldRune"
+						Case "BBGoldRune", "BBElixRune", "DERune", "ElixRune", "Shovel", "SuperPot", "GoldRune", "Shovel"
 							$Value = 5
 						Case "BuilderPot", "ClockTowerPot", "ResearchPot"
 							$Value = 4
