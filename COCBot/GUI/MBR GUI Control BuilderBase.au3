@@ -134,15 +134,13 @@ Func chkStopAttackBB6thBuilder()
 	EndIf
 EndFunc   ;==>chkStopAttackBB6thBuilder
 
-Func ChkBBAttackReport()
-	If GUICtrlRead($g_hChkBBAttackReport) = $GUI_CHECKED Then
-		$g_bChkBBAttackReport = True
-		SetLog("BBAttackReport Enabled", $COLOR_DEBUG2)
+Func ChkBBEndBattleOn2Stars()
+	If GUICtrlRead($g_hChkBBEndBattleOn2Stars) = $GUI_CHECKED Then
+		$g_bChkBBEndBattleOn2Stars = True
 	Else
-		$g_bChkBBAttackReport = False
-		SetLog("BBAttackReport Disabled", $COLOR_DEBUG2)
+		$g_bChkBBEndBattleOn2Stars = False
 	EndIf
-EndFunc   ;==>ChkBBAttackReport
+EndFunc   ;==>ChkBBEndBattleOn2Stars
 
 Func ChkSkipBBRoutineOn6thBuilder()
 	If GUICtrlRead($g_hChkSkipBBRoutineOn6thBuilder) = $GUI_CHECKED Then

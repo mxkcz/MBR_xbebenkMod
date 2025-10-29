@@ -21,7 +21,7 @@ Global $g_hChkCollectBldGE = 0, $g_hChkCollectBldGems = 0, $g_hChkActivateClockT
 Global $g_hChkAutoUpgradeBB = 0, $g_hChkAutoUpgradeBBIgnoreHall = 0, $g_hChkAutoUpgradeBBIgnoreWall = 0, $g_hChkBOBControl = 0
 Global $g_hChkAutoStarLabUpgrades = 0, $g_hCmbStarLaboratory = 0, $g_hLblNextSLUpgrade = 0
 Global $g_hChkEnableBBAttack = 0, $g_hChkBBDropTrophy = 0, $g_hChkBBAttIfStarsAvail = 0, $g_hChkSkipBBAttIfStorageFull = 0, $g_hChkBBWaitForMachine = 0, $g_hChkBBDropBMFirst = 0, $g_hChkStopAttackBB6thBuilder = 0
-Global $g_hChkDebugAttackBB = 0, $g_hChkBBAttackReport = 0
+Global $g_hChkDebugAttackBB = 0, $g_hChkBBEndBattleOn2Stars = 0
 
 Global $g_hIcnTroopBB[8]
 Global $g_hCmbTroopBB[8]
@@ -278,9 +278,9 @@ Func CreateBBAttackSubTab()
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "chkStopAttackBB6thBuilder", "Stop Attack If 6th Builder Unlocked"))
 			GUICtrlSetOnEvent(-1, "chkStopAttackBB6thBuilder")
 		$y += 23
-		$g_hChkBBAttackReport = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBAttackReport", "Enable AttackBB Report"), $x + 20, $y)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBAttackReport", "Enable AttackBB Report"))
-			GUICtrlSetOnEvent(-1, "ChkBBAttackReport")
+		$g_hChkBBEndBattleOn2Stars = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBEndBattleOn2Stars", "End Battle on 2 Stars"), $x + 20, $y)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBEndBattleOn2Stars", "Enable End Battle on 2 Stars"))
+			GUICtrlSetOnEvent(-1, "ChkBBEndBattleOn2Stars")
 			GUICtrlSetState(-1, $GUI_DISABLE)
 			
 		$x = $x + 240

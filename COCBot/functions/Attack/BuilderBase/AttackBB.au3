@@ -202,9 +202,16 @@ Func _AttackBB()
 	SetLog("Done", $COLOR_SUCCESS)
 EndFunc
 
+Func CheckStarsGained()
+	Local $iRet
+	If _ColorCheck(_GetPixelColor(714, 542, True), Hex(0xEDA230, 6), 20, Default, "BB1Star") Then $iRet = 1
+	If _ColorCheck(_GetPixelColor(740, 542, True), Hex(0xEDA230, 6), 20, Default, "BB2Star") Then $iRet = 2
+	Return $iRet
+EndFunc
+
 Func EndBattleBB() ; Find if battle has ended and click okay
 	Local $bRet = False, $bBattleMachine = True, $bWallBreaker = True
-	Local $sDamage = 0, $sTmpDamage = 0, $bCountSameDamage = 1, $realDamage = 0
+	Local $sDamage = 0, $sTmpDamage = 0, $bCountSameDamage = 1, $realDamage = 0, $iStars = 0
 	
 	For $i = 1 To 200
 		;SetLog("Waiting EndBattle Screen #" & $i, $COLOR_ACTION)
@@ -223,6 +230,15 @@ Func EndBattleBB() ; Find if battle has ended and click okay
 		$sTmpDamage = Number($sDamage)
 		
 		If BBBarbarianHead("EndBattleBB") Then ExitLoop
+		
+		If $g_bChkBBEndBattleOn2Stars Then 
+			$iStars = CheckStarsGained()
+			If $iStars = 2 Then 
+				SetLog("2Stars achieved, end battle", $COLOR_DEBUG1)
+				If ReturnHomeDropTrophyBB(True) Then $bRet = True
+				ExitLoop
+			EndIf
+		EndIf
 		
 		If $sTmpDamage = 100 Then
 			_SleepStatus(15000) ; wait if not going to second stage
@@ -262,12 +278,7 @@ Func EndBattleBB() ; Find if battle has ended and click okay
 		If _Sleep(1000) Then Return
 	Next
 	
-	If BBBarbarianHead("EndBattleBB") Then
-		$bRet = True
-		If $g_bChkBBAttackReport Then
-			BBAttackReport($realDamage)
-		EndIf
-	EndIf
+	BBAttackReport($realDamage)
 	
 	If IsProblemAffect() Then Return
 	
