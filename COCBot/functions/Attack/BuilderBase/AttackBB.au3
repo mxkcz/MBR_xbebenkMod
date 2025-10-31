@@ -29,14 +29,6 @@ Func CheckCGCompleted()
 	Return $bRet
 EndFunc
 
-Func CheckDonateWhileAttackBB()
-	Local $bRet = False
-	
-	If _ColorCheck(_GetPixelColor(66, 289, True), Hex(0xCE081D, 6), 20, Default, "Red Chat notif count") Then $bRet = True
-	
-	Return $bRet
-EndFunc
-
 Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount)
 	If Not $g_bChkEnableBBAttack Then Return
 	If Not $g_bStayOnBuilderBase Then $g_bStayOnBuilderBase = True
@@ -72,7 +64,8 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount)
 				SetLog("Force stop, attacked 10 times!", $COLOR_INFO)
 				ExitLoop
 			EndIf
-			If CheckDonateWhileAttackBB() Then RequestCC()
+			checkMainScreen()
+			BuilderBaseReport(False, False)
 		Wend
 		CollectBBCart()
 		SetLog("Skip Attack this time..", $COLOR_DEBUG)
@@ -95,8 +88,8 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount)
 			Else
 				ExitLoop
 			EndIf
-			If CheckDonateWhileAttackBB() Then RequestCC()
-			BuilderBaseReport()
+			checkMainScreen()
+			BuilderBaseReport(False, False)
 			If isGoldFullBB() And isElixirFullBB() Then ExitLoop
 		Next
 		If Not $g_bRunState Then Return
@@ -202,9 +195,16 @@ Func _AttackBB()
 	SetLog("Done", $COLOR_SUCCESS)
 EndFunc
 
+Func CheckStarsGained()
+	Local $iRet
+	If _ColorCheck(_GetPixelColor(714, 542, True), Hex(0xEDA230, 6), 20, Default, "BB1Star") Then $iRet = 1
+	If _ColorCheck(_GetPixelColor(740, 542, True), Hex(0xEDA230, 6), 20, Default, "BB2Star") Then $iRet = 2
+	Return $iRet
+EndFunc
+
 Func EndBattleBB() ; Find if battle has ended and click okay
 	Local $bRet = False, $bBattleMachine = True, $bWallBreaker = True
-	Local $sDamage = 0, $sTmpDamage = 0, $bCountSameDamage = 1, $realDamage = 0
+	Local $sDamage = 0, $sTmpDamage = 0, $bCountSameDamage = 1, $realDamage = 0, $iStars = 0
 	
 	For $i = 1 To 200
 		;SetLog("Waiting EndBattle Screen #" & $i, $COLOR_ACTION)
@@ -223,6 +223,15 @@ Func EndBattleBB() ; Find if battle has ended and click okay
 		$sTmpDamage = Number($sDamage)
 		
 		If BBBarbarianHead("EndBattleBB") Then ExitLoop
+		
+		If $g_bChkBBEndBattleOn2Stars Then 
+			$iStars = CheckStarsGained()
+			If $iStars = 2 Then 
+				SetLog("2Stars achieved, end battle", $COLOR_DEBUG1)
+				If ReturnHomeDropTrophyBB(True) Then $bRet = True
+				ExitLoop
+			EndIf
+		EndIf
 		
 		If $sTmpDamage = 100 Then
 			_SleepStatus(15000) ; wait if not going to second stage
@@ -262,12 +271,7 @@ Func EndBattleBB() ; Find if battle has ended and click okay
 		If _Sleep(1000) Then Return
 	Next
 	
-	If BBBarbarianHead("EndBattleBB") Then
-		$bRet = True
-		If $g_bChkBBAttackReport Then
-			BBAttackReport($realDamage)
-		EndIf
-	EndIf
+	BBAttackReport($realDamage)
 	
 	If IsProblemAffect() Then Return
 	
@@ -706,7 +710,9 @@ Func GetBBDropPoint($bSecondAttack = False)
 				FindGuardPost()
 		EndSwitch
 	EndIf
-
+	
+	;If $g_bIsBBevent Then FindClanGamesBuildingTarget()
+	
 	If $g_bChkDebugAttackBB Then SetLog("MainSide = " & $g_BBDPSide)
 	If $g_bChkDebugAttackBB Then DebugAttackBBImage($aDPResult, $g_BBDPSide)
 

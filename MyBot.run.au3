@@ -436,9 +436,6 @@ Func InitializeMBR(ByRef $sAI, $bConfigRead)
 	If $g_hMutex_BotTitle = 0 Then
 		DestroySplashScreen()
 		SetDebugLog($g_sBotTitle & " is already running, exit now")
-		;SplashTextOn($g_sBotTitle,  $sMsg & $cmdLineHelp, $g_iSizeWGrpTab1 + 200, $g_iSizeHGrpTab1, Default, Default, BitOR($DLG_TEXTLEFT, $DLG_MOVEABLE), "Lucida Console", 10)
-		;Sleep(10000)
-		;SplashOff()
 		MsgBox(BitOR($MB_OK, $MB_ICONINFORMATION, $MB_TOPMOST), $g_sBotTitle, $sMsg & $cmdLineHelp)
 		__GDIPlus_Shutdown()
 		Exit
@@ -961,8 +958,8 @@ Func __RunFunction($action)
 		Case "TreasuryCollect"
 			TreasuryCollect()
 			If _Sleep(50) Then Return
-		Case "CollectCookieRumble"
-			CollectCookieRumble()
+		Case "CollectCookie"
+			CollectCookie()
 			If _Sleep(50) Then Return
 		Case "Collect"
 			Collect() ; collect mine, pump, drill
@@ -988,8 +985,8 @@ Func __RunFunction($action)
 		Case "DailyChallenge"
 			DailyChallenges()
 			If _Sleep(50) Then Return
-		Case "SaleMagicItem"
-			SaleMagicItem()
+		Case "SellMagicItem"
+			SellMagicItem()
 			If _Sleep(50) Then Return
 		Case "ForgeClanCapitalGold"
 			ForgeClanCapitalGold()
@@ -1000,6 +997,7 @@ Func __RunFunction($action)
 		Case "UpgradeBuilding"
 			UpgradeBuilding()
 			If _Sleep(50) Then Return
+		Case "AutoUpgrade"
 			AutoUpgrade()
 			If _Sleep(50) Then Return
 		Case "UpgradeLow"
@@ -1084,6 +1082,7 @@ Func FirstCheck()
 	;Check Town Hall level
 	Local $iTownHallLevel = $g_iTownHallLevel
 	Local $bLocateTH = False
+	CheckZoomOut("FirstCheck")
 	SetLog("Detecting Town Hall level", $COLOR_INFO)
 	SetLog("Town Hall level is currently saved as " &  $g_iTownHallLevel, $COLOR_INFO)
 	Collect(True) ;only collect from mine and collector
@@ -1259,7 +1258,6 @@ Func FirstCheckRoutine()
 	If Not $g_bRunState Then Return
 	If ProfileSwitchAccountEnabled() And $g_bForceSwitchifNoCGEvent And $bSwitch Then
 		SetLog("No Event on ClanGames, Forced switch account!", $COLOR_DEBUG)
-		RequestCC()
 		CommonRoutine("NoClanGamesEvent")
 		checkSwitchAcc() ;switch to next account
 	EndIf
@@ -1267,24 +1265,23 @@ Func FirstCheckRoutine()
 	If Not $g_bRunState Then Return
 	If ProfileSwitchAccountEnabled() And $g_bForceSwitch And $bSwitch Then
 		SetLog("Forced switch account!!", $COLOR_DEBUG)
-		RequestCC()
 		CommonRoutine("Switch")
 		checkSwitchAcc() ;switch to next account
 	EndIf
 
 	CommonRoutine("FirstCheck") ;after first attack, checking some routine
 	
-	;If not switch:
-	If Not ProfileSwitchAccountEnabled() Then 
-		SetLog("Switch account not enabled, going to mainloop", $COLOR_DEBUG)
-		Return 
-	EndIf
-	
 	If Not $g_bRunState Then Return
 	$sText = Round(TimerDiff($FirstCheckRoutineTimer) / 1000 / 60, 2)
 	SetLog(" ")
 	SetLogCentered(" FirstCheckRoutine done (" & $sText & " minutes) ", "~", $COLOR_SUCCESS)
 	SetLog(" ")
+	
+	;If not switch:
+	If Not ProfileSwitchAccountEnabled() Then 
+		SetLog("Switch account not enabled, going to mainloop", $COLOR_DEBUG)
+		Return 
+	EndIf
 	
 	If _Sleep(50) Then Return
 	If ProfileSwitchAccountEnabled() Then
@@ -1318,7 +1315,7 @@ Func FirstCheckRoutine()
 				EndIf
 			Wend
 		EndIf
-		RequestCC()
+		checkMainScreen()
 		checkSwitchAcc() ;switch to next account
 	EndIf
 	
@@ -1332,7 +1329,7 @@ Func CommonRoutine($RoutineType = Default)
 	Local $sText = "", $aFuncList[0]
 	Switch $RoutineType
 		Case "FirstCheck"
-			Local $aRndFuncList = ['Collect', 'CollectLootCart', 'TreasuryCollect', 'CleanYard', 'CollectCookieRumble', 'UseFreeMagic', 'PetHouse', 'ForgeClanCapitalGold', 'CollectCCGold', 'AutoUpgradeCC', 'BlackSmith', 'PetHouse', 'Laboratory', 'SaleMagicItem', 'UpgradeWall', 'UpgradeLow']
+			Local $aRndFuncList = ['Collect', 'CollectLootCart', 'TreasuryCollect', 'CleanYard', 'CollectCookie', 'UseFreeMagic', 'PetHouse', 'ForgeClanCapitalGold', 'CollectCCGold', 'AutoUpgradeCC', 'BlackSmith', 'PetHouse', 'Laboratory', 'SellMagicItem', 'UpgradeWall']
 			SetLog($RoutineType & " Func List:", $COLOR_SUCCESS)
 			For $i In $aRndFuncList
 				SetLog(" --> " & $i, $COLOR_NAVY)
@@ -1348,7 +1345,7 @@ Func CommonRoutine($RoutineType = Default)
 		Case "Switch"
 			If Not $g_bisCGPointMaxed Then _ClanGames(False, True) ;Do Only Purge
 
-			Local $aRndFuncList = ['RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'BuilderBase', 'Laboratory', 'UpgradeHeroes', 'UpgradeBuilding', 'UpgradeWall', 'UpgradeLow', 'RequestCC']
+			Local $aRndFuncList = ['RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'BuilderBase', 'Laboratory', 'UpgradeHeroes', 'UpgradeBuilding', 'AutoUpgrade', 'UpgradeWall', 'UpgradeLow', 'RequestCC']
 			SetLog($RoutineType & " Func List:", $COLOR_SUCCESS)
 			For $i In $aRndFuncList
 				SetLog(" --> " & $i, $COLOR_NAVY)
@@ -1362,7 +1359,7 @@ Func CommonRoutine($RoutineType = Default)
 			Next
 
 		Case "Idle"
-			Local $aRndFuncList = ['Collect', 'CollectLootCart', 'TreasuryCollect', 'CleanYard', 'CollectCookieRumble', 'UseFreeMagic', 'RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'Laboratory', 'UpgradeHeroes', 'UpgradeBuilding', 'UpgradeWall', 'UpgradeLow', 'BuilderBase']
+			Local $aRndFuncList = ['Collect', 'CollectLootCart', 'TreasuryCollect', 'CleanYard', 'CollectCookie', 'UseFreeMagic', 'RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'Laboratory', 'UpgradeHeroes', 'UpgradeBuilding', 'AutoUpgrade', 'UpgradeWall', 'UpgradeLow', 'BuilderBase']
 			SetLog($RoutineType & " Func List:", $COLOR_SUCCESS)
 			For $i In $aRndFuncList
 				SetLog(" --> " & $i, $COLOR_NAVY)
@@ -1376,7 +1373,7 @@ Func CommonRoutine($RoutineType = Default)
 			Next
 
 		Case "NoClanGamesEvent"
-			Local $aRndFuncList = ['RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'PetHouse', 'Laboratory', 'CollectCCGold', 'UpgradeHeroes', 'UpgradeBuilding', 'UpgradeWall', 'UpgradeLow']
+			Local $aRndFuncList = ['RequestCC', 'DailyChallenge', 'CollectAchievements', 'CollectFreeMagicItems', 'PetHouse', 'Laboratory', 'CollectCCGold', 'UpgradeHeroes', 'UpgradeBuilding', 'AutoUpgrade', 'UpgradeWall', 'UpgradeLow']
 			SetLog($RoutineType & " Func List:", $COLOR_SUCCESS)
 			For $i In $aRndFuncList
 				SetLog(" --> " & $i, $COLOR_NAVY)

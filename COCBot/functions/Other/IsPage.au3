@@ -234,9 +234,9 @@ EndFunc   ;==>IsReturnHomeBattlePage
 
 Func IsReturnHomeChestPage($bAction = True)
 	Local $bRet = False
-	Return $bRet
 	If IsPageLoop($aReturnHomeChest, 1) Then
 		SetDebugLog("**Return Home Chest Window OK**", $COLOR_ACTION)
+		If IsAttackPage(True, 1) Then Return False
 		If Not $bAction Then Return True
 		
 		ClickP($aReturnHomeChest)
@@ -352,7 +352,7 @@ Func IsPetHousePage($sSource = "IsPetHousePage")
 EndFunc   ;==>IsPetHousePage
 
 Func IsBlacksmithPage($bSetLog = True, $iLoop = 5)
-	Local $aIsBlacksmithPage[4] = [811, 69, 0xD51217, 20] ; Pink red top of close button
+	Local $aIsBlacksmithPage[4] = [775, 135, 0xD0161C, 20] ; Pink red top of close button
 
 	If IsPageLoop($aIsBlacksmithPage, $iLoop) Then
 		If ($g_bDebugSetlog Or $g_bDebugClick) And $bSetLog Then SetLog("**Blacksmith Window OK**", $COLOR_ACTION)

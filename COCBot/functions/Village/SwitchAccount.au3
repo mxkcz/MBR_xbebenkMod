@@ -189,7 +189,7 @@ Func SwitchCOCAcc($NextAccount = 0, $bTest = False)
 		For $i = 1 To 5 
 			SetLog("Verifying SCID Windows #" & $i, $COLOR_ACTION)
 			If ClickSCIDReload() Then ExitLoop
-			If _Sleep(500) Then Return
+			If _Sleep(1000) Then Return
 		Next
 		
 		If ClickAccountSCID($NextAccount + 1) Then

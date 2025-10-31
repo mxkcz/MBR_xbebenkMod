@@ -88,8 +88,8 @@ Func SwitchTo($To = "BB")
 		$sSwitchTo = "Builder Base"
 		$sTile = "BoatNormalVillage"
 		$x = 70
-		$y = 400
-		$x1 = 350
+		$y = 330
+		$x1 = 400
 		$y1 = 600
 		$Dir = $g_sImgBoat
 	EndIf	

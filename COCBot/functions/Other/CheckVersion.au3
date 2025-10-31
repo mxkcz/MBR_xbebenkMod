@@ -22,6 +22,20 @@ Func CheckVersion()
 	$aResult = StringRegExp($g_sXModversion, '\[#(\d+)\]', $STR_REGEXPARRAYMATCH)
 	If IsArray($aResult) And Ubound($aResult) > 0 Then $sCurrentVersion = $aResult[0]
 	
+	$sUrlFetchMod = BinaryToString(InetRead("https://raw.githubusercontent.com/xbebenk/MBR_xbebenkMod/dev_1.2.6/CHANGELOG"))
+	Local $aTmp = StringSplit($sUrlFetchMod, @CRLF, $STR_NOCOUNT)
+	Local $iCount = 0, $bHeader = False
+	For $i = 0 To UBound($aTmp) - 1
+		If StringLeft($aTmp[$i], 1) = "*" Then
+			$bHeader = StringLeft($aTmp[$i], 4) = "* **"
+			SetLog($aTmp[$i], ($bHeader ? $COLOR_INFO : $COLOR_SUCCESS))
+		Else
+			SetLog(" ")
+			$iCount += 1
+			If $iCount = 2 Then ExitLoop
+		EndIf
+	Next
+	
 	$sUrlFetchMod = BinaryToString(InetRead("https://raw.githubusercontent.com/xbebenk/MBR_xbebenkMod/dev_1.2.6/MyBot.run.version.au3"))
 	Local $aTmp = StringSplit($sUrlFetchMod, @CRLF, $STR_NOCOUNT)
 	;_ArrayDisplay($aTmp)
@@ -47,20 +61,6 @@ Func CheckVersion()
 		SetLog($g_sXModSupportUrl, $COLOR_INFO)
 		SetLogCentered("#", "#", $COLOR_SUCCESS)
 	EndIf	
-	
-	$sUrlFetchMod = BinaryToString(InetRead("https://raw.githubusercontent.com/xbebenk/MBR_xbebenkMod/dev_1.2.6/CHANGELOG"))
-	Local $aTmp = StringSplit($sUrlFetchMod, @CRLF, $STR_NOCOUNT)
-	Local $iCount = 0, $bHeader = False
-	For $i = 0 To UBound($aTmp) - 1
-		If StringLeft($aTmp[$i], 1) = "*" Then
-			$bHeader = StringLeft($aTmp[$i], 4) = "* **"
-			SetLog($aTmp[$i], ($bHeader ? $COLOR_INFO : $COLOR_SUCCESS))
-		Else
-			SetLog(" ")
-			$iCount += 1
-			If $iCount = 2 Then ExitLoop
-		EndIf
-	Next
 	
 EndFunc   ;==>CheckVersion
 

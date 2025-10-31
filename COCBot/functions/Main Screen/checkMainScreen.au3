@@ -74,6 +74,9 @@ Func _checkMainScreen($bSetLog = Default, $bBuilderBase = $g_bStayOnBuilderBase,
 		EndIf
 	EndIf
 	
+	If $bLocated Then 
+		If CheckDonateNotifCounter() Then RequestCC()
+	EndIf
 	;After checkscreen dispose windows
 	DisposeWindows()
 
@@ -133,5 +136,14 @@ EndFunc
 Func isOnBuilderBase()
 	Local $bRet = False
 	$bRet = _checkMainScreenImage($aIsOnBuilderBase)
+	Return $bRet
+EndFunc
+
+Func CheckDonateNotifCounter()
+	Local $bRet = False
+	If $g_bDonationEnabled Then 
+		If _ColorCheck(_GetPixelColor(66, 289, True), Hex(0xCE081D, 6), 20, Default, "Red Chat notif count") Then $bRet = True
+		If $bRet Then SetLog("New chat detected!, Check for Donate", $COLOR_DEBUG)
+	EndIf
 	Return $bRet
 EndFunc

@@ -563,14 +563,28 @@ EndFunc   ;==>CloseHeroEquipment
 
 Func chkEquipmentOrder()
 	If GUICtrlRead($g_hChkCustomEquipmentOrderEnable) = $GUI_CHECKED Then
+		$g_bChkCustomEquipmentOrderEnable = True
 		For $i = $g_EquipmentOrderLabel[0] To $g_ahImgEquipmentOrderSet
 			GUICtrlSetState($i, $GUI_ENABLE)
 		Next
+		GuiCtrlSetState($g_hChkMinOreUpgrade, $GUI_ENABLE)
 	Else
+		$g_bChkCustomEquipmentOrderEnable = False
 		For $i = $g_EquipmentOrderLabel[0] To $g_ahImgEquipmentOrderSet
 			GUICtrlSetState($i, $GUI_DISABLE)
 		Next
+		GuiCtrlSetState($g_hChkMinOreUpgrade, $GUI_DISABLE)
 	EndIf
+EndFunc
+
+Func ChkMinOreUpgrade()
+	If GUICtrlRead($g_hChkMinOreUpgrade) = $GUI_CHECKED Then
+		GuiCtrlSetState($g_hTxtMinOreUpgrade, $GUI_ENABLE)
+	Else
+		GuiCtrlSetState($g_hTxtMinOreUpgrade, $GUI_DISABLE)
+	EndIf
+	$g_bChkMinOreUpgrade = (GUICtrlRead($g_hChkMinOreUpgrade) = $GUI_CHECKED ? True : False) 
+	$g_sTxtMinOreUpgrade = GuiCtrlRead($g_hTxtMinOreUpgrade)
 EndFunc
 
 Func GUIRoyalEquipmentOrder()
@@ -694,7 +708,7 @@ Func btnEquipmentOrderSet()
 		Else
 			SetLog("Equipment upgrade order changed successfully!", $COLOR_SUCCESS)
 			For $i = 0 To $eEquipmentCount - 1
-				$sNewEquipmentList &= $g_asEquipmenthortNames[$aiUsedEquipment[$i]] & ", "
+				$sNewEquipmentList &= $g_asEquipmentOrderList[$aiUsedEquipment[$i]][1] & ", "
 			Next
 			$sNewEquipmentList = StringTrimRight($sNewEquipmentList, 2)
 			SetLog("Equipment order= " & $sNewEquipmentList, $COLOR_INFO)

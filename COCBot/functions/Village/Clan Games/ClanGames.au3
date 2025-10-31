@@ -61,6 +61,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 		If Not _ColorCheck(_GetPixelColor(300, 284, True), Hex(0x53E052, 6), 10) Then ;no greenbar = there is active event or completed event
 			If _ColorCheck(_GetPixelColor(405, 220, True), Hex(0x4F85C5, 6), 20) Then 
 				SetLog("Event cooldown detected", $COLOR_DEBUG2)
+				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = True
 				CloseClangamesWindow()
 				Return False
 			EndIf
@@ -81,7 +82,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 			If $aiScoreLimit[0] = $aiScoreLimit[1] Then
 				SetLog("Your score limit is reached! Congrats")
 				$g_bIsCGPointMaxed = True
-				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;almost max point, account will only purge now, so allow to attack on BB
+				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;max point, account will only purge now, so allow to attack on BB
 				CloseClangamesWindow()
 				Return False
 			EndIf
@@ -207,6 +208,7 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 			If _Sleep(1000) Then Return
 			Return False
 		EndIf
+		If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = True
 	Else
 		SetLog("No Event found, Check your settings", $COLOR_WARNING)
 		CloseClangamesWindow()
@@ -500,20 +502,23 @@ Func SelectEvent(ByRef $aSelectChallenges)
 	Local $hTimer = TimerInit()
 	Local $aTmp = $aSelectChallenges
 
-	For $i = 0 To UBound($aTmp) - 1
+	Local $i = 0
+	While $i < UBound($aTmp)
 		If Not $g_bRunState Then Return
 		Local $aEventInfo = GetEventInfo($aTmp[$i][1], $aTmp[$i][2])
 		If IsArray($aEventInfo) Then
 			Setlog("Detected " & $aTmp[$i][0] & " difficulty of " & $aTmp[$i][3] & " [score:" & $aEventInfo[0] & ", " & $aEventInfo[1] & " min]", $COLOR_INFO)
-			If $g_bChkClanGames3H And Number($aEventInfo[1]) >= 180 Then ;Filter under 3 Hour event
+			If $g_bChkClanGames3H And Number($aEventInfo[1]) <= 180 Then ;Filter under 3 Hour event
 				_ArrayDelete($aSelectChallenges, $i)
 				ContinueLoop 
 			EndIf
 			$aTmp[$i][4] = Number($aEventInfo[1])
 			$aTmp[$i][6] = Number($aEventInfo[0])
+			ExitLoop
 		EndIf
 		If _Sleep(1000) Then Return
-	Next
+		$i += 1
+	WEnd
 	$aSelectChallenges = $aTmp
 	
 	If $g_bChkClanGamesDebug Then Setlog("Benchmark SelectEvent: (in " & Round(TimerDiff($hTimer) / 1000, 2) & " seconds)", $COLOR_DEBUG)
@@ -1103,7 +1108,7 @@ Func CollectCGReward($bTest = False)
 			Local $aTile = GetCGRewardList()
 			If IsArray($aTile) And UBound($aTile) > 0 Then
 				For $j = 0 To UBound($aTile) - 1
-					If $g_bChkClanGamesDebug Then SetLog("Items: " & $aTile[$j][0] & "on " & $aTile[$j][1] & "," & $aTile[$j][2] & " Value: " & $aTile[$j][3], $COLOR_DEBUG2)
+					If $g_bChkClanGamesDebug Then SetLog("Items: " & $aTile[$j][0] & " on " & $aTile[$j][1] & "," & $aTile[$j][2] & " Value: " & $aTile[$j][3], $COLOR_DEBUG2)
 				Next
 				Click($aTile[0][1], $aTile[0][2]+10)
 				SetLog("Selecting Magic Items:" & $aTile[0][0], $COLOR_INFO)
@@ -1251,7 +1256,7 @@ Func GetCGRewardList($X = 270, $OnlyClaimMax = False)
 					Switch $aTmp[$j][0]
 						Case "Books"
 							$Value = 6
-						Case "BBGoldRune", "BBElixRune", "DERune", "ElixRune", "Shovel", "SuperPot", "GoldRune"
+						Case "BBGoldRune", "BBElixRune", "DERune", "ElixRune", "Shovel", "SuperPot", "GoldRune", "Shovel"
 							$Value = 5
 						Case "BuilderPot", "ClockTowerPot", "ResearchPot"
 							$Value = 4
