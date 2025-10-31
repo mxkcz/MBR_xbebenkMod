@@ -16,10 +16,11 @@
 
 Func TreasuryCollect()
 	If Not $g_bChkTreasuryCollect Then Return
-	If isGoldFull(False) And IsElixirFull(False) Then Return
 	SetLog("Check for Treasury collect", $COLOR_INFO)
+	If isGoldFull() And IsElixirFull() Then Return
+	If _Sleep(50) Then Return
 	If Not $g_bRunState Then Return 
-	ZoomOut()
+	CheckZoomOut("TreasuryCollect")
 	Local $CCFound = False
 	Local $TryCCAutoLocate = False
 	If Int($g_aiClanCastlePos[0]) < 1 Or Int($g_aiClanCastlePos[1]) < 1 Then
@@ -50,47 +51,41 @@ Func TreasuryCollect()
 		SetCCSleep()
 	EndIf
 	
-	If Not ClickB("Treasury") Then SetLog("Treasury Button not found!", $COLOR_DEBUG2)
+	If Not ClickB("Treasury") Then 
+		SetLog("Treasury Button not found!", $COLOR_DEBUG2)
+		ClickAway()
+		If _Sleep(50) Then Return
+		Return
+	EndIf
+	
 	If _Sleep(500) Then Return
 	
 	If Not _WaitForCheckPixel($aTreasuryWindow, $g_bCapturePixel, Default, "Wait treasury window:") Then
 		SetLog("Treasury window not found!", $COLOR_DEBUG2)
+		ClickAway()
+		If _Sleep(50) Then Return
 		Return
 	EndIf
 
-	Local $bForceCollect = False
-	If _PixelSearch(690, 200, 690, 310, Hex(0x50BD10, 6), 20, True, "TreasuryCollect") Then; search for green pixels showing treasury bars are full
-		SetLog("Found full Treasury, collecting loot...", $COLOR_SUCCESS)
-		$bForceCollect = True
-	Else
-		SetLog("Treasury not full yet", $COLOR_INFO)
-	EndIf
+	;If _PixelSearch(690, 200, 690, 310, Hex(0x50BD10, 6), 20, True, "TreasuryCollect") Then; search for green pixels showing treasury bars are full
+	;	SetLog("Found full Treasury, collecting loot...", $COLOR_SUCCESS)
+	;	$bForceCollect = True
+	;Else
+	;	SetLog("Treasury not full yet", $COLOR_INFO)
+	;EndIf
 	
-	If $g_iTxtTreasuryGold = 0 Or $g_iTxtTreasuryElixir = 0 Or $g_iTxtTreasuryDark = 0 Then 
-		SetLog("Forced Collect Treasury")
-		SetLog("Setting for Gold/Elix/DE = 0")
-		$bForceCollect = True
-	EndIf
-	
-	; Treasury window open, user msg logged, time to collect loot!
-	; check for collect treasury full GUI condition enabled and low resources
-	If $bForceCollect Or ($g_bChkTreasuryCollect And ((Number($g_aiCurrentLoot[$eLootGold]) <= $g_iTxtTreasuryGold) Or (Number($g_aiCurrentLoot[$eLootElixir]) <= $g_iTxtTreasuryElixir) Or (Number($g_aiCurrentLoot[$eLootDarkElixir]) <= $g_iTxtTreasuryDark))) Then
-		Local $aCollectButton = findButton("Collect", Default, 1, True)
-		If IsArray($aCollectButton) And UBound($aCollectButton, 1) = 2 Then
-			ClickP($aCollectButton, 1, 0, "#0330")
-			If _Sleep($DELAYTREASURY2) Then Return
-			If IsOKCancelPage(True) Then ; Click Okay to confirm collect treasury loot
-				Click($aConfirmSurrender[0], $aConfirmSurrender[1])
-				SetLog("Treasury collected successfully.", $COLOR_SUCCESS)
-			Else
-				SetLog("Cannot Click Okay Button on Treasury Collect screen", $COLOR_DEBUG2)
-			EndIf
+	Local $aCollectButton = findButton("Collect", Default, 1, True)
+	If IsArray($aCollectButton) And UBound($aCollectButton, 1) = 2 Then
+		ClickP($aCollectButton, 1, 0, "#0330")
+		If _Sleep($DELAYTREASURY2) Then Return
+		If IsOKCancelPage(True) Then ; Click Okay to confirm collect treasury loot
+			Click($aConfirmSurrender[0], $aConfirmSurrender[1])
+			SetLog("Treasury collected successfully.", $COLOR_SUCCESS)
 		Else
-			SetDebugLog("Error in TreasuryCollect(): Cannot find the Collect Button", $COLOR_DEBUG2)
+			SetLog("Cannot Click Okay Button on Treasury Collect screen", $COLOR_DEBUG2)
 		EndIf
 	Else
-		ClickAway()
-		If _Sleep($DELAYTREASURY4) Then Return
+		SetDebugLog("Error in TreasuryCollect(): Cannot find the Collect Button", $COLOR_DEBUG2)
 	EndIf
 
 	ClickAway()

@@ -21,16 +21,15 @@ Global $g_hChkBotStop = 0, $g_hCmbBotCommand = 0, $g_hCmbBotCond = 0, $g_hCmbHou
 Global $g_LblResumeAttack = 0, $g_ahTxtResumeAttackLoot[$eLootCount] = [0, 0, 0, 0], $g_hCmbResumeTime = 0
 Global $g_hChkCollectStarBonus = 0
 Global $g_hTxtRestartGold = 0, $g_hTxtRestartElixir = 0, $g_hTxtRestartDark = 0
-Global $g_hChkTrap = 1, $g_hChkCollect = 1, $g_hChkTombstones = 1, $g_hChkCleanYard = 0, $g_hChkGemsBox = 0
-Global $g_hGUI_SaleMagicItems, $g_hBtnSellPot = 0, $g_hChkEnableSaleMagicItem = 0
-Global $g_hChkSaleBOF = 0, $g_hChkSaleBOB = 0, $g_hChkSaleBOS = 0, $g_hChkSaleBOH = 0, $g_hChkSaleBOE = 0, $g_hChkSaleShovel = 0, $g_hChkSaleWallRing = 0
-Global $g_hChkSalePowerPot = 0, $g_hChkSaleResourcePot = 0, $g_hChkSaleTrainingPot = 0, $g_hChkSaleBuilderPot = 0, $g_hChkSaleCTPot = 0
-Global $g_hChkSaleHeroPot = 0, $g_hChkSaleResearchPot = 0, $g_hChkSaleSuperPot = 0, $g_hChkSaleBuilderJar = 0
-Global $g_hChkSaleROG = 0, $g_hChkSaleROE = 0, $g_hChkSaleRODE = 0, $g_hChkSaleROBG = 0, $g_hChkSaleROBE = 0
-Global $g_hTxtCollectGold = 0, $g_hTxtCollectElixir = 0, $g_hTxtCollectDark = 0
+Global $g_hChkCollect = 0, $g_hChkCollectLootCart = 0, $g_hChkTombstones = 0, $g_hChkCleanYard = 0, $g_hChkGemsBox = 0
+Global $g_hGUI_SellMagicItems, $g_hBtnSellPot = 0, $g_hChkEnableSellMagicItem = 0
+Global $g_hChkSellBOF = 0, $g_hChkSellBOB = 0, $g_hChkSellBOS = 0, $g_hChkSellBOH = 0, $g_hChkSellBOE = 0, $g_hChkSellShovel = 0, $g_hChkSellWallRing = 0
+Global $g_hChkSellPowerPot = 0, $g_hChkSellResourcePot = 0, $g_hChkSellTrainingPot = 0, $g_hChkSellBuilderPot = 0, $g_hChkSellCTPot = 0
+Global $g_hChkSellHeroPot = 0, $g_hChkSellResearchPot = 0, $g_hChkSellSuperPot = 0, $g_hChkSellBuilderJar = 0
+Global $g_hChkSellROG = 0, $g_hChkSellROE = 0, $g_hChkSellRODE = 0, $g_hChkSellROBG = 0, $g_hChkSellROBE = 0
 Global $g_hBtnLocateSpellfactory = 0, $g_hBtnLocateDarkSpellFactory = 0
 Global $g_hBtnLocateKingAltar = 0, $g_hBtnLocateQueenAltar = 0, $g_hBtnLocateWardenAltar = 0, $g_hBtnLocateChampionAltar = 0, $g_hBtnLocateLaboratory = 0, $g_hBtnLocatePetHouse = 0, $g_hBtnLocateBlacksmith = 0, $g_hBtnResetBuilding = 0
-Global $g_hChkTreasuryCollect = 0, $g_hTxtTreasuryGold = 0, $g_hTxtTreasuryElixir = 0, $g_hTxtTreasuryDark = 0 , $g_hChkCollectAchievements = 0, $g_hChkCollectFreeMagicItems = 0, $g_hChkCollectRewards = 0, $g_hChkSellRewards = 0
+Global $g_hChkTreasuryCollect = 0, $g_hChkCollectCookie = 0, $g_hChkCollectAchievements = 0, $g_hChkCollectFreeMagicItems = 0, $g_hChkCollectRewards = 0, $g_hChkSellRewards = 0
 
 ;ClanGames Challenges
 Global $g_hChkClanGamesEnabled = 0 , $g_hChkClanGames3H = 0, $g_hChkClanGamesDebug = 0
@@ -209,128 +208,60 @@ Func CreateMiscNormalVillageSubTab()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnCollector, $x + 20, $y, 24, 24)
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDrill, $x + 45, $y, 24, 24)
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnLootCart, $x + 70, $y, 24, 24)
-		$g_hChkCollect = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect", "Collect Resources && Loot Cart"), $x + 100, $y - 6, -1, -1, -1)
+		$g_hChkCollect = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect", "Collect Resources"), $x + 100, $y - 6, -1, -1, -1)
 			GUICtrlSetOnEvent(-1, "ChkCollect")
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect_Info_01", "Check this to automatically collect the Villages Resources") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect_Info_02", "from Gold Mines, Elixir Collectors and Dark Elixir Drills.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect_Info_03", "This will also search for a Loot Cart in your village and collect it."))
+							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollect_Info_02", "from Gold Mines, Elixir Collectors and Dark Elixir Drills."))
+			GUICtrlSetState(-1, $GUI_CHECKED)
+		$g_hChkCollectLootCart = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectLootCart", "Collect LootCart"), $x + 265, $y - 6, -1, -1, -1)
+			GUICtrlSetOnEvent(-1, "ChkCollectLootCart")
 			GUICtrlSetState(-1, $GUI_CHECKED)
 
-	$x += 179
-	$y += 15
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnGold, $x + 60, $y, 16, 16)
-		$g_hTxtCollectGold = GUICtrlCreateInput("0", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_01", "Minimum Gold Storage amount to collect Gold.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_02", "Set same as Resume Attack values to collect when 'out of gold' error") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_03", "happens while searching for attack.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_04", "Set to zero to always collect."))
-			GUICtrlSetLimit(-1, 7)
-
-	$x += 80
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnElixir, $x + 60, $y, 16, 16)
-		$g_hTxtCollectElixir = GUICtrlCreateInput("0", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectElixir_Info_01", "Minimum Elixir Storage amount to collect Elixier.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectElixir_Info_02", "Set same as Resume Attack values to collect when 'out of elixir' error") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectElixir_Info_03", "happens during troop training.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_04", -1))
-			GUICtrlSetLimit(-1, 7)
-
-	$x += 80
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDark, $x + 60, $y, 16, 16)
-		$g_hTxtCollectDark = GUICtrlCreateInput("0", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectDark_Info_01", "Minimum Dark Elixir Storage amount to collect Dark Elixier.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectElixir_Info_02", -1) & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectElixir_Info_03", -1) & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtCollectGold_Info_04", -1))
-			GUICtrlSetLimit(-1, 6)
+	$y += 22
+		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTreasury, $x + 22, $y - 5, 48, 48)
+		$g_hChkTreasuryCollect = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect", "Collect Treasury"), $x + 100, $y - 6, -1, -1)
+			GUICtrlSetState(-1, $GUI_CHECKED)
+			GUICtrlSetOnEvent(-1, "ChkTreasuryCollect")
+		$g_hChkCollectCookie = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectCookie", "Collect Cookie"), $x + 265, $y - 6, -1, -1, -1)
+			GUICtrlSetOnEvent(-1, "ChkCollectCookie")
+			GUICtrlSetState(-1, $GUI_CHECKED)
 
 	$x = 15
 	$y += 22
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTreasury, $x + 22, $y - 14, 48, 48)
-		$g_hChkTreasuryCollect = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect", "Treasury"), $x + 100, $y - 2, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_01", "Check this to automatically collect Treasury when FULL,") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_02", "'OR' when Storage values are BELOW minimum values on right,") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_03", "Use zero as min values to ONLY collect when Treasury is full") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_04", "Large minimum values will collect Treasury loot more often!"))
-			GUICtrlSetState(-1, $GUI_CHECKED)
-			GUICtrlSetOnEvent(-1, "ChkTreasuryCollect")
-
-	$x += 179
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnGold, $x + 60, $y, 16, 16)
-		$g_hTxtTreasuryGold = GUICtrlCreateInput("1000000", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryGold_Info_01", "Minimum Gold Storage amount to collect Treasury.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryGold_Info_02", "Set same as Resume Attack values to collect when 'out of gold' error") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryGold_Info_03", "happens while searching for attack") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_01", -1))
-			GUICtrlSetLimit(-1, 8)
-
-	$x += 80
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnElixir, $x + 60, $y, 16, 16)
-		$g_hTxtTreasuryElixir = GUICtrlCreateInput("1000000", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryElixir_Info_01", "Minimum Elixir Storage amount to collect Treasury.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryElixir_Info_02", "Set same as Resume Attack values to collect when 'out of elixir' error") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryElixir_Info_03", "happens during troop training") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_01", -1))
-			GUICtrlSetLimit(-1, 8)
-
-	$x += 80
-		GUICtrlCreateLabel("<", $x, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDark, $x + 60, $y, 16, 16)
-		$g_hTxtTreasuryDark = GUICtrlCreateInput("1000", $x + 10, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryDark_Info_01", "Minimum Dark Elixir Storage amount to collect Treasury.") & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryElixir_Info_02", -1) & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "TxtTreasuryElixir_Info_03", -1) & @CRLF & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTreasuryCollect_Info_01", -1))
-			GUICtrlSetLimit(-1, 6)
-
-	$x = 15
-	$y += 21
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTombstone, $x + 32 , $y, 24, 24)
-		$g_hChkTombstones = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTombstones", "Clear Tombstones"), $x + 100, $y + 4, -1, -1)
+		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTombstone, $x + 32 , $y + 15, 24, 24)
+		$g_hChkTombstones = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTombstones", "Clear Tombstones"), $x + 100, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkTombstones_Info_01", "Check this to automatically clear tombstones after enemy attack."))
 			GUICtrlSetState(-1, $GUI_CHECKED)
 
-		;_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTree, $x + 230, $y, 24, 24)
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnBark, $x + 230, $y, 24, 24)
-		$g_hChkCleanYard = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCleanYard", "Remove Obstacles"), $x + 265, $y + 4, -1, -1)
+		$g_hChkCleanYard = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCleanYard", "Remove Obstacles"), $x + 265, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCleanYard_Info_01", "Check this to automatically clear Yard from Trees, Trunks, etc."))
 			GUICtrlSetState(-1, $GUI_CHECKED)
 
-    $y += 21
-	    _GUICtrlCreateIcon($g_sLibIconPath, $eIcnGembox, $x + 32, $y, 24, 24)
-		$g_hChkGemsBox = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkGemsBox", "Remove GemBox"), $x + 100, $y + 4, -1, -1)
+    $y += 22
+	    _GUICtrlCreateIcon($g_sLibIconPath, $eIcnGembox, $x + 32, $y + 20, 24, 24)
+		$g_hChkGemsBox = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkGemsBox", "Remove GemBox"), $x + 100, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkGemsBox_Info_01", "Check this to automatically clear GemBox."))
 			GUICtrlSetState(-1, $GUI_CHECKED)
-		$g_hChkSellRewards = GUICtrlCreateCheckBox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellRewards", "Sell Extras"), $x + 265, $y + 4, -1, -1)
+		$g_hChkSellRewards = GUICtrlCreateCheckBox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellRewards", "Sell Extras"), $x + 265, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellExtra_Info_01", "Check to automatically sell all extra magic item rewards for gems."))
 			
-	$y += 21
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnCollectAchievements, $x + 22, $y - 8 , 48, 48)
-		$g_hChkCollectAchievements = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectAchievements", "Collect Achievements"), $x + 100, $y + 4, -1, -1)
+	$y += 22
+		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnCollectAchievements, $x + 22, $y + 10, 48, 48)
+		$g_hChkCollectAchievements = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectAchievements", "Collect Achievements"), $x + 100, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectAchievements_Info", "Check this to automatically collect achievement rewards."))
 			GUICtrlSetState(-1, $GUI_CHECKED)
 			
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnPowerPotion, $x + 230, $y + 1 , 24, 24)
-		$g_hChkCollectFreeMagicItems = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkFreeMagicItems", "Collect Free Magic Items"), $x + 265, $y + 4, -1, -1)
+		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnPowerPotion, $x + 230, $y, 24, 24)
+		$g_hChkCollectFreeMagicItems = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkFreeMagicItems", "Collect Free Magic Items"), $x + 265, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkFreeMagicItems_Info", "Check this to automatically collect free magic items.\r\nMust be at least Th8."))
 			GUICtrlSetOnEvent(-1, "ChkFreeMagicItems")
 		
-	$y += 21
-		$g_hChkCollectRewards = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectRewards", "Collect Challenge Rewards"), $x + 100, $y + 4, -1, -1)
+	$y += 22
+		$g_hChkCollectRewards = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectRewards", "Collect Challenge Rewards"), $x + 100, $y, -1, -1)
 		GUICtrlSetState(-1, $GUI_CHECKED)
-		$g_hBtnSellPot = GUICtrlCreateButton("Sale Magic Items", $x - 2 + 265, $y + 4, -1, 20)
-		GUICtrlSetOnEvent(-1, "btnOpenSalePotion")
+		$g_hBtnSellPot = GUICtrlCreateButton("Sell Magic Items", $x - 2 + 265, $y + 4, -1, 20)
+		GUICtrlSetOnEvent(-1, "btnOpenSellPotion")
 		
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
@@ -402,104 +333,104 @@ Func CreateMiscNormalVillageSubTab()
 EndFunc   ;==>CreateMiscNormalVillageSubTab
 
 Func CreateSellMagicSetting()
-	$g_hGUI_SaleMagicItems = _GUICreate(GetTranslatedFileIni("GUI Design Child Village - Misc", "GUI_SaleMagicItem", "Sale Magic Items Settings"), $_GUI_MAIN_WIDTH - 20, $_GUI_MAIN_HEIGHT - 370, $g_iFrmBotPosX, $g_iFrmBotPosY + 60, $WS_DLGFRAME, -1, $g_hFrmBot)
+	$g_hGUI_SellMagicItems = _GUICreate(GetTranslatedFileIni("GUI Design Child Village - Misc", "GUI_SellMagicItem", "Sell Magic Items Settings"), $_GUI_MAIN_WIDTH - 20, $_GUI_MAIN_HEIGHT - 370, $g_iFrmBotPosX, $g_iFrmBotPosY + 60, $WS_DLGFRAME, -1, $g_hFrmBot)
 	; GUI SubTab
 	Local $x = 15, $y = 10
 	
-	$g_hChkEnableSaleMagicItem = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "EnableSaleMagicItem", "Enable Sale Magic Items"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "SaleMagicItem_Info", "Enable option to Sale Magic Items"))
-			GUICtrlSetOnEvent(-1, "chkEnableSaleMagicItem")
+	$g_hChkEnableSellMagicItem = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "EnableSellMagicItem", "Enable Sell Magic Items"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "SellMagicItem_Info", "Enable option to Sell Magic Items"))
+			GUICtrlSetOnEvent(-1, "chkEnableSellMagicItem")
 	
 	$y = 55
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "Group_SalePotion", "Sale Magic Items Settings"), $x - 10, $y - 20, $g_iSizeWGrpTab3, 220)
+	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "Group_SellPotion", "Sell Magic Items Settings"), $x - 10, $y - 20, $g_iSizeWGrpTab3, 220)
 		
-		$g_hChkSaleBOF = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOF", "Book Of Fighting"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOF_Info", "Enable option to Sale Book Of Fighting"))
+		$g_hChkSellBOF = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOF", "Book Of Fighting"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOF_Info", "Enable option to Sell Book Of Fighting"))
 		$y += 21
-		$g_hChkSaleBOB = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOB", "Book Of Building"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOB_Info", "Enable option to Sale Book Of Building"))
+		$g_hChkSellBOB = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOB", "Book Of Building"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOB_Info", "Enable option to Sell Book Of Building"))
 
 		$y += 21
-		$g_hChkSaleBOS = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOS", "Book Of Spell"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOS_Info", "Enable option to Sale Book Of Spell"))
+		$g_hChkSellBOS = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOS", "Book Of Spell"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOS_Info", "Enable option to Sell Book Of Spell"))
 
 		$y += 21
-		$g_hChkSaleBOH = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOH", "Book Of Heroes"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOH_Info", "Enable option to Sale Book Of Heroes"))
+		$g_hChkSellBOH = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOH", "Book Of Heroes"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOH_Info", "Enable option to Sell Book Of Heroes"))
 
 		$y += 21
-		$g_hChkSaleBOE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOE", "Book Of Everything"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBOE_Info", "Enable option to Sale Book Of Everything"))
+		$g_hChkSellBOE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOE", "Book Of Everything"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBOE_Info", "Enable option to Sell Book Of Everything"))
 
 		$y += 21
-		$g_hChkSaleShovel = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleShovel", "Shovel"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleShovel_Info", "Enable option to Sale Shovel"))
+		$g_hChkSellShovel = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellShovel", "Shovel"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellShovel_Info", "Enable option to Sell Shovel"))
 
 		$y += 21
-		$g_hChkSaleWallRing = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleWallRing", "Wall Ring"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleWallRing_Info", "Enable option to Sale Wall Ring"))
+		$g_hChkSellWallRing = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellWallRing", "Wall Ring"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellWallRing_Info", "Enable option to Sell Wall Ring"))
 		
 		$x = 150
 		$y = 55
-		$g_hChkSalePowerPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSalePowerPot", "Power Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSalePowerPot_Info", "Enable option to Sale Power Potions"))
+		$g_hChkSellPowerPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellPowerPot", "Power Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellPowerPot_Info", "Enable option to Sell Power Potions"))
 
 		$y += 21
-		$g_hChkSaleResourcePot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSalePowerPot", "Resource Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleResourcePot_Info", "Enable option to Sale Resource Potions"))
+		$g_hChkSellResourcePot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellPowerPot", "Resource Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellResourcePot_Info", "Enable option to Sell Resource Potions"))
 
 		$y += 21
-		$g_hChkSaleTrainingPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleTrainingPot", "Training Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleTrainingPot_Info", "Enable option to Sale Training Potions"))
+		$g_hChkSellTrainingPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellTrainingPot", "Training Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellTrainingPot_Info", "Enable option to Sell Training Potions"))
 
 		$y += 21
-		$g_hChkSaleBuilderPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBuilderPot", "Builder Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBuilderPot_Info", "Enable option to Sale Builder Potions"))
+		$g_hChkSellBuilderPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBuilderPot", "Builder Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBuilderPot_Info", "Enable option to Sell Builder Potions"))
 
 		$y += 21
-		$g_hChkSaleCTPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleCTPot", "Clock Tower Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleCTPot_Info", "Enable option to Sale Clock Tower Potions"))
+		$g_hChkSellCTPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellCTPot", "Clock Tower Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellCTPot_Info", "Enable option to Sell Clock Tower Potions"))
 
 		$y += 21
-		$g_hChkSaleHeroPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleHeroPot", "Hero Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleHeroPot_Info", "Enable option to Sale Hero Potions"))
+		$g_hChkSellHeroPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellHeroPot", "Hero Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellHeroPot_Info", "Enable option to Sell Hero Potions"))
 
 		$y += 21
-		$g_hChkSaleResearchPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleResearchPot", "Research Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleResearchPot_Info", "Enable option to Sale Research Potions"))
+		$g_hChkSellResearchPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellResearchPot", "Research Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellResearchPot_Info", "Enable option to Sell Research Potions"))
 
 		$y += 21
-		$g_hChkSaleSuperPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleSuperPot", "Super Potions"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleSuperPot_Info", "Enable option to Sale Super Potions"))
+		$g_hChkSellSuperPot = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellSuperPot", "Super Potions"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellSuperPot_Info", "Enable option to Sell Super Potions"))
 		
 		$y += 21
-		$g_hChkSaleBuilderJar = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBuilderJar", "Builder Jar"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleBuilderJar_Info", "Enable option to Sale Builder Jar"))
+		$g_hChkSellBuilderJar = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBuilderJar", "Builder Jar"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellBuilderJar_Info", "Enable option to Sell Builder Jar"))
 		
 		$x = 300
 		$y = 55
-		$g_hChkSaleROG = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROG", "Rune Of Gold"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROG_Info", "Enable option to Sale Rune Of Gold"))
+		$g_hChkSellROG = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROG", "Rune Of Gold"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROG_Info", "Enable option to Sell Rune Of Gold"))
 
 		$y += 21
-		$g_hChkSaleROE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROE", "Rune Of Elixir"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROE_Info", "Enable option to Sale Rune Of Elixir"))
+		$g_hChkSellROE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROE", "Rune Of Elixir"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROE_Info", "Enable option to Sell Rune Of Elixir"))
 
 		$y += 21
-		$g_hChkSaleRODE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleRODE", "Rune Of Dark Elixir"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleRODE_Info", "Enable option to Sale Rune Of Dark Elixir"))
+		$g_hChkSellRODE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellRODE", "Rune Of Dark Elixir"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellRODE_Info", "Enable option to Sell Rune Of Dark Elixir"))
 
 		$y += 21
-		$g_hChkSaleROBG = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROBG", "Rune Of Builder Gold"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROBG_Info", "Enable option to Sale Rune Of Builder Gold"))
+		$g_hChkSellROBG = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROBG", "Rune Of Builder Gold"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROBG_Info", "Enable option to Sell Rune Of Builder Gold"))
 
 		$y += 21
-		$g_hChkSaleROBE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROBE", "Rune Of Builder Elixir"), $x, $y, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSaleROBE_Info", "Enable option to Sale Rune Of Builder Elixir"))
+		$g_hChkSellROBE = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROBE", "Rune Of Builder Elixir"), $x, $y, -1, -1)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkSellROBE_Info", "Enable option to Sell Rune Of Builder Elixir"))
 			
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
-	$g_hBtnCGSettingsClose = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "Group_SalePotion", "Close"), $_GUI_MAIN_WIDTH - 125, $_GUI_MAIN_HEIGHT - 430, 85, 25)
-			GUICtrlSetOnEvent(-1, "btnCloseSalePotion")
+	$g_hBtnCGSettingsClose = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "Group_SellPotion", "Close"), $_GUI_MAIN_WIDTH - 125, $_GUI_MAIN_HEIGHT - 430, 85, 25)
+			GUICtrlSetOnEvent(-1, "btnCloseSellPotion")
 EndFunc
 
 ; Clan Games v3

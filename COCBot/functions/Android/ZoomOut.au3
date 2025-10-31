@@ -251,19 +251,17 @@ Func DefaultZoomOut($ZoomOutKey = "{DOWN}", $tryCtrlWheelScrollAfterCycles = 40,
 		ZoomOutHelperBB()
 		If _Sleep(500) Then Return
 	Else
-		ZoomOutHelper()
+		ZoomOutHelper($sFunc)
 		If _Sleep(500) Then Return
 	EndIF
 	
 	If _Sleep(50) Then Return
 	ForceCaptureRegion()
-	$aPicture = SearchZoomOut(True, True, $sFunc, True)
+	$aPicture = SearchZoomOut(False, True, $sFunc, True)
 	
 	If $aPicture[0] = "" And $aPicture[1] = "0" Then 
 		AndroidZoomOut()
 		SetLog("ZoomOut() : " & $sFunc, $COLOR_DEBUG2)
-		
-		If ZoomOutHelperBB($sFunc) Then Return True
 		$aPicture = SearchZoomOut(True, True, $sFunc, True)
 	EndIf
 	
@@ -623,7 +621,7 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 			$aResult[0] = "zoomout:" & $aVillage[6]
 			$aResult[1] = $x
 			$aResult[2] = $y
-			
+			$g_iSearchZoomOutCounter = 0
 			SetDebugLog("SearchZoomOut CenteringVillage = " & String($bCenterVillage), $COLOR_DEBUG1)
 			
 			If $bCenterVillage And (Abs($x) > 10 Or Abs($y) > 10) Then ;And ($UpdateMyVillage = False Or $x <> $g_iVILLAGE_OFFSET[0] Or $y <> $g_iVILLAGE_OFFSET[1]) Then
@@ -638,7 +636,6 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 				$aResult2[3] = $aResult2[1] - $aResult[1]
 				$aResult2[4] = $aResult2[2] - $aResult[2]
 				SetDebugLog("Centered Village Offset" & $sSource & ": " & $aResult2[1] & ", " & $aResult2[2] & ", change: " & $aResult2[3] & ", " & $aResult2[4], $COLOR_DEBUG1)
-				$g_iSearchZoomOutCounter = 0
 				Return FuncReturn($aResult2)
 			EndIf
 
@@ -652,6 +649,7 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 		EndIf
 	Else 
 		$g_iSearchZoomOutCounter += 1
+		SetLog("SearchZoomOut fail counter +1, now = " & $g_iSearchZoomOutCounter, $COLOR_DEBUG2)
 	EndIf
 
 	If $g_iSearchZoomOutCounter = 5 Then 

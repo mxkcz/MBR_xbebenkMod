@@ -98,7 +98,7 @@ Func getHeroUpgradeTime($x_start, $y_start) ; -> Gets complete upgrade time for 
 EndFunc   ;==>getHeroUpgradeTime
 
 Func getChatString($x_start, $y_start, $language) ; -> Get string chat request - Latin Alphabetic - EN "DonateCC.au3"
-	Return getOcrAndCapture($language, $x_start, $y_start, 310, 15)
+	Return getOcrAndCapture($language, $x_start, $y_start, 310, 17)
 EndFunc   ;==>getChatString
 
 Func getBuilders($x_start, $y_start) ;  -> Gets Builders number - main screen --> getBuilders(324,23)  coc-profile
@@ -150,6 +150,22 @@ Func getMatchRemain($x_start = 414, $y_start = 475) ; Gets complete Tournament M
 	Return $aRet
 EndFunc   ;==>getMatchRemain
 
+Func TestAllOCR($xStart = 0, $yStart = 0, $ilength = 200, $iheight = 50)
+	If $xStart = 0 And $yStart = 0 Then
+		SetLog("Please set xStart and yStart", $COLOR_DEBUG2)
+		Return
+	EndIf
+	Local $aOCRFile = _FileListToArray(@ScriptDir & "\lib\", "listSymbols_coc-*.xml", $FLTA_FILES)
+	If IsArray($aOCRFile) And $aOCRFile[0] > 0 Then
+		Local $ocrname = "", $ocrResult = ""
+		For $i = 1 To Ubound($aOCRFile)
+			$ocrname = StringReplace(StringReplace($aOCRFile[$i], "listSymbols_", ""), ".xml", "")
+			SetLog("checking ocrname : " & $ocrname, $COLOR_INFO)
+			$ocrResult = getOcrAndCapture($ocrname, $xStart, $yStart, $ilength, $iheight)
+			SetLog("Result : " & $ocrResult, $COLOR_DEBUG2)
+		Next
+	EndIf
+EndFunc
 
 ;TestOCRTroopCap(0, 320)
 Func TestOCRTroopCap($iStart = 0, $iCount = 10, $path = "D:\OCRTool\TestImages\DebugOCR\", $iSleep = 800)
@@ -214,13 +230,9 @@ Func getBuilderMenuCost($x_start, $y_start) ;  -> Get least upgradetime on build
 	Return getOcrAndCapture("coc-buildermenu-cost", $x_start, $y_start, 100, 18, True)
 EndFunc   ;==>getBuilderBuilderMenuCost
 
-Func getOresValues($x_start, $y_start, $bNeedCapture = True) ;  -> Get least upgradetime on builder menu
-	Return getOcrAndCapture("coc-ores", $x_start, $y_start, 149, 16, $bNeedCapture)
+Func getOresValues($x_start, $y_start, $ilength = 130) ;  -> Get least upgradetime on builder menu
+	Return getOcrAndCapture("coc-totalreq", $x_start, $y_start, $ilength, 16, True)
 EndFunc   ;==>getOresValues
-
-Func getOresValues2($x_start, $y_start, $bNeedCapture = True) ;  -> Get least upgradetime on builder menu
-	Return getOcrAndCapture("coc-ores2", $x_start, $y_start, 149, 16, $bNeedCapture)
-EndFunc   ;==>getOresValues2
 
 Func getBuildingName($x_start, $y_start, $length = 180, $height = 20) ;  -> Get BuildingName on builder menu
 	Local $BuildingName = "", $Count = 1

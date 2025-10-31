@@ -361,6 +361,12 @@ Func PlacedOnLeague()
 		ClickAway("Rigth")
 		$bRet = True
 	EndIf
+	
+	If _ColorCheck(_GetPixelColor(430, 482, True), Hex(0xBFEA8E, 6), 20, Default, "ChestContinue") Then 
+		Click(430, 482)
+		SetLog("You have chest bonus, Continue...", $COLOR_DEBUG2)
+	EndIf
+	
 	Return $bRet
 EndFunc
 

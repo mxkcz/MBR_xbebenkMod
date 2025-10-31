@@ -1108,7 +1108,7 @@ Func CollectCGReward($bTest = False)
 			Local $aTile = GetCGRewardList()
 			If IsArray($aTile) And UBound($aTile) > 0 Then
 				For $j = 0 To UBound($aTile) - 1
-					If $g_bChkClanGamesDebug Then SetLog("Items: " & $aTile[$j][0] & "on " & $aTile[$j][1] & "," & $aTile[$j][2] & " Value: " & $aTile[$j][3], $COLOR_DEBUG2)
+					If $g_bChkClanGamesDebug Then SetLog("Items: " & $aTile[$j][0] & " on " & $aTile[$j][1] & "," & $aTile[$j][2] & " Value: " & $aTile[$j][3], $COLOR_DEBUG2)
 				Next
 				Click($aTile[0][1], $aTile[0][2]+10)
 				SetLog("Selecting Magic Items:" & $aTile[0][0], $COLOR_INFO)

@@ -17,6 +17,7 @@ Func CheckTombs()
 	If Not $g_bRunState Then Return
 	SetLog("Checking Tombs", $COLOR_ACTION)
 	Collect(True)
+	checkMainScreen()
 	If _Sleep(1000) Then Return
 	
 	Local $aTombs = QuickMIS("CNX", $g_sImgClearTombs, $InnerDiamondLeft, $InnerDiamondTop, $InnerDiamondRight, $InnerDiamondBottom)

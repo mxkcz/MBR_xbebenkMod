@@ -33,7 +33,7 @@ Func CollectFreeMagicItems($bTest = False)
 		If $aResults[$i][0] = "FullStorage" Then 
 			ClickAway()
 			If _Sleep(1000) Then Return
-			SaleFullMagicItem()
+			SellFullMagicItem()
 			$aResults[$i][0] = "FREE"
 			If Not OpenTraderWindow() Then Return
 		EndIf
@@ -70,7 +70,7 @@ Func CollectFreeMagicItems($bTest = False)
 	If $g_aRemoveFreeMagicItems[0] Then
 		ClickAway()
 		If _Sleep(1000) Then Return
-		SaleFullMagicItem($g_aRemoveFreeMagicItems[1], $g_aRemoveFreeMagicItems[2]) ;SaleFullMagicItem(Name,Amount) Try Selling Magic Item from TH Storage
+		SellFullMagicItem($g_aRemoveFreeMagicItems[1], $g_aRemoveFreeMagicItems[2]) ;SellFullMagicItem(Name,Amount) Try Selling Magic Item from TH Storage
 	EndIf
 
 	ClickAway()
@@ -189,7 +189,7 @@ Func MagicItemCount($x = 210, $y = 250)
 	Return $sRead
 EndFunc
 
-Func SaleFullMagicItem($MagicItem = "", $Amount = 0)
+Func SellFullMagicItem($MagicItem = "", $Amount = 0)
 	If Not $g_bRunState Then Return
 	SetLog("Checking for Full Magic Items", $COLOR_INFO)
 	If Not OpenMagicItemWindow() Then Return
@@ -243,18 +243,18 @@ Func SaleFullMagicItem($MagicItem = "", $Amount = 0)
 	ClickAway()
 EndFunc
 
-Func SaleMagicItem($bTest = False)
+Func SellMagicItem($bTest = False)
 	ClickAway()
 	If _Sleep(500) Then Return
-	If Not $g_bChkEnableSaleMagicItem Then Return
+	If Not $g_bChkEnableSellMagicItem Then Return
 	SetLog("Checking for Sell Magic Items", $COLOR_INFO)
 	If Not OpenMagicItemWindow() Then Return
 	Local $sReadItemCount, $asReadItemCount, $Count, $MaxCount
 	
-	For $i = 0 To UBound($g_aSaleMagicItem) - 1
-		SetDebugLog($g_aMagicItemName[$i] & " : " & $g_aSaleMagicItem[$i])
+	For $i = 0 To UBound($g_aSellMagicItem) - 1
+		SetDebugLog($g_aMagicItemName[$i] & " : " & $g_aSellMagicItem[$i])
 		SetLog("Checking for sell " & $g_aMagicItemName[$i], $COLOR_INFO)
-		If $g_aSaleMagicItem[$i] Then
+		If $g_aSellMagicItem[$i] Then
 			Local $aSearch = decodeSingleCoord(findImage($g_aMagicItemName[$i], $g_sImgTraderWindow & $g_aMagicItemName[$i] & "*", GetDiamondFromRect("160, 200, 700, 400")))
 			If IsArray($aSearch) And UBound($aSearch) = 2 Then 
 				$Count = 0
@@ -296,7 +296,7 @@ Func SaleMagicItem($bTest = False)
 				SetLog($g_aMagicItemName[$i] & " not Found", $COLOR_DEBUG2)
 			EndIf
 		Else
-			SetLog($g_aMagicItemName[$i] & " sale is not enabled", $COLOR_DEBUG2)
+			SetLog($g_aMagicItemName[$i] & " Sell is not enabled", $COLOR_DEBUG2)
 		EndIf
 	Next
 	ClickAway()
@@ -356,9 +356,9 @@ Func IsMagicItemWindowOpen()
 EndFunc
 
 Func TestMagicItemImage()
-	For $i = 0 To UBound($g_aSaleMagicItem) - 1
+	For $i = 0 To UBound($g_aSellMagicItem) - 1
 		Local $Count = 0, $MaxCount = 0
-		SetDebugLog($g_aMagicItemName[$i] & " sale enabled: " &$g_aSaleMagicItem[$i])
+		SetDebugLog($g_aMagicItemName[$i] & " Sell enabled: " &$g_aSellMagicItem[$i])
 		SetLog("Checking " & $g_aMagicItemName[$i], $COLOR_INFO)
 		Local $aSearch = decodeSingleCoord(findImage($g_aMagicItemName[$i], $g_sImgTraderWindow & $g_aMagicItemName[$i] & "*", GetDiamondFromRect("160, 200, 700, 400")))
 		If IsArray($aSearch) And UBound($aSearch) = 2 Then 
@@ -378,7 +378,7 @@ EndFunc
 Func UseFreeMagicItem()
 	If Not $g_bRunState Then Return
 	Local $x, $y
-	
+	checkMainScreen()
 	SetLog("Checking for Magic Item on Box", $COLOR_INFO)
 	If QuickMIS("BC1", $g_sImgMagicItemBox, 625, 610, 675, 650) Then
 		SetLog("Magic Box Found, checking items", $COLOR_ACTION)

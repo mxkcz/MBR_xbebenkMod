@@ -285,7 +285,7 @@ Func SearchTH($bVerify = True, $bClickAway = True)
 				If Not IsInsideDiamondXY($aTH[$i][1], $aTH[$i][2]) Then ContinueLoop
 				SetLog("Found TH Level " & $aTH[$i][3] & " on " & $aTH[$i][1] & "," & $aTH[$i][2], $COLOR_INFO)
 				$x = $aTH[$i][1]
-				$y = $aTH[$i][2] + 10
+				$y = $aTH[$i][2]
 				If $bVerify Then
 					SetLog("Verify TH Level", $COLOR_ACTION)
 					Click($x, $y)

@@ -40,6 +40,7 @@ Func UpgradeWall($bTest = False)
 		For $i = 1 To $iLoop
 			SetDebugLog("$iLoop = " & $i & "/" & $iLoop)
 			DoUpgradeWall()
+			If _Sleep(2000) Then Return
 		Next
 	EndIf
 	
@@ -233,7 +234,7 @@ Func DoUpgradeWall()
 					SetLog("Looking for +10 Button", $COLOR_DEBUG)
 					Switch $g_iUpgradeWallLootType
 						Case 0 ;Gold
-							UpWallGold($iWallCost, $iPlus10Gold, "+10", $aGoldButton)
+							If $iWallCanUpgradeGold > 10 Then UpWallGold($iWallCost, $iPlus10Gold, "+10", $aGoldButton)
 							
 						Case 1 ;Elixir
 							UpWallElixir($iWallCost, $iPlus10Elix, "+10", $aElixButton)

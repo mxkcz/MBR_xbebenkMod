@@ -79,7 +79,7 @@ Func CreateBBPlaySubTab()
 	Local $x = 15, $y = 165
 	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "Group_06", "Auto Upgrades"), $x - 10, $y - 20, $g_iSizeWGrpTab2, 90)
 
-		_GUICtrlCreatePic($g_sIcnMBisland, $x , $y , 64, 64)
+		GUICtrlCreateIcon($g_sLibIconPath, $g_sIcnMBisland, $x , $y , 64, 64)
 		$g_hChkAutoUpgradeBB = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBSuggestedUpgrades", "Auto Upgrades"), $x + 70, $y + 10, -1, -1)
 			GUICtrlSetOnEvent(-1, "chkActivateBBSuggestedUpgrades")
 		$g_hChkAutoUpgradeBBIgnoreHall = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkBBSuggestedUpgradesIgnore_Hall", "Ignore Builder Hall"), $x + 280, $y, -1, -1)

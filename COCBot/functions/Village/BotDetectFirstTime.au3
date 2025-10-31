@@ -14,12 +14,11 @@
 Func BotDetectFirstTime()
 	If $g_bIsClientSyncError Then Return ; if restart after OOS, and User stop/start bot, skip this.
 
-	ZoomOut(True)
 	If _Sleep(50) Then Return
-
+	checkMainScreen(True, $g_bStayOnBuilderBase, "BotDetectFirstTime")
+	
 	SetLog("Detecting your Buildings", $COLOR_INFO)
 	If Not isInsideDiamond($g_aiTownHallPos) Then
-	  checkMainScreen(True, $g_bStayOnBuilderBase, "BotDetectFirstTime")
 	  Collect(True)
 	  SearchTH(False) ; search th on myvillage
 	  SetLog("Townhall: (" & $g_aiTownHallPos[0] & "," & $g_aiTownHallPos[1] & ")", $COLOR_DEBUG)

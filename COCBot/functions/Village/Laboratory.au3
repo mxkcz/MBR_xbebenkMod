@@ -612,9 +612,10 @@ EndFunc
 Func LabUpgrade($bTest = False)
 	Local $bNoPriorityUpgrade = True
 	Local $aCoord[2] = [0, 0]
-	
+	checkMainScreen()
 	If Not $g_bAutoLabUpgradeEnable Then Return ; Lab upgrade not enabled.
 	If Not CheckIfLabIdle($bTest) Then Return
+	
 	If _Sleep(50) Then Return
 	SetLog("Checking for Laboratory Research", $COLOR_INFO)
 	
@@ -644,17 +645,18 @@ Func LabUpgrade($bTest = False)
 		
 		If $bNoPriorityUpgrade And $g_bUpgradeAnyTroops Then
 			SetLog("There is no Priority Upgrade listed, lets try upgrade others", $COLOR_INFO)
-			_ArraySort($Upgrades, 1, 0, 0, 5) ;sort by high cost (higher cost means upgrade near maxed, so wont appear again on next lab upgrade attemp) 
-			For $i = 0 To UBound($Upgrades) - 1
-				If IsLabUpgradeResourceEnough($Upgrades[$i][5], $Upgrades[$i][0]) Then
-					SetLog("Going to Upgrade: " & $Upgrades[$i][3], $COLOR_ACTION)
-					$aCoord[0] = $Upgrades[$i][1]
-					$aCoord[1] = $Upgrades[$i][2]
-					Return LaboratoryUpgrade($Upgrades[$i][3], $aCoord, $Upgrades[$i][5], $bTest)
-				Else
-					SetLog("Skip upgrade " & $Upgrades[$i][3] & ", no resources", $COLOR_DEBUG2)
-				EndIf
-			Next
+			Laboratory()
+			;_ArraySort($Upgrades, 1, 0, 0, 5) ;sort by high cost (higher cost means upgrade near maxed, so wont appear again on next lab upgrade attemp) 
+			;For $i = 0 To UBound($Upgrades) - 1
+			;	If IsLabUpgradeResourceEnough($Upgrades[$i][5], $Upgrades[$i][0]) Then
+			;		SetLog("Going to Upgrade: " & $Upgrades[$i][3], $COLOR_ACTION)
+			;		$aCoord[0] = $Upgrades[$i][1]
+			;		$aCoord[1] = $Upgrades[$i][2]
+			;		Return LaboratoryUpgrade($Upgrades[$i][3], $aCoord, $Upgrades[$i][5], $bTest)
+			;	Else
+			;		SetLog("Skip upgrade " & $Upgrades[$i][3] & ", no resources", $COLOR_DEBUG2)
+			;	EndIf
+			;Next
 		EndIf
 	Else
 		SetLog("No Laboratory Upgrade", $COLOR_DEBUG2)

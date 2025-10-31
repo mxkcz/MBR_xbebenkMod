@@ -82,7 +82,7 @@ Global $g_sImgUpgradeWallGold = @ScriptDir & "\imgxml\imglocbuttons\WallGold*.xm
 Global $g_sImgHeroEquipement = @ScriptDir & "\imgxml\Research\Blacksmith\"
 Global $g_sImgEquipmentResearch = @ScriptDir & "\imgxml\Research\Blacksmith\Equipment\"
 Global $g_sImgEquipmentNew = @ScriptDir & "\imgxml\Research\Blacksmith\New\New*"
-Global $g_sImgRedZero = @ScriptDir & "\imgxml\Research\Blacksmith\RedZero\RedZero*"
+Global $g_sImgEquipmentRedZero = @ScriptDir & "\imgxml\Research\Blacksmith\RedZero\"
 #EndRegion
 
 #Region Clan Capital

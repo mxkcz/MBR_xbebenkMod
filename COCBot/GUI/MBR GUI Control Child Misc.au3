@@ -678,34 +678,35 @@ EndFunc   ;==>chkTrophyHeroes
 
 Func ChkCollect()
 	If GUICtrlRead($g_hChkCollect) = $GUI_CHECKED Then
-		;GUICtrlSetState($g_hChkCollectCartFirst, $GUI_ENABLE)
-		GUICtrlSetState($g_hChkTreasuryCollect, $GUI_ENABLE)
-		GUICtrlSetState($g_hTxtCollectGold, $GUI_ENABLE)
-		GUICtrlSetState($g_hTxtCollectElixir, $GUI_ENABLE)
-		GUICtrlSetState($g_hTxtCollectDark, $GUI_ENABLE)
+		$g_bChkCollect = True
 	Else
-		;GUICtrlSetState($g_hChkCollectCartFirst, $GUI_UNCHECKED)
-		;GUICtrlSetState($g_hChkCollectCartFirst, $GUI_DISABLE)
-		GUICtrlSetState($g_hChkTreasuryCollect, $GUI_UNCHECKED)
-		GUICtrlSetState($g_hChkTreasuryCollect, $GUI_DISABLE)
-		GUICtrlSetState($g_hTxtCollectGold, $GUI_DISABLE)
-		GUICtrlSetState($g_hTxtCollectElixir, $GUI_DISABLE)
-		GUICtrlSetState($g_hTxtCollectDark, $GUI_DISABLE)
+		$g_bChkCollect = False
 	EndIf
-	ChkTreasuryCollect()
 EndFunc   ;==>ChkCollect
+
+Func ChkCollectLootCart()
+	If GUICtrlRead($g_hChkCollectLootCart) = $GUI_CHECKED Then
+		$g_bChkCollectLootCart = True
+	Else
+		$g_bChkCollectLootCart = False
+	EndIf
+EndFunc
 
 Func ChkTreasuryCollect()
 	If GUICtrlRead($g_hChkTreasuryCollect) = $GUI_CHECKED Then
-		GUICtrlSetState($g_hTxtTreasuryGold, $GUI_ENABLE)
-		GUICtrlSetState($g_hTxtTreasuryElixir, $GUI_ENABLE)
-		GUICtrlSetState($g_hTxtTreasuryDark, $GUI_ENABLE)
+		$g_bChkTreasuryCollect = True
 	Else
-		GUICtrlSetState($g_hTxtTreasuryGold, $GUI_DISABLE)
-		GUICtrlSetState($g_hTxtTreasuryElixir, $GUI_DISABLE)
-		GUICtrlSetState($g_hTxtTreasuryDark, $GUI_DISABLE)
+		$g_bChkTreasuryCollect = False
 	EndIf
 EndFunc   ;==>ChkTreasuryCollect
+
+Func ChkCollectCookie()
+	If GUICtrlRead($g_hChkCollectCookie) = $GUI_CHECKED Then
+		$g_bChkCollectCookie = True
+	Else
+		$g_bChkCollectCookie = False
+	EndIf
+EndFunc
 
 Func ChkFreeMagicItems()
 	If GUICtrlRead($g_hChkCollectFreeMagicItems) = $GUI_CHECKED Then
@@ -715,29 +716,29 @@ Func ChkFreeMagicItems()
 	EndIf
 EndFunc   ;==>ChkFreeMagicItems
 
-Func btnOpenSalePotion()
-	GUISetState(@SW_SHOW, $g_hGUI_SaleMagicItems)
+Func btnOpenSellPotion()
+	GUISetState(@SW_SHOW, $g_hGUI_SellMagicItems)
 EndFunc
 
-Func btnCloseSalePotion()
-	GUISetState(@SW_HIDE, $g_hGUI_SaleMagicItems)
+Func btnCloseSellPotion()
+	GUISetState(@SW_HIDE, $g_hGUI_SellMagicItems)
 EndFunc
 
-Func chkEnableSaleMagicItem()
-	If GUICtrlRead($g_hChkEnableSaleMagicItem) = $GUI_CHECKED Then
-		$g_bChkEnableSaleMagicItem = True
+Func chkEnableSellMagicItem()
+	If GUICtrlRead($g_hChkEnableSellMagicItem) = $GUI_CHECKED Then
+		$g_bChkEnableSellMagicItem = True
 		Local $iCtrl = 0
-		For $i = $g_hChkSaleBOF To $g_hChkSaleROBE
+		For $i = $g_hChkSellBOF To $g_hChkSellROBE
 			GUICtrlSetState($i, $GUI_ENABLE)
-			$g_aSaleMagicItem[$iCtrl] = (GUICtrlRead($i) = $GUI_CHECKED ? True : False)
+			$g_aSellMagicItem[$iCtrl] = (GUICtrlRead($i) = $GUI_CHECKED ? True : False)
 			$iCtrl += 1
 		Next
 	Else
-		$g_bChkEnableSaleMagicItem = False
+		$g_bChkEnableSellMagicItem = False
 		Local $iCtrl = 0
-		For $i = $g_hChkSaleBOF To $g_hChkSaleROBE
+		For $i = $g_hChkSellBOF To $g_hChkSellROBE
 			GUICtrlSetState($i, $GUI_DISABLE)
-			$g_aSaleMagicItem[$iCtrl] = (GUICtrlRead($i) = $GUI_CHECKED ? True : False)
+			$g_aSellMagicItem[$iCtrl] = (GUICtrlRead($i) = $GUI_CHECKED ? True : False)
 			$iCtrl += 1
 		Next
 	EndIf
