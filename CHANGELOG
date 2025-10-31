@@ -47,3 +47,13 @@
 * - coc seem not smooth on LD9 (flicker)
 * - tested bot run 24H with LD9 but LD9 hungs at day 2
 * - it may because my hardware you can test your own
+*
+* **v.7.9.9 Mod_v1.2.6#121**
+* Modify DonateCC (scroll to find troops)
+* Added chat notif checker, request/donate if exists
+* Fix TreasureHunt (Return Home after attack)
+* Added BuilderBase EndBattle on 2 stars
+* Separate Collect resource and lootcart
+* Added option to enable/disable CollectCookie
+* Rewrite Blacksmith (Hero Equipment Upgrade)
+*
