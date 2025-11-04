@@ -221,28 +221,6 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 	EndIf
 	UpdateStats()
 
-	
-	;If IsAttackWhileShieldPage(False) Then ; check for shield window and Then button to lose time due attack and click okay
-	;	If WaitforPixel(435, 480, 438, 484, "6DBC1F", 10, 1, "PrepareSearch-Shield") Then
-	;		Click(436, 482)
-	;	EndIf
-	;EndIf
-
-	;Local $Result = getAttackDisable(346, 182) ; Grab Ocr for TakeABreak check
-
-	;If isGemOpen(True) Then ; Check for gem window open)
-	;	If Not IsAttackPage() Then 
-	;		SetLog(" Not enough gold to start searching!", $COLOR_ERROR)
-	;		Click(623, 231, 1, 0, "#0151") ; Click close gem window "X"
-	;		If _Sleep($DELAYPREPARESEARCH1) Then Return
-	;		Click(789, 117, 1, 0, "#0152") ; Click close attack window "X"
-	;		If _Sleep($DELAYPREPARESEARCH1) Then Return
-	;		$g_bOutOfGold = True ; Set flag for out of gold to search for attack
-	;	EndIf
-	;EndIf
-
-	;SetDebugLog("PrepareSearch exit check $g_bRestart= " & $g_bRestart & ", $g_bOutOfGold= " & $g_bOutOfGold, $COLOR_DEBUG)
-
 	If $g_bRestart Then ; If we have one or both errors, Then Return
 		$g_bIsClientSyncError = False ; reset fast restart flag to stop OOS mode, collecting resources etc.
 		Return

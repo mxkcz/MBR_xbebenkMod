@@ -1492,7 +1492,6 @@ Global $g_aiMaxTH[$g_iModeCount] = [0, 0, 0]
 Global $g_iAimGold[$g_iModeCount] = [0, 0, 0], $g_iAimElixir[$g_iModeCount] = [0, 0, 0], $g_iAimGoldPlusElixir[$g_iModeCount] = [0, 0, 0], $g_iAimDark[$g_iModeCount] = [0, 0, 0], _
 		$g_iAimTrophy[$g_iModeCount] = [0, 0, 0], $g_iAimTrophyMax[$g_iModeCount] = [99, 99, 99] ; Aiming Resource values
 Global $g_iTHx = 0, $g_iTHy = 0
-Global $g_bOutOfGold = False ; Flag for out of gold to search for attack
 
 ; Town hall search
 Global $g_iTHside = 0, $g_iTHi = 0
@@ -1599,7 +1598,6 @@ Global $ATTACKVECTOR_Y, $ATTACKVECTOR_Z
 ; Train
 Global $g_bTrainEnabled = True
 Global $g_bIsFullArmywithHeroesAndSpells = False
-Global $g_bOutOfElixir = False ; Flag for out of elixir to train troops
 Global $g_aiTimeTrain[4] = [0, 0, 0, 0] ; [Troop remaining time], [Spells remaining time], [Hero remaining time - when possible], [Siege remain Time]
 Global $g_bCheckSpells = False
 Global $g_bCheckClanCastleTroops = False

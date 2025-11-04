@@ -711,7 +711,6 @@ Func runBot() ;Bot that runs everything in order
 		If CheckAndroidReboot() Then ContinueLoop
 		If Not $g_bIsClientSyncError Then
 			If Not $g_bRunState Then Return
-			If $g_bOutOfGold THen $g_bOutOfGold = False
 			$MainLoopTimer = TimerInit()
 			SetLogCentered(" Top MainLoop ", "=", $COLOR_DEBUG)
 			checkMainScreen(False, $g_bStayOnBuilderBase, "MainLoop")
@@ -854,10 +853,8 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			;If $g_bUpdateSharedPrefs And $g_bChkSharedPrefs Then PullSharedPrefs()
 			PrepareSearch()
 			If Not $g_bRunState Then Return
-			If $g_bOutOfGold Then Return ; Check flag for enough gold to search
 			If $g_bRestart Then Return
 			VillageSearch()
-			If $g_bOutOfGold Then Return ; Check flag for enough gold to search
 			If Not $g_bRunState Then Return
 			If $g_bRestart Then Return
 			PrepareAttack($g_iMatchMode)

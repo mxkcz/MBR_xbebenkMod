@@ -21,17 +21,9 @@ Func BotCommand()
 
 	Local $bChkBotStop, $iCmbBotCond, $iCmbBotCommand
 
-	If $g_bOutOfElixir Or $g_bOutOfGold Then ; Check for out of loot conditions
-		$bChkBotStop = True ; set halt attack mode
-		$iCmbBotCond = 18 ; set stay online/collect only mode
-		$iCmbBotCommand = 0 ; set stop mode to stay online
-		Local $sOutOf = ($g_bOutOfGold ? "Gold" : "") & (($g_bOutOfGold And $g_bOutOfElixir)? " and " : "") & ($g_bOutOfElixir ? "Elixir" : "")
-		SetLog("Out of " & $sOutOf & " condition detected, force HALT mode!", $COLOR_WARNING)
-	Else
-		$bChkBotStop = $g_bChkBotStop ; Normal use GUI halt mode values
-		$iCmbBotCond = $g_iCmbBotCond
-		$iCmbBotCommand = $g_iCmbBotCommand
-	EndIf
+	$bChkBotStop = $g_bChkBotStop ; Normal use GUI halt mode values
+	$iCmbBotCond = $g_iCmbBotCond
+	$iCmbBotCommand = $g_iCmbBotCommand
 
 	$g_bMeetCondStop = False ; reset flags so bot can restart farming when conditions change.
 	$g_bTrainEnabled = True
