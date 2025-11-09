@@ -16,6 +16,136 @@
 #include <Array.au3>
 #include <MsgBoxConstants.au3>
 
+Func FillArmyCamp()
+	If $g_bIgnoreIncorrectTroopCombo Or $g_bIgnoreIncorrectSpellCombo Then ;check army or spell to fill
+		If OpenArmyOverview() Then 
+			If _Sleep(500) Then Return
+			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 210, 480, 230) Then ;check on troops
+				SetLog("Your troop need to fill", $COLOR_DEBUG)
+				FillIncorrectTroopCombo()
+				ClickAway()
+				If _Sleep(500) Then Return
+			EndIf
+			
+			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 320, 480, 345) Then ;check on spells
+				SetLog("Your troop need to fill", $COLOR_DEBUG)
+				FillIncorrectSpellCombo()
+				ClickAway()
+				If _Sleep(500) Then Return
+			EndIf
+			
+			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 380, 270, 800, 295) Then ;check on acivate supertroop
+				SetLog("SuperTroop Need to activate", $COLOR_DEBUG)
+				ClickAway()
+				If _Sleep(500) Then Return
+				BoostSuperTroop()
+			EndIf
+			CheckHeroOnUpgrade()
+			CheckCookieReinforcement()
+			
+			;close Army window
+			ClickAway()
+			If _Sleep(500) Then Return
+		EndIf
+	EndIf
+EndFunc
+
+Func CheckHeroOnUpgrade()
+	Local $aHammer, $x, $y, $aHero
+	Local $bCheck = False, $bWardenFound = False
+	Local $iWardenMode = $g_aiAttackUseWardenMode[$DB]
+	If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 86, 200, 120, 230) Then $bCheck = True
+	If Not $bCheck Then Return
+	
+	$aHammer = QuickMIS("CNX", $g_sImgArmyOverviewHeroesHammer, 90, 233, 380, 260)
+	If IsArray($aHammer) And UBound($aHammer) > 0 Then
+		_ArraySort($aHammer, 0, 0, 0, 1) ;sort left to right
+		RemoveDupCNX($aHammer, 1, 20)
+		For $i = 0 To UBound($aHammer) - 1
+			$x = $aHammer[$i][1]
+			$y = $aHammer[$i][2]
+			SetLog("Found Hammer on " & $x & "," & $y, $COLOR_DEBUG)
+			Click($x, $y, 1, 0, "Hammer")
+			If _Sleep(1000) Then Return
+			$aHero = QuickMIS("CNX", $g_sImgArmyOverviewHeroChange, 86, 200, $x + 350, $y + 85)
+			If IsArray($aHero) And UBound($aHero) > 0 Then
+				For $i = 0 To UBound($aHero) - 1
+					SetLog("Hero " & $aHero[$i][0] & " is Available", $COLOR_INFO)
+					If StringInStr($aHero[$i][0], "Warden") Then
+						$bWardenFound = True
+						If $iWardenMode = 0 Or $iWardenMode = 2 Then 
+							If $aHero[$i][0] = "WardenGround" Then 
+								Click($aHero[$i][1], $aHero[$i][2], 1, 0, "Click " & $aHero[$i][0])
+								If _Sleep(1000) Then Return
+								Click($x, $y, 1, 0, "Hammer")
+								ExitLoop
+							Else
+								ContinueLoop
+							EndIf
+						Else
+							If $aHero[$i][0] = "WardenAir" Then 
+								Click($aHero[$i][1], $aHero[$i][2], 1, 0, "Click " & $aHero[$i][0])
+								If _Sleep(1000) Then Return
+								Click($x, $y, 1, 0, "Hammer")
+								ExitLoop
+							EndIF
+						EndIf
+					Else
+						Click($aHero[$i][1], $aHero[$i][2], 1, 0, "Click " & $aHero[$i][0])
+						If _Sleep(1000) Then Return
+						Click($x, $y, 1, 0, "Hammer")
+						ExitLoop
+					EndIf
+				Next
+				If Ubound($aHero) = 1 Then ExitLoop
+				If $bWardenFound And Ubound($aHero) = 2 Then ExitLoop
+			Else
+				Click($x, $y, 1, 0, "Hammer")
+				ExitLoop
+			EndIf
+		Next
+		If _Sleep(500) Then Return
+	EndIf
+EndFunc
+
+Func CheckCookieReinforcement()
+	If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 650, 450, 725, 485) Then ;check on Castle cake reinforcement
+		SetLog("Try Reinforce with Castle Cake", $COLOR_DEBUG)
+		Click($g_iQuickMISX, $g_iQuickMISY)
+		If _Sleep(1000) Then Return
+		If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 210, 180, 280, 250) Then ;read if text "Tap to Reinforce" exist
+			Click($g_iQuickMISX, $g_iQuickMISY)
+			If _Sleep(1000) Then Return
+			Local $aTroops = QuickMIS("CNX", $g_sImgTrainTroops, 120, 260, 740, 460) ;read all troops image 
+			If IsArray($aTroops) And UBound($aTroops) > 0 Then
+				_ArraySort($aTroops, 0, 0, 0, 1)
+				For $i = 0 To UBound($aTroops) - 1
+					Switch $aTroops[$i][0]
+						Case "Giant", "Ball", "Wiz"
+							Click($aTroops[$i][1], $aTroops[$i][2], 5)
+						Case "Drag"
+							Click($aTroops[$i][1], $aTroops[$i][2], 2)
+					EndSwitch
+					
+					If _ColorCheck(_GetPixelColor(150, 275, True), Hex(0x8F8F8F, 6), 20, Default, "CheckTroopBar") Then 
+						Click(450, 530) ;Click Confirm
+						If _Sleep(500) Then Return
+						ExitLoop ;troops bar greyed
+					EndIf
+				Next
+			EndIf
+		EndIf
+		
+		If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 450, 380, 635, 500) Then
+			Click($g_iQuickMISX, $g_iQuickMISY)
+			SetLog("Fill Reinforcement using Castle Cake", $COLOR_ACTION)
+		EndIf
+		
+		ClickAway()
+		If _Sleep(500) Then Return
+	EndIf
+EndFunc
+
 Func TrainSystem()
 	If Not $g_bTrainEnabled Then ; check for training disabled in halt mode
 		If $g_bDebugSetlogTrain Then SetLog("Halt mode - training disabled", $COLOR_DEBUG)
@@ -148,7 +278,7 @@ Func CheckIfArmyIsReady($bCloseWindow = False)
 	$bFullArmyCC = IsFullClanCastle()
 	$bFullSiege = CheckSiegeMachine()
 
-	; If Drop Trophy with Heroes is checked and a Hero is Available or under the trophies range, then set $g_bFullArmyHero to True
+	; If Drop Trophy with Heroes is checked and a Hero is Available or under the trophies range, Then set $g_bFullArmyHero to True
 	If Not IsWaitforHeroesActive() And $g_bDropTrophyUseHeroes Then $bFullArmyHero = True
 	If Not IsWaitforHeroesActive() And Not $g_bDropTrophyUseHeroes And Not $bFullArmyHero Then
 		If $g_iHeroAvailable > 0 Or Number($g_aiCurrentLoot[$eLootTrophy]) <= Number($g_iDropTrophyMax) Then

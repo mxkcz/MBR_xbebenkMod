@@ -328,15 +328,12 @@ Func DonateCC($bTest = False, $bSwitch = False, $bClanChatOpened = False)
 		EndIf
 
 		$bDonate = False ;reset after a page
-		For $i = 1 To 3
+		For $i = 1 To 2
 			If _ColorCheck(_GetPixelColor(339, 592, True), Hex(0xFFFFFF, 6), 20, Default, "DonateCC-ScrollDown") Then
 				SetLog("Scroll chat Request #" & $i, $COLOR_ACTION)
 				Click(335, 595, 1, 0, "Click Green Scroll Button")
 				If _Sleep(1000) Then Return
 				$bDonate = True
-			Else
-				;exit from donate loop, already check most bottom request
-				If $i = 1 Then ExitLoop 2
 			EndIf
 		Next
 

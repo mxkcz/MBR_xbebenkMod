@@ -1937,14 +1937,13 @@ Global Const $g_aiEquipmentOrderIcon2[$eEquipmentCount + 1] = [ $eIcnOptions, _
 Global $g_hChkCustomEquipmentOrderEnable = 0, $g_bChkCustomEquipmentOrderEnable = False
 Global $g_hChkMinOreUpgrade = 0, $g_bChkMinOreUpgrade = False, $g_hTxtMinOreUpgrade = 0, $g_sTxtMinOreUpgrade = ""
 Global $g_hBtnEquipmentOrderSet = 0, $g_ahImgEquipmentOrderSet = 0,$g_hBtnRemoveEquipment = 0, $g_hBtnRegularOrder = 0
-Global $g_aZero33[33] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-Global $g_EquipmentOrderLabel[$eEquipmentCount] = $g_aZero33
-Global $g_ahCmbEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_ahImgEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_ahImgEquipmentOrder2[$eEquipmentCount] = $g_aZero33
-Global $g_hChkCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_bChkCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_aiCmbCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
+Global $g_aZero33[$eEquipmentCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCmbEquipmentOrder = $g_aZero33
+Global $g_ahImgEquipmentOrder = $g_aZero33
+Global $g_ahImgEquipmentOrder2 = $g_aZero33
+Global $g_hChkCustomEquipmentOrder = $g_aZero33
+Global $g_bChkCustomEquipmentOrder = $g_aZero33
+Global $g_aiCmbCustomEquipmentOrder = $g_aZero33
 
 ; PetHouse
 Global $g_aiPetHousePos[2] = [-1, -1]

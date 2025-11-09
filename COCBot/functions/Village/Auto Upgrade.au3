@@ -54,6 +54,7 @@ Func AutoUpgradeCheckBuilder($bTest = False)
 		If $g_iFreeBuilderCount = 1 Then
 			If _ColorCheck(_GetPixelColor(413, 43, True), Hex(0xFFAD62, 6), 20, Default, "AutoUpgradeCheckBuilder") Then
 				SetLog("AutoUpgradeCheckBuilder, Free Builder = 1, Goblin Builder!", $COLOR_DEBUG2)
+				$g_iFreeBuilderCount = 0
 				$bRet = False
 			EndIf
 		EndIf
@@ -105,11 +106,14 @@ Func SearchUpgrade($bTest = False, $bUpgradeLowCost = False)
 	CheckMainScreen()
 	VillageReport(False, True)
 	PlaceUnplacedBuilding()
-	If $bUpgradeLowCost And $g_bChkRushTH And $g_iFreeBuilderCount = 1 Then
+	If $bUpgradeLowCost And $g_bChkRushTH And $g_iFreeBuilderCount = 1 And $g_bUpgradeWallSaveBuilder Then
 		ClickMainBuilder()
 		SetLog("Checking current upgrade", $COLOR_INFO)
-		If QuickMIS("BC1", $g_sImgAUpgradeHour, 480, 110, 555, 125) Then
-			Local $sUpgradeTime = getBuilderLeastUpgradeTime($g_iQuickMISX - 50, $g_iQuickMISY - 8)
+		Local $aHour = QuickMIS("CNX", $g_sImgAUpgradeHour, 480, 110, 555, 170)
+		If isArray($aHour) And UBound($aHour) > 0 Then
+			_ArraySort($aHour, 0, 0, 0, 2)
+			
+			Local $sUpgradeTime = getBuilderLeastUpgradeTime($aHour[0][1] - 50, $aHour[0][2] - 8)
 			SetLog("Least Upgrade time : " & $sUpgradeTime, $COLOR_INFO)
 			Local $mUpgradeTime = ConvertOCRTime("OCR Minute", $sUpgradeTime)
 			If $mUpgradeTime > 0 And $mUpgradeTime <= 1440 Then
@@ -219,8 +223,6 @@ Func _SearchUpgrade($bTest = False, $bSkip1st = False, $bLowCost = False, $bUseW
 							If IsFullScreenWindow() Then Click(820, 37) ;close shop window
 							ExitLoop
 						EndIf
-					Else
-						$bSkipNew = True
 					EndIf
 				EndIf
 			Next
@@ -248,7 +250,7 @@ Func _SearchUpgrade($bTest = False, $bSkip1st = False, $bLowCost = False, $bUseW
 							EndIf
 						EndIf
 					Next
-					If DoUpgrade($bTest) Then
+					If DoUpgrade($bTest, $bLowCost) Then
 						$g_bSkipWallReserve = False ;reset to false to prevent bot wrong check on AutoUpgradeCheckBuilder()
 						$g_bUpgradeLowCost = False ;reset to false to prevent bot wrong check on AutoUpgradeCheckBuilder()
 						$sameCost = 0
@@ -286,7 +288,7 @@ Func FindUpgrade($bTest = False, $bSkipNew = False, $bLowCost = False, $bUseWall
 	If $Elix > $Gold Then $ElixMultiply += 1
 	Local $aTmpCoord, $aBuilding[0][8], $BuildingName, $UpgradeCost, $aUpgradeName, $tmpcost, $bFoundRushTH = False, $bRusTHFound = False, $lenght = 0
 	Local $aPriority[7][2] = [["Castle", 15], ["Pet", 13], ["Laboratory", 16], ["Storage", 14], ["Army", 14], ["Giga", 12], ["Town", 10]]
-	Local $aRushTH[9][2] = [["Hero", 13], ["Barracks", 8], ["Spell", 9], ["Workshop", 10], ["Blacksmith", 8], ["King", 8], ["Queen", 8], ["Warden", 8], ["Champion", 8]]
+	Local $aRushTH[9][2] = [["Hero", 13], ["Barracks", 8], ["Spell", 9], ["Workshop", 10], ["Blacksmith", 9], ["King", 8], ["Queen", 8], ["Warden", 8], ["Champion", 8]]
 	Local $aHeroes[5] = ["Barbarian", "Queen", "Warden", "Champion", "Prince"]
 	Local $bHero = False
 
@@ -322,10 +324,10 @@ Func FindUpgrade($bTest = False, $bSkipNew = False, $bLowCost = False, $bUseWall
 			EndIf
 		Next
 
-		If UBound($aBuilding) > 0 Then
-			_ArraySort($aBuilding, 0, 0, 0, 5) ;sort by cost
-			Return $aBuilding ;return new building array
-		EndIf
+		;If UBound($aBuilding) > 0 Then
+		;	_ArraySort($aBuilding, 0, 0, 0, 5) ;sort by cost
+		;	Return $aBuilding ;return new building array
+		;EndIf
 	EndIf
 	If Not $g_bRunState Then Return
 	
@@ -571,7 +573,7 @@ Func CheckIgnoreUpgrade($sUpgradeName = "", $bUpgradeLowCost = False)
 	Return $bMustIgnoreUpgrade
 EndFunc
 
-Func DoUpgrade($bTest = False)
+Func DoUpgrade($bTest = False, $bUpgradeLowCost = False)
 	If Not $g_bRunState Then Return
 
 	; get the name and actual level of upgrade selected, if strings are empty, will exit Auto Upgrade, an error happens
@@ -581,7 +583,8 @@ Func DoUpgrade($bTest = False)
 		Return False
 	EndIf
 
-	Local $THLevelAchieved = IsTHLevelAchieved()
+	Local $THLevelAchieved = True
+	If $g_bUpgradeOnlyTHLevelAchieve Then $THLevelAchieved = IsTHLevelAchieved()
 	Local $bMustIgnoreUpgrade = False, $bUpgradeTHWeapon = False
 
 	; Double check if wrong click happen
@@ -705,7 +708,8 @@ Func DoUpgrade($bTest = False)
 		SetLog("No upgrade here... Wrong click, looking Next...", $COLOR_WARNING)
 		Return False
 	EndIf
-
+	
+	If $bUpgradeLowCost Then $bMustIgnoreUpgrade = False
 	; check if the upgrade name is on the list of upgrades that must be ignored
 	If $bMustIgnoreUpgrade Then
 		SetLog($g_aUpgradeNameLevel[1] & " : This upgrade must be ignored, looking Next...", $COLOR_WARNING)
@@ -920,7 +924,7 @@ Func PlaceNewBuildingFromShop($sUpgrade = "wall", $bZoomedIn = False, $iCost = 0
 	
 	;If StringInStr($sUpgrade, "Hut") > 0 Then $sUpgrade = "Builder's Hut"
 	If StringInStr($sUpgrade, "Collector") > 0 Then $sUpgrade = "Elixir Collector"
-	If StringInStr($sUpgrade, "Mine") > 0 Then $sUpgrade = "Gold Mine"
+	;If StringInStr($sUpgrade, "Mine") > 0 Then $sUpgrade = "Gold Mine"
 
 	Local $sImgUpgrade = StringStripWS($sUpgrade, $STR_STRIPALL)
 	SetLog("ImgUpgrade : " & $sUpgrade & "=" & $sImgUpgrade & "*", $COLOR_INFO)
@@ -1235,7 +1239,7 @@ Func ClickDragAUpgrade($Direction = "Up", $DragCount = 1)
 		Local $Tmp = QuickMIS("CNX", $g_sImgResourceIcon, 440, 300, 600, 410)
 		If IsArray($Tmp) And UBound($Tmp) > 0 Then
 			_ArraySort($Tmp, 1, 0, 0, 2)
-			$x = $Tmp[0][1]
+			$x = $Tmp[0][1] - 50
 			$YY = $Tmp[0][2]
 			If $YY > 350 Then $YY = 350 ;no over scroll
 			If $g_bDebugSetLog Then SetLog("DragUpY = " & $YY)
@@ -1256,19 +1260,15 @@ Func ClickDragAUpgrade($Direction = "Up", $DragCount = 1)
 					If $YY < 100 Then $YY = 150
 					If $DragCount > 1 Then
 						For $i = 1 To $DragCount
-							;ClickDrag($x, $YY, $x, $yUp, $Delay, True) ;drag up
 							ClickDrag($x, $YY, $x, $yUp) ;drag up
 						Next
 					Else
-						;ClickDrag($x, $YY, $x, $yUp, $Delay, True) ;drag up
 						ClickDrag($x, $YY, $x, $yUp) ;drag up
 					EndIf
 					If _Sleep(1000) Then Return
 				Case "Down"
-					;ClickDrag($x, $yUp, $x, $yDown, $Delay, True) ;drag to bottom
 					ClickDrag($x, $yUp, $x, $yDown) ;drag to bottom
 					If WaitforPixel(510, 90, 512, 91, "FFFFFF", 10, 1, "ClickDragAUpgrade") Then
-						;ClickDrag($x, $yUp, $x, $yDown, $Delay, True) ;drag to bottom
 						ClickDrag($x, $yUp, $x, $yDown) ;drag to bottom
 					EndIf
 					If _Sleep(5000) Then Return
@@ -1400,7 +1400,7 @@ Func FindTHInUpgradeProgress()
 
 	If QuickMIS("BC1", $g_sImgBuilderMenu, 250, 85, 400, 275) Then
 		$g_iXFindUpgrade = $g_iQuickMISX - 30
-		If $g_bDebugSetLog Then SetLog("XFindUpgrade = " & $g_iXFindUpgrade, $COLOR_SUCCESS)
+		SetLog("XFindUpgrade = " & $g_iXFindUpgrade, $COLOR_SUCCESS)
 	EndIf
 
 	Local $Progress = QuickMIS("CNX", $g_sImgAUpgradeHour, 440, 90, 550, 280)
@@ -1560,6 +1560,10 @@ Func CheckBuilderPotion()
 				SetLog("Upgrade time > 9h, will use Builder Potion", $COLOR_INFO)
 				Click($g_iQuickMISX, $g_iQuickMISY)
 				If _Sleep(1000) Then Return
+				If IsHeroHallWindow() Then 
+					ClickAway()
+					If _Sleep(1000) Then return
+				EndIf
 				If ClickB("BuilderPot") Then
 					If _Sleep(1000) Then Return
 					If QuickMIS("BC1", $g_sImgBuilderPotion, 425, 365, 530, 450) Then 

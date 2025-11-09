@@ -399,6 +399,7 @@ Func AttackBB($aBBAttackBar = Default, $bSecondAttack = False)
 				$sTroopName = $aBBAttackBar[$i][0]
 			Next
 		EndIf
+		If _Sleep(1000) Then Return
 		$aBBAttackBar = GetAttackBarBB(True)
 		If $aBBAttackBar = "" Then
 			SetLog("All Troops Deployed", $COLOR_SUCCESS)
