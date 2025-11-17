@@ -552,7 +552,7 @@ Global $eIcnOptions = $eIcnDonBlacklist
 Global $eIcnAchievements = $eIcnMain
 Global $eIcnStrategies = $eIcnBlank
 
-Global $g_aIcnTHLevel[18] = [$eIcnBlank, $eIcnBlank, $eIcnBlank, $eIcnBlank, $eHdV04, $eHdV05, $eHdV06, $eHdV07, $eHdV08, $eHdV09, $eHdV10, $eHdV11, $eHdV12, $eHdV13, $eHdV14, $eHdV15, $eHdV16, $eHdV17]
+Global $g_aIcnTHLevel[19] = [$eIcnBlank, $eIcnBlank, $eIcnBlank, $eIcnBlank, $eHdV04, $eHdV05, $eHdV06, $eHdV07, $eHdV08, $eHdV09, $eHdV10, $eHdV11, $eHdV12, $eHdV13, $eHdV14, $eHdV15, $eHdV16, $eHdV17, $eHdV17]
 
 ; Controls bot startup and ongoing operation
 Global Const $g_iCollectAtCount = 10 ; Run Collect() after this amount of times before actually collect
@@ -1481,9 +1481,9 @@ Global $g_bCloudsActive = False ;True when waiting for clouds
 Global $g_bAttackActive = False ;True when attacking Village
 
 ; Search
-Global Const $g_iMaxTHLevel = 17
-Global Const $g_asTHText[12] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"]
-Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 580, 750, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000]
+Global Const $g_iMaxTHLevel = 18
+Global Const $g_asTHText[13] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", , "18"]
+Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 580, 750, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500]
 Global $g_bSearchMode = False
 Global $g_bIsSearchLimit = False
 Global $g_bIsClientSyncError = False ;If true means while searching Client Out Of Sync error occurred.
