@@ -1482,7 +1482,7 @@ Global $g_bAttackActive = False ;True when attacking Village
 
 ; Search
 Global Const $g_iMaxTHLevel = 18
-Global Const $g_asTHText[13] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", , "18"]
+Global Const $g_asTHText[13] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"]
 Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 580, 750, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500]
 Global $g_bSearchMode = False
 Global $g_bIsSearchLimit = False
