@@ -529,6 +529,7 @@ Func GetBuildingTypeBB($sUpgrades = "")
 	
 	If $sUpgrades = "Air Bombs" Then $sUpgradeType = "Defenses"
 	If $sUpgrades = "Gold Mine" Then $sUpgradeType = "Resources"
+	If $sUpgrades = "Giant Cannon" Then $sUpgradeType = "Defenses"
 	
 	If $g_bDebugSetLog Then SetLog("Found UpgradeType : " & $sUpgradeType, $COLOR_DEBUG1)
 	Return $sUpgradeType
@@ -733,7 +734,7 @@ EndFunc
 Func IsBBBuilderMenuOpen()
 	Local $bRet = False
 	Local $aBorder0[4] = [490, 73, 0xFFFFFF, 40]
-	Local $aBorder1[4] = [530, 73, 0xFFFFFF, 40]
+	Local $aBorder1[4] = [545, 73, 0xFFFFFF, 40]
 	
 	If _CheckPixel($aBorder0, True) And _CheckPixel($aBorder1, True) Then
 		$bRet = True ;got correct color for border
