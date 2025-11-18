@@ -92,6 +92,7 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 						Click($aButton[$z][1], $aButton[$z][2], 1, 0, "Find a Match Tournament")
 						If _Sleep(1000) Then Return
 						If Not PrepareSearchCheckArmy() Then ExitLoop 2
+						$bTournament = True
 						ExitLoop 2
 					EndIf
 				Next
@@ -146,7 +147,6 @@ Func PrepareSearchCheckArmy()
 			If IsOKCancelPage(True) Then 
 				Click(535, 410, 1, 0, "Confirm Attack OK")
 				$g_bLeagueAttack = True
-				$bTournament = True
 			EndIf
 			If _Sleep(1000) Then Return
 			ExitLoop
