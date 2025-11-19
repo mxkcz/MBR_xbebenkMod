@@ -98,8 +98,7 @@ Func DropTrophy()
 				SetLog("Dropping Trophies to " & $g_iDropTrophyMin, $COLOR_INFO)
 				If _Sleep($DELAYDROPTROPHY4) Then ExitLoop
 				PrepareSearch($DT)
-				If $g_bOutOfGold Or $g_bRestart Then Return
-
+				
 				WaitForClouds() ; Wait for clouds to disappear
 
 				If $g_bRestart Then Return ; exit func

@@ -49,7 +49,7 @@ Func ImgLocateBlacksmith($bLeaveButton = False)
 	If IsArray($aRet) And UBound($aRet) > 0 Then
 		For $i = 0 To UBound($aRet) - 1
 			SetLog("[" & $i & "] Blacksmith Search found : " & $aRet[$i][0], $COLOR_SUCCESS)
-			Click($aRet[$i][1], $aRet[$i][2])
+			Click($aRet[$i][1], $aRet[$i][2] + 5)
 			If _Sleep(1000) Then Return
 			
 			$aBuilding = BuildingInfo(242, 477)
@@ -65,7 +65,7 @@ Func ImgLocateBlacksmith($bLeaveButton = False)
 			If _CheckPixel($aIsMainGrayed, $g_bCapturePixel, Default, "ImgLocateBlacksmith") Then
 				For $j = 1 To 10
 					If checkChatTabPixel() Then 
-						Click($aRet[$i][1], $aRet[$i][2])
+						Click($aRet[$i][1], $aRet[$i][2] + 5)
 						If _Sleep(1000) Then Return
 						$aBuilding = BuildingInfo(242, 477)
 						If StringInStr($aBuilding[1], "smith") Then ExitLoop

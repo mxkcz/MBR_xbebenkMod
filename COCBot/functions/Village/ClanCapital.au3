@@ -489,7 +489,7 @@ EndFunc
 
 Func FindCCExistingUpgrade()
 	Local $aResult[0][3], $name[2] = ["", 0]
-	Local $aUpgrade = QuickMIS("CNX", $g_sImgResourceCC, 400, 100, 550, 360)
+	Local $aUpgrade = QuickMIS("CNX", $g_sImgResourceCC, 400, 100, 550, 400)
 	If IsArray($aUpgrade) And UBound($aUpgrade) > 0 Then
 		_ArraySort($aUpgrade, 0, 0, 0, 2) ;sort by Y coord
 		For $i = 0 To UBound($aUpgrade) - 1
@@ -516,7 +516,7 @@ EndFunc
 
 Func FindCCSuggestedUpgrade()
 	Local $aResult[0][3], $name[2] = ["", 0]
-	Local $aUpgrade = QuickMIS("CNX", $g_sImgResourceCC, 400, 100, 560, 360)
+	Local $aUpgrade = QuickMIS("CNX", $g_sImgResourceCC, 400, 100, 560, 400)
 	If IsArray($aUpgrade) And UBound($aUpgrade) > 0 Then
 		_ArraySort($aUpgrade, 0, 0, 0, 2) ;sort by Y coord
 		For $i = 0 To UBound($aUpgrade) - 1
@@ -572,7 +572,7 @@ Func SkipChat($WaitFor = "UpgradeButton")
 			EndSwitch
 			Click($g_iQuickMISX + 100, $g_iQuickMISY)
 			SetLog("Skip chat #" & $y, $COLOR_INFO)
-			If _Sleep(5000) Then Return
+			If _Sleep(4000) Then Return
 		Else
 			If _GetPixelColor(340, 484, 1) = "FFFFFF" Then
 				Click(340, 484) ;check if we have white chat balloon tips, click it
@@ -592,6 +592,8 @@ Func WaitUpgradeButtonCC()
 	Local $aRet[3] = [False, 0, 0]
 	For $i = 1 To 10
 		If Not $g_bRunState Then Return $aRet
+		If _Sleep(1000) Then Return
+		If IsProblemAffect() Then checkObstacles()
 		SetLog("Waiting for Upgrade Button #" & $i, $COLOR_ACTION)
 		If QuickMIS("BC1", $g_sImgCCUpgradeButton, 300, 520, 600, 660) Then ;check for upgrade button (Hammer)
 			$aRet[0] = True
@@ -599,7 +601,6 @@ Func WaitUpgradeButtonCC()
 			$aRet[2] = $g_iQuickMISY
 			Return $aRet ;immediately return as we found upgrade button
 		EndIf
-		If _Sleep(1000) Then Return
 		If $i > 3 Then SkipChat("UpgradeButton")
 	Next
 	Return $aRet
@@ -608,8 +609,9 @@ EndFunc
 Func WaitUpgradeWindowCC()
 	Local $bRet = False
 	For $i = 1 To 10
-		SetLog("Waiting for Upgrade Window #" & $i, $COLOR_ACTION)
+		If Not $g_bRunState Then Return $aRet
 		If _Sleep(1000) Then Return
+		SetLog("Waiting for Upgrade Window #" & $i, $COLOR_ACTION)
 		If QuickMis("BC1", $g_sImgGeneralCloseButton, 755, 44, 800, 90) Then ;check if upgrade window opened
 			If Not QuickMIS("BC1", $g_sImgClanCapitalTutorial, 30, 460, 200, 600) Then	;also check if there is no tutorial
 				$bRet = True
@@ -682,7 +684,7 @@ Func AutoUpgradeCC($bTest = False)
 						ClickCCBuilder() ;upgrade should be ignored, so open builder menu again for next upgrade
 						ContinueLoop
 					EndIf
-					Local $BuildingName = getOcrAndCapture("coc-build", 200, 515, 400, 30)
+					Local $BuildingName = getOcrAndCapture("coc-build", 200, 524, 400, 30)
 					Click($aRet[1], $aRet[2]) ;click upgrade Button
 					If _Sleep(1000) Then Return
 					If Not WaitUpgradeWindowCC() Then
@@ -690,7 +692,7 @@ Func AutoUpgradeCC($bTest = False)
 						Return
 					EndIf
 					If _Sleep(1000) Then Return
-					Local $cost = getOcrAndCapture("coc-ccgold", 630, 574, 120, 25, True)
+					Local $cost = getOcrAndCapture("coc-uptime2", 630, 574, 120, 25, True)
 					If Not $bTest Then
 						Click(700, 585) ;Click Contribute
 						AutoUpgradeCCLog($BuildingName, $cost)
@@ -711,6 +713,7 @@ Func AutoUpgradeCC($bTest = False)
 	EndIf
 
 	ClickAway("Right") ;close builder menu
+	If _Sleep(2000) Then Return
 	ClanCapitalReport(False)
 	;Upgrade through district map
 	Local $aMapCoord[7][3] = [["Golem Quarry", 185, 590], ["Dragon Cliffs", 630, 465], ["Builder's Workshop", 490, 525], ["Balloon Lagoon", 300, 490], _
@@ -750,14 +753,14 @@ Func AutoUpgradeCC($bTest = False)
 								ClickCCBuilder() ;upgrade should be ignored, so open builder menu again for next upgrade
 								ContinueLoop
 							EndIf
-							Local $BuildingName = StringReplace(getOcrAndCapture("coc-build", 200, 515, 400, 30, True), "-", "")
+							Local $BuildingName = StringReplace(getOcrAndCapture("coc-build", 200, 524, 400, 30, True), "-", "")
 							Click($aRet[1], $aRet[2]) ;click upgrade Button
 							If _Sleep(1000) Then Return
 							If Not WaitUpgradeWindowCC() Then
 								SwitchToMainVillage("No Upgrade Window")
 								Return
 							EndIf
-							Local $cost = StringReplace(getOcrAndCapture("coc-ms", 590, 527, 160, 25, True), "-", "")
+							Local $cost = getOcrAndCapture("coc-uptime2", 630, 574, 120, 25, True)
 							If Not $bTest Then
 								Click(700, 585) ;Click Contribute
 								AutoUpgradeCCLog($BuildingName, $cost)
@@ -799,7 +802,7 @@ EndFunc
 
 Func IsUpgradeCCIgnore()
 	Local $bRet = False
-	Local $UpgradeName = getOcrAndCapture("coc-build", 200, 494, 400, 30)
+	Local $UpgradeName = getOcrAndCapture("coc-build", 200, 524, 400, 30)
 	If $g_bChkAutoUpgradeCCWallIgnore Then ; Filter for wall
 		If StringInStr($UpgradeName, "Wall") Then
 				SetDebugLog($UpgradeName & " Match with: Wall")

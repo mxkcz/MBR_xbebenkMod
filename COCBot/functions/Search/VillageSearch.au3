@@ -378,7 +378,6 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			SetLog(" Not enough gold to keep searching.....", $COLOR_ERROR)
 			Click(585, 252, 1, 0, "#0156") ; Click close gem window "X"
 			If _Sleep($DELAYVILLAGESEARCH3) Then Return
-			$g_bOutOfGold = True ; Set flag for out of gold to search for attack
 			ReturnHome(False, False)
 			Return
 		EndIf

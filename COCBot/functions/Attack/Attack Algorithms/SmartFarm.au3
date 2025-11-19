@@ -32,7 +32,6 @@ Func TestSmartFarm()
 		PrepareSearch()
 		If _Sleep(1000) Then Return FuncReturn()
 		VillageSearch()
-		If $g_bOutOfGold Then Return ; Check flag for enough gold to search
 		If _Sleep(100) Then Return FuncReturn()
 	Else
 		SetLog("Your Army is not prepared, check the Attack/train options")

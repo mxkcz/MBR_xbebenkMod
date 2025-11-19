@@ -711,7 +711,6 @@ Func runBot() ;Bot that runs everything in order
 		If CheckAndroidReboot() Then ContinueLoop
 		If Not $g_bIsClientSyncError Then
 			If Not $g_bRunState Then Return
-			If $g_bOutOfGold THen $g_bOutOfGold = False
 			$MainLoopTimer = TimerInit()
 			SetLogCentered(" Top MainLoop ", "=", $COLOR_DEBUG)
 			checkMainScreen(False, $g_bStayOnBuilderBase, "MainLoop")
@@ -854,10 +853,8 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			;If $g_bUpdateSharedPrefs And $g_bChkSharedPrefs Then PullSharedPrefs()
 			PrepareSearch()
 			If Not $g_bRunState Then Return
-			If $g_bOutOfGold Then Return ; Check flag for enough gold to search
 			If $g_bRestart Then Return
 			VillageSearch()
-			If $g_bOutOfGold Then Return ; Check flag for enough gold to search
 			If Not $g_bRunState Then Return
 			If $g_bRestart Then Return
 			PrepareAttack($g_iMatchMode)
@@ -1162,7 +1159,11 @@ Func FirstCheck()
 		If Not $g_bRunState Then Return
 		If $g_bAutoUpgradeEarly Then
 			SetLog("Check Auto Upgrade Early", $COLOR_INFO)
-			AutoUpgrade()
+			If $g_bUseWallReserveBuilder And $g_bUpgradeWallSaveBuilder And $g_iFreeBuilderCount = 1 Then 
+				AutoUpgrade(False, True)
+			Else
+				AutoUpgrade()
+			EndIf
 		EndIf
 		VillageReport()
 		If _Sleep(50) Then Return
@@ -1488,73 +1489,6 @@ Func GotoBBTodoCG()
 	EndIf
 EndFunc
 
-Func FillArmyCamp()
-	If $g_bIgnoreIncorrectTroopCombo Or $g_bIgnoreIncorrectSpellCombo Then ;check army or spell to fill
-		If OpenArmyOverview() Then 
-			If _Sleep(500) Then Return
-			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 210, 480, 230) Then ;check on troops
-				SetLog("Your troop need to fill", $COLOR_DEBUG)
-				FillIncorrectTroopCombo()
-				ClickAway()
-				If _Sleep(500) Then Return
-			EndIf
-			
-			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 320, 480, 345) Then ;check on spells
-				SetLog("Your troop need to fill", $COLOR_DEBUG)
-				FillIncorrectSpellCombo()
-				ClickAway()
-				If _Sleep(500) Then Return
-			EndIf
-			
-			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 380, 270, 800, 295) Then ;check on acivate supertroop
-				SetLog("SuperTroop Need to activate", $COLOR_DEBUG)
-				ClickAway()
-				If _Sleep(500) Then Return
-				BoostSuperTroop()
-			EndIf
-			
-			If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 650, 450, 725, 485) Then ;check on Castle cake reinforcement
-				SetLog("Try Reinforce with Castle Cake", $COLOR_DEBUG)
-				Click($g_iQuickMISX, $g_iQuickMISY)
-				If _Sleep(1000) Then Return
-				If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 210, 180, 280, 250) Then ;read if text "Tap to Reinforce" exist
-					Click($g_iQuickMISX, $g_iQuickMISY)
-					If _Sleep(1000) Then Return
-					Local $aTroops = QuickMIS("CNX", $g_sImgTrainTroops, 120, 260, 740, 460) ;read all troops image 
-					If IsArray($aTroops) And UBound($aTroops) > 0 Then
-						_ArraySort($aTroops, 0, 0, 0, 1)
-						For $i = 0 To UBound($aTroops) - 1
-							Switch $aTroops[$i][0]
-								Case "Giant", "Ball", "Wiz"
-									Click($aTroops[$i][1], $aTroops[$i][2], 5)
-								Case "Drag"
-									Click($aTroops[$i][1], $aTroops[$i][2], 2)
-							EndSwitch
-							
-							If _ColorCheck(_GetPixelColor(150, 275, True), Hex(0x8F8F8F, 6), 20, Default, "CheckTroopBar") Then 
-								Click(450, 530) ;Click Confirm
-								If _Sleep(500) Then Return
-								ExitLoop ;troops bar greyed
-							EndIf
-						Next
-					EndIf
-				EndIf
-				
-				If QuickMIS("BC1", $g_sImgArmyOverviewCastleCake, 450, 380, 635, 500) Then
-					Click($g_iQuickMISX, $g_iQuickMISY)
-					SetLog("Fill Reinforcement using Castle Cake", $COLOR_ACTION)
-				EndIf
-				
-				ClickAway()
-				If _Sleep(500) Then Return
-			EndIf
-			
-			;close Army window
-			ClickAway()
-			If _Sleep(500) Then Return
-		EndIf
-	EndIf
-EndFunc
 
 Func T420()
 	If IsDeclared("g_VariableTest123") = 1 Then

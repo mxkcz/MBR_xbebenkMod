@@ -43,6 +43,8 @@ Func _SearchUpgradeBB($bTest = False)
 	Local $ZoomedIn = False, $bNew = False, $bSkipNew = False
 	Local $NeedDrag = True, $TmpUpgradeCost = 0, $UpgradeCost = 0, $sameCost
 	
+	If Not ClickBBBuilder() Then Return
+	$bSkipNew = FindBHInUpgradeProgress()
 	For $z = 1 To 8 ;do scroll 8 times
 		If Not ClickBBBuilder() Then Return
 		If _Sleep(500) Then Return
@@ -83,8 +85,6 @@ Func _SearchUpgradeBB($bTest = False)
 							If IsFullScreenWindow() Then Click(820, 37) ;close shop window
 							ExitLoop
 						EndIf
-					Else
-						$bSkipNew = True
 					EndIf
 				EndIf
 			Next
@@ -135,6 +135,7 @@ Func FindUpgradeBB($bTest = False, $bSkipNew = False)
 	Local $aPriority[9][2] = [["Storage", 13], ["Army", 13], ["Barracks", 10], ["Star Lab", 14], ["Machine", 11], ["Copter", 11], ["Hall", 12], ["Gem", 9], ["Clock", 9]]
 	
 	Local $aTmpCoord, $aBuilding[0][8], $BuildingName, $UpgradeCost, $aUpgradeName, $tmpcost, $lenght = 0, $skipType = 0, $sCostType = ""
+	Local $hTimer = TimerInit()
 	
 	;check if we found new building
 	If Not $bSkipNew Then $aTmpCoord = QuickMIS("CNX", $g_sImgAUpgradeObstNew, $g_iXFindUpgradeBB, 73, $g_iXFindUpgradeBB + 150, 400)
@@ -156,10 +157,10 @@ Func FindUpgradeBB($bTest = False, $bSkipNew = False)
 			If @error Then SetLog("FindUpgrade ComposeArray[New] Err : " & @error, $COLOR_ERROR)
 		Next
 		;_ArrayDisplay($aBuilding)
-		If UBound($aBuilding) > 0 Then 
-			_ArraySort($aBuilding, 0, 0, 0, 5) ;sort by cost
-			Return $aBuilding ;return new building array
-		EndIf
+		;If UBound($aBuilding) > 0 Then 
+		;	_ArraySort($aBuilding, 0, 0, 0, 5) ;sort by cost
+		;	Return $aBuilding ;return new building array
+		;EndIf
 	EndIf
 	
 	$aTmpCoord = QuickMIS("CNX", $g_sImgBBResourceIcon, 510, 73, 620, 400)
@@ -207,6 +208,7 @@ Func FindUpgradeBB($bTest = False, $bSkipNew = False)
 	EndIf
 	
 	_ArraySort($aBuilding, 1, 0, 0, 6) ;sort by score
+	Setlog("Benchmark FindUpgradeBB : (in " & Round(TimerDiff($hTimer) / 1000, 2) & " seconds)", $COLOR_DEBUG1)
 	Return $aBuilding
 EndFunc
 
@@ -527,6 +529,7 @@ Func GetBuildingTypeBB($sUpgrades = "")
 	
 	If $sUpgrades = "Air Bombs" Then $sUpgradeType = "Defenses"
 	If $sUpgrades = "Gold Mine" Then $sUpgradeType = "Resources"
+	If $sUpgrades = "Giant Cannon" Then $sUpgradeType = "Defenses"
 	
 	If $g_bDebugSetLog Then SetLog("Found UpgradeType : " & $sUpgradeType, $COLOR_DEBUG1)
 	Return $sUpgradeType
@@ -675,13 +678,16 @@ Func ClickBBBuilder($Counter = 3)
 	Return $b_WindowOpened
 EndFunc ;==>ClickBBBuilder
 
-Func ClickDragAutoUpgradeBB($Direction = "up", $YY = Default, $DragCount = 1)
-	Local $x = 450, $yUp = 125, $yDown = 800, $Delay = 500
+Func ClickDragAutoUpgradeBB($Direction = "up", $yUp = 150, $DragCount = 1)
+	Local $x = 450, $yDown = 800, $Delay = 1500, $YY = 0
 	ClickBBBuilder()
-	If $YY = Default And $Direction = "up" Then
+	If $Direction = "up" Then
 		Local $Tmp = QuickMIS("CNX", $g_sImgBBResourceIcon, 500, 73, 600, 370)
 		If IsArray($Tmp) And UBound($Tmp) > 0 Then
-			$YY = _ArrayMax($Tmp, 1, 0, -1, 2)
+			_ArraySort($Tmp, 1, 0, 0, 2)
+			$x = $Tmp[0][1]
+			$YY = $Tmp[0][2]
+			If $YY > 350 Then $YY = 350 ;no over scroll
 			SetDebugLog("DragUpY = " & $YY)
 			If Number($YY) < 300 Then
 				SetLog("No need to dragUp!", $COLOR_INFO)
@@ -699,18 +705,18 @@ Func ClickDragAutoUpgradeBB($Direction = "up", $YY = Default, $DragCount = 1)
 				Case "Up"
 					If $DragCount > 1 Then
 						For $i = 1 To $DragCount
-							ClickDrag($x, $YY, $x, $yUp, $Delay, True) ;drag up
+							ClickDrag($x, $YY, $x, $yUp) ;drag up
 						Next
 					Else
-						ClickDrag($x, $YY, $x, $yUp, $Delay, True) ;drag up
+						ClickDrag($x, $YY, $x, $yUp) ;drag up
 					EndIf
-					If _Sleep(3000) Then Return
+					If _Sleep(1000) Then Return
 				Case "Down"
-					ClickDrag($x, $yUp, $x, $yDown, $Delay, True) ;drag to bottom
+					ClickDrag($x, $yUp, $x, $yDown) ;drag to bottom
 					If WaitforPixel(510, 90, 515, 95, "FFFFFF", 10, 2, "ClickDragAutoUpgradeBB") Then
-						ClickDrag($x, $yUp, $x, $yDown, $Delay, True) ;drag to bottom
+						ClickDrag($x, $yUp, $x, $yDown) ;drag to bottom
 					EndIf
-					If _Sleep(3000) Then Return
+					If _Sleep(5000) Then Return
 			EndSwitch
 		EndIf
 		If IsBBBuilderMenuOpen() Then ;check upgrade window border
@@ -728,7 +734,7 @@ EndFunc
 Func IsBBBuilderMenuOpen()
 	Local $bRet = False
 	Local $aBorder0[4] = [490, 73, 0xFFFFFF, 40]
-	Local $aBorder1[4] = [530, 73, 0xFFFFFF, 40]
+	Local $aBorder1[4] = [545, 73, 0xFFFFFF, 40]
 	
 	If _CheckPixel($aBorder0, True) And _CheckPixel($aBorder1, True) Then
 		$bRet = True ;got correct color for border

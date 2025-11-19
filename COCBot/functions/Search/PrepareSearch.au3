@@ -91,18 +91,8 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 						EndIf
 						Click($aButton[$z][1], $aButton[$z][2], 1, 0, "Find a Match Tournament")
 						If _Sleep(1000) Then Return
-						If WaitforPixel(695, 500, 696, 501, "C2ED91", 20, 3) Then
-							Click(695, 500, 1, 0, "ArmyOverview Attack Button")
-							If _Sleep(1000) Then Return
-							If $bTest Then Return ;only testing
-							If IsOKCancelPage(True) Then 
-								Click(535, 410, 1, 0, "Confirm Attack OK")
-								$g_bLeagueAttack = True
-								$bTournament = True
-							EndIf
-
-							If _Sleep(1000) Then Return
-						EndIf
+						If Not PrepareSearchCheckArmy() Then ExitLoop 2
+						$bTournament = True
 						ExitLoop 2
 					EndIf
 				Next
@@ -117,95 +107,13 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 			Click(160, 460, 1, 0, "FindMatch")
 			$g_bLeagueAttack = False
 			If _Sleep(1000) Then Return
+			If Not PrepareSearchCheckArmy() Then Return
 		Else
 			SetLog("FindMatch Not Found!", $COLOR_DEBUG2)
 			$g_bRestart = True
 			Return
 		EndIf
 	EndIf
-	
-	;For $s = 1 To 20
-	;	If Not $g_bRunState Then ExitLoop
-	;	If _Sleep(1500) Then Return
-	;	SetDebugLog("Search for attack Button #" & $s, $COLOR_ACTION)
-	;	$aButton = QuickMIS("CNX", $g_sImgPrepareLegendLeagueSearch, 275,190,835,545)
-	;	If IsArray($aButton) And UBound($aButton) > 0 Then
-	;		$bAttackButtonFound = True
-	;		For $i = 0 To UBound($aButton) - 1
-	;			SetDebugLog("Found Attack Button: " & $aButton[$i][0], $COLOR_DEBUG)
-	;			If StringInStr($aButton[$i][0], "Normal") Then
-	;				$g_bLeagueAttack = False
-	;				SetDebugLog("Click " & $aButton[$i][0] & " Attack Button", $COLOR_ACTION)
-	;				Click($aButton[$i][1], $aButton[$i][2])
-	;				For $k = 1 To 10 
-	;					If _Sleep(1000) Then Return
-	;					If QuickMIS("BC1", $g_sImgPrepareLegendLeagueSearch, $aButton[$i][1] - 50, $aButton[$i][2] - 50, $aButton[$i][1] + 50, $aButton[$i][2] + 50) Then 
-	;						SetLog("Still see " & $aButton[$i][0], $COLOR_DEBUG)
-	;						If $k > 5 Then ContinueLoop 2
-	;					Else
-	;						SetDebugLog("Attack Button" & $aButton[$i][0] & " is Gone", $COLOR_DEBUG)
-	;						ExitLoop
-	;					EndIf
-	;				Next
-	;				ExitLoop 2
-	;			ElseIf StringInStr($aButton[$i][0], "Ended") Then
-	;				SetLog("League Day ended already! Trying again later", $COLOR_INFO)
-	;				$g_bRestart = True
-	;				$g_bForceSwitch = True     ; set this switch accounts Next check
-	;				CloseMultiPlayerWindow()
-	;				If _Sleep(1000) Then Return
-	;				Return False
-	;			ElseIf StringInStr($aButton[$i][0], "Made") Then
-	;				SetLog("All Attacks already made! Returning home", $COLOR_INFO)
-	;				$g_bRestart = True
-	;				$g_bForceSwitch = True     ; set this switch accounts Next check
-	;				CloseMultiPlayerWindow()
-	;				If _Sleep(1000) Then Return
-	;				Return
-	;			ElseIf StringInStr($aButton[$i][0], "Legend") Then
-	;				Click($aButton[$i][1], $aButton[$i][2])
-	;				$g_bLeagueAttack = True
-	;				For $j = 0 To 10
-	;					If _Sleep(500) Then Return
-	;					If ClickB("ConfirmAttack") Then 
-	;						ExitLoop 3
-	;					Else
-	;						If $j = 10 Then 
-	;							SetLog("Couldn't find the confirm attack button!", $COLOR_ERROR)
-	;							Return False
-	;						EndIf
-	;					EndIf
-	;				Next
-	;			ElseIf StringInStr($aButton[$i][0], "SignUp") Then
-	;				SetLog("Sign-up to Legend League", $COLOR_INFO)
-	;				Click($aButton[$i][1], $aButton[$i][2])
-	;				If _Sleep(1000) Then Return
-	;				For $i = 1 To 3
-	;					If IsOKCancelPage() Then
-	;						ClickP($aConfirmSurrender)
-	;						SetLog("Sign-up to Legend League done", $COLOR_INFO)
-	;						If _Sleep(1000) Then Return
-	;						ExitLoop 2
-	;					Else
-	;						SetLog("Wait for OK Button to SignUp Legend League #" & $i, $COLOR_ACTION)
-	;						If $i = 3 Then SetLog("Problem SignUp to Legend League", $COLOR_ERROR)
-	;					EndIf
-	;					If _Sleep(500) Then Return
-	;				Next
-	;				
-	;			ElseIf StringInStr($aButton[$i][0], "Oppo", 0) Then
-	;				SetLog("Finding opponents! Waiting 2 minutes and Then try again to find a match", $COLOR_INFO)
-	;				If ProfileSwitchAccountEnabled() Then 
-	;					$g_bForceSwitch = True
-	;					CloseMultiPlayerWindow()
-	;					If _Sleep(1000) Then Return
-	;					Return
-	;				EndIf
-	;				_SleepStatus(120000) ; Wait 2 mins before searching again
-	;			EndIf
-	;		Next
-	;	EndIf
-	;Next
 	
 	If Not $bAttackButtonFound And Not $bTournament Then
 		SetLog("Cannot Find Match Button on Multiplayer Window", $COLOR_ERROR)
@@ -221,34 +129,33 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 	EndIf
 	UpdateStats()
 
-	
-	;If IsAttackWhileShieldPage(False) Then ; check for shield window and Then button to lose time due attack and click okay
-	;	If WaitforPixel(435, 480, 438, 484, "6DBC1F", 10, 1, "PrepareSearch-Shield") Then
-	;		Click(436, 482)
-	;	EndIf
-	;EndIf
-
-	;Local $Result = getAttackDisable(346, 182) ; Grab Ocr for TakeABreak check
-
-	;If isGemOpen(True) Then ; Check for gem window open)
-	;	If Not IsAttackPage() Then 
-	;		SetLog(" Not enough gold to start searching!", $COLOR_ERROR)
-	;		Click(623, 231, 1, 0, "#0151") ; Click close gem window "X"
-	;		If _Sleep($DELAYPREPARESEARCH1) Then Return
-	;		Click(789, 117, 1, 0, "#0152") ; Click close attack window "X"
-	;		If _Sleep($DELAYPREPARESEARCH1) Then Return
-	;		$g_bOutOfGold = True ; Set flag for out of gold to search for attack
-	;	EndIf
-	;EndIf
-
-	;SetDebugLog("PrepareSearch exit check $g_bRestart= " & $g_bRestart & ", $g_bOutOfGold= " & $g_bOutOfGold, $COLOR_DEBUG)
-
 	If $g_bRestart Then ; If we have one or both errors, Then Return
 		$g_bIsClientSyncError = False ; reset fast restart flag to stop OOS mode, collecting resources etc.
 		Return
 	EndIf
 	
 EndFunc   ;==>PrepareSearch
+
+Func PrepareSearchCheckArmy()
+	Local $bRet = False
+	For $i = 1 To 3
+		SetLog("Checking ArmyOverview Window", $COLOR_DEBUG)
+		If WaitforPixel(695, 500, 696, 501, "C2ED91", 20, 1) Then
+			Click(695, 500, 1, 0, "ArmyOverview Attack Button")
+			$bRet = True
+			If _Sleep(1000) Then Return
+			If IsOKCancelPage(True) Then 
+				Click(535, 410, 1, 0, "Confirm Attack OK")
+				$g_bLeagueAttack = True
+			EndIf
+			If _Sleep(1000) Then Return
+			ExitLoop
+		EndIf
+		If _Sleep(500) Then Return
+	Next
+	
+	Return $bRet
+EndFunc
 
 Func CloseMultiPlayerWindow()
 	If IsMultiplayerTabOpen() Then 

@@ -552,7 +552,7 @@ Global $eIcnOptions = $eIcnDonBlacklist
 Global $eIcnAchievements = $eIcnMain
 Global $eIcnStrategies = $eIcnBlank
 
-Global $g_aIcnTHLevel[18] = [$eIcnBlank, $eIcnBlank, $eIcnBlank, $eIcnBlank, $eHdV04, $eHdV05, $eHdV06, $eHdV07, $eHdV08, $eHdV09, $eHdV10, $eHdV11, $eHdV12, $eHdV13, $eHdV14, $eHdV15, $eHdV16, $eHdV17]
+Global $g_aIcnTHLevel[19] = [$eIcnBlank, $eIcnBlank, $eIcnBlank, $eIcnBlank, $eHdV04, $eHdV05, $eHdV06, $eHdV07, $eHdV08, $eHdV09, $eHdV10, $eHdV11, $eHdV12, $eHdV13, $eHdV14, $eHdV15, $eHdV16, $eHdV17, $eHdV17]
 
 ; Controls bot startup and ongoing operation
 Global Const $g_iCollectAtCount = 10 ; Run Collect() after this amount of times before actually collect
@@ -1481,9 +1481,9 @@ Global $g_bCloudsActive = False ;True when waiting for clouds
 Global $g_bAttackActive = False ;True when attacking Village
 
 ; Search
-Global Const $g_iMaxTHLevel = 17
-Global Const $g_asTHText[12] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"]
-Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 580, 750, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000]
+Global Const $g_iMaxTHLevel = 18
+Global Const $g_asTHText[13] = ["4-6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"]
+Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 580, 750, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500]
 Global $g_bSearchMode = False
 Global $g_bIsSearchLimit = False
 Global $g_bIsClientSyncError = False ;If true means while searching Client Out Of Sync error occurred.
@@ -1492,7 +1492,6 @@ Global $g_aiMaxTH[$g_iModeCount] = [0, 0, 0]
 Global $g_iAimGold[$g_iModeCount] = [0, 0, 0], $g_iAimElixir[$g_iModeCount] = [0, 0, 0], $g_iAimGoldPlusElixir[$g_iModeCount] = [0, 0, 0], $g_iAimDark[$g_iModeCount] = [0, 0, 0], _
 		$g_iAimTrophy[$g_iModeCount] = [0, 0, 0], $g_iAimTrophyMax[$g_iModeCount] = [99, 99, 99] ; Aiming Resource values
 Global $g_iTHx = 0, $g_iTHy = 0
-Global $g_bOutOfGold = False ; Flag for out of gold to search for attack
 
 ; Town hall search
 Global $g_iTHside = 0, $g_iTHi = 0
@@ -1599,7 +1598,6 @@ Global $ATTACKVECTOR_Y, $ATTACKVECTOR_Z
 ; Train
 Global $g_bTrainEnabled = True
 Global $g_bIsFullArmywithHeroesAndSpells = False
-Global $g_bOutOfElixir = False ; Flag for out of elixir to train troops
 Global $g_aiTimeTrain[4] = [0, 0, 0, 0] ; [Troop remaining time], [Spells remaining time], [Hero remaining time - when possible], [Siege remain Time]
 Global $g_bCheckSpells = False
 Global $g_bCheckClanCastleTroops = False
@@ -1939,14 +1937,13 @@ Global Const $g_aiEquipmentOrderIcon2[$eEquipmentCount + 1] = [ $eIcnOptions, _
 Global $g_hChkCustomEquipmentOrderEnable = 0, $g_bChkCustomEquipmentOrderEnable = False
 Global $g_hChkMinOreUpgrade = 0, $g_bChkMinOreUpgrade = False, $g_hTxtMinOreUpgrade = 0, $g_sTxtMinOreUpgrade = ""
 Global $g_hBtnEquipmentOrderSet = 0, $g_ahImgEquipmentOrderSet = 0,$g_hBtnRemoveEquipment = 0, $g_hBtnRegularOrder = 0
-Global $g_aZero33[33] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-Global $g_EquipmentOrderLabel[$eEquipmentCount] = $g_aZero33
-Global $g_ahCmbEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_ahImgEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_ahImgEquipmentOrder2[$eEquipmentCount] = $g_aZero33
-Global $g_hChkCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_bChkCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
-Global $g_aiCmbCustomEquipmentOrder[$eEquipmentCount] = $g_aZero33
+Global $g_aZero33[$eEquipmentCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCmbEquipmentOrder = $g_aZero33
+Global $g_ahImgEquipmentOrder = $g_aZero33
+Global $g_ahImgEquipmentOrder2 = $g_aZero33
+Global $g_hChkCustomEquipmentOrder = $g_aZero33
+Global $g_bChkCustomEquipmentOrder = $g_aZero33
+Global $g_aiCmbCustomEquipmentOrder = $g_aZero33
 
 ; PetHouse
 Global $g_aiPetHousePos[2] = [-1, -1]

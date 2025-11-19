@@ -372,7 +372,6 @@ Func CreateHeroEquipment()
 	$y = 70
 	For $z = 0 To UBound($g_ahCmbEquipmentOrder) - 1
 		If $z < 17 Then
-			$g_EquipmentOrderLabel[$z] = GUICtrlCreateLabel($z + 1 & ":", $x, $y + 3)
 			$g_hChkCustomEquipmentOrder[$z] = GUICtrlCreateCheckbox("", $x + 15, $y, -1, 20)
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Equipment", "ChkCustomEquipmentOrder_Info_01", "Enable or disable a custom equipment upgrade"))
@@ -391,7 +390,6 @@ Func CreateHeroEquipment()
 		EndIf
 		
 		If $z >= 17 Then
-			$g_EquipmentOrderLabel[$z] = GUICtrlCreateLabel($z + 1 & ":", $x, $y + 3)
 			$g_hChkCustomEquipmentOrder[$z] = GUICtrlCreateCheckbox("", $x + 15, $y, -1, 20)
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Equipment", "ChkCustomEquipmentOrder_Info_01", "Enable or disable a custom equipment upgrade"))
