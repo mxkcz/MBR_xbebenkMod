@@ -995,7 +995,7 @@ Func btnTestGetLocationBuilding()
 
 	SetLog("Testing GetLocationBuilding() with all buildings", $COLOR_INFO)
 
-	For $b = $eBldgGoldS To $eBldgScatter
+	For $b = $eBldgGoldS To $eBldgRevengeTower
 		If $b = $eBldgDarkS Then ContinueLoop ; skip dark elixir as images not available
 		$aResult = GetLocationBuilding($b, $g_iSearchTH, False)
 		If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$b], $COLOR_ERROR)
@@ -1045,6 +1045,9 @@ Func btnTestGetLocationBuildingImage()
 	Local $hPenLtBlue = _GDIPlus_PenCreate(0xFF0080FF, 2)
 	Local $hPenPaleBlue = _GDIPlus_PenCreate(0xFF66B2FF, 2)
 	Local $hPenCyan = _GDIPlus_PenCreate(0xFF00FFFF, 2)
+	Local $hPenYellow = _GDIPlus_PenCreate(0xFFFFD800, 2)
+	Local $hPenLtGrey = _GDIPlus_PenCreate(0xFFCCCCCC, 2)
+	Local $hPenDkGreen = _GDIPlus_PenCreate(0xFF006E00, 2)
 
 
 	; - GOLD STORAGE
@@ -1147,6 +1150,94 @@ Func btnTestGetLocationBuildingImage()
 		EndIf
 	EndIf
 
+	; - DRAW Air Sweeper -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgSweeper & "_LOCATION") Then
+		$g_aiCSVSweeperPos = $g_oBldgAttackInfo.item($eBldgSweeper & "_LOCATION")
+		If IsArray($g_aiCSVSweeperPos) Then
+			For $i = 0 To UBound($g_aiCSVSweeperPos) - 1
+				$pixel = $g_aiCSVSweeperPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 22, 22, $hPenCyan)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Monolith -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgMonolith & "_LOCATION") Then
+		$g_aiCSVMonolithPos = $g_oBldgAttackInfo.item($eBldgMonolith & "_LOCATION")
+		If IsArray($g_aiCSVMonolithPos) Then
+			For $i = 0 To UBound($g_aiCSVMonolithPos) - 1
+				$pixel = $g_aiCSVMonolithPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 12, 26, 26, $hPenYellow)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Firespitter -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgFireSpitter & "_LOCATION") Then
+		$g_aiCSVFireSpitterPos = $g_oBldgAttackInfo.item($eBldgFireSpitter & "_LOCATION")
+		If IsArray($g_aiCSVFireSpitterPos) Then
+			For $i = 0 To UBound($g_aiCSVFireSpitterPos) - 1
+				$pixel = $g_aiCSVFireSpitterPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 24, 24, $hPenLtBlue)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Multi Archer Tower -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgMultiArcherTower & "_LOCATION") Then
+		$g_aiCSVMultiArcherTowerPos = $g_oBldgAttackInfo.item($eBldgMultiArcherTower & "_LOCATION")
+		If IsArray($g_aiCSVMultiArcherTowerPos) Then
+			For $i = 0 To UBound($g_aiCSVMultiArcherTowerPos) - 1
+				$pixel = $g_aiCSVMultiArcherTowerPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 20, 22, 22, $hPenLtGrey)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Multi Gear Tower -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgMultiGearTower & "_LOCATION") Then
+		$g_aiCSVMultiGearTowerPos = $g_oBldgAttackInfo.item($eBldgMultiGearTower & "_LOCATION")
+		If IsArray($g_aiCSVMultiGearTowerPos) Then
+			For $i = 0 To UBound($g_aiCSVMultiGearTowerPos) - 1
+				$pixel = $g_aiCSVMultiGearTowerPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 20, 22, 22, $hPenLtGrey)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Ricochet Cannon -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgRicochetCannon & "_LOCATION") Then
+		$g_aiCSVRicochetCannonPos = $g_oBldgAttackInfo.item($eBldgRicochetCannon & "_LOCATION")
+		If IsArray($g_aiCSVRicochetCannonPos) Then
+			For $i = 0 To UBound($g_aiCSVRicochetCannonPos) - 1
+				$pixel = $g_aiCSVRicochetCannonPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 12, 24, 24, $hPenSteelBlue)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Super Wizard Tower -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgSuperWizTower & "_LOCATION") Then
+		$g_aiCSVSuperWizTowerPos = $g_oBldgAttackInfo.item($eBldgSuperWizTower & "_LOCATION")
+		If IsArray($g_aiCSVSuperWizTowerPos) Then
+			For $i = 0 To UBound($g_aiCSVSuperWizTowerPos) - 1
+				$pixel = $g_aiCSVSuperWizTowerPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 15, 25, 25, $hPenMagenta)
+			Next
+		EndIf
+	EndIf
+
+	; - DRAW Revenge Tower -------------------------------------------------------------------
+	If $g_oBldgAttackInfo.exists($eBldgRevengeTower & "_LOCATION") Then
+		$g_aiCSVRevengeTowerPos = $g_oBldgAttackInfo.item($eBldgRevengeTower & "_LOCATION")
+		If IsArray($g_aiCSVRevengeTowerPos) Then
+			For $i = 0 To UBound($g_aiCSVRevengeTowerPos) - 1
+				$pixel = $g_aiCSVRevengeTowerPos[$i]
+				_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 22, 22, $hPenDkGreen)
+			Next
+		EndIf
+	EndIf
+
 	Local $Date = @YEAR & "-" & @MON & "-" & @MDAY
 	Local $Time = @HOUR & "." & @MIN & "." & @SEC
 	Local $filename = $g_sProfileTempDebugPath & String("GetLocationBuilding_" & $Date & "_" & $Time) & ".jpg"
@@ -1164,6 +1255,9 @@ Func btnTestGetLocationBuildingImage()
 	_GDIPlus_PenDispose($hPenLtBlue)
 	_GDIPlus_PenDispose($hPenPaleBlue)
 	_GDIPlus_PenDispose($hPenCyan)
+	_GDIPlus_PenDispose($hPenYellow)
+	_GDIPlus_PenDispose($hPenLtGrey)
+	_GDIPlus_PenDispose($hPenDkGreen)
 	_GDIPlus_BrushDispose($hBrush)
 	_GDIPlus_GraphicsDispose($hGraphic)
 	_GDIPlus_BitmapDispose($EditedImage)

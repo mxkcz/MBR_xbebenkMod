@@ -40,6 +40,9 @@ Func ParseAttackCSV($debug = False)
 
 		; Read in lines of text until the EOF is reached
 		For $iLine = 0 To UBound($aLines) - 1
+			For $k = 1 To 15 ; reset values each row to avoid leftovers
+				Assign("value" & $k, "")
+			Next
 			$line = $aLines[$iLine]
 			$sErrorText = "" ; empty error text each row
 			If @error = -1 Then ExitLoop
@@ -48,6 +51,11 @@ Func ParseAttackCSV($debug = False)
 			$acommand = StringSplit($line, "|")
 			If $acommand[0] >= 8 Then
 				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+				If $command = "" Then
+					debugAttackCSV("comment line")
+					ContinueLoop
+				EndIf
+				If $command = "NOTE" Then ContinueLoop ; informational line
 				If $command = "TRAIN" Or $command = "REDLN" Or $command = "DRPLN" Or $command = "CCREQ" Then ContinueLoop ; discard setting commands
 				If $command = "SIDE" Or $command = "SIDEB" Then ContinueLoop ; discard attack side commands
 				; Set values
@@ -57,8 +65,6 @@ Func ParseAttackCSV($debug = False)
 				Next
 
 				Switch $command
-					Case ""
-						debugAttackCSV("comment line")
 					Case "MAKE"
 						ReleaseClicks()
 						If CheckCsvValues("MAKE", 2, $value2) Then
@@ -123,8 +129,8 @@ Func ParseAttackCSV($debug = False)
 									If $value3 = 1 Or $value3 = 5 Then ; check for valid number of drop points
 										SetLog(Eval($sidex) & ", " & $value3 & ", " & $value4 & ", " & $value8)
 										Local $tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $value4, $value8)
-										If @error Then
-											$sErrorText = "MakeTargetDropPoints, err:" & @error ; set flag
+										If @error Or Not IsArray($tmpArray) Or UBound($tmpArray) = 0 Then
+											$sErrorText = "MakeTargetDropPoints, err:" & (@error ? @error : "empty vector")
 										Else
 											Assign("ATTACKVECTOR_" & $value1, $tmpArray) ; assing vector
 											$sTargetVectors &= $value1 ; add letter of every vector using building target to string to error check DROP command
@@ -133,7 +139,12 @@ Func ParseAttackCSV($debug = False)
 										$sErrorText = "value 3"
 									EndIf
 								Else ; normal redline based drop vectors
-									Assign("ATTACKVECTOR_" & $value1, MakeDropPoints(Eval($sidex), $value3, $value4, $value5, $value6, $value7))
+									Local $tmpArray = MakeDropPoints(Eval($sidex), $value3, $value4, $value5, $value6, $value7)
+									If @error Or Not IsArray($tmpArray) Or UBound($tmpArray) = 0 Then
+										$sErrorText = "MakeDropPoints, err:" & (@error ? @error : "empty vector")
+									Else
+										Assign("ATTACKVECTOR_" & $value1, $tmpArray)
+									EndIf
 								EndIf
 							Else
 								$sErrorText = "value1 or value 5"
@@ -145,10 +156,15 @@ Func ParseAttackCSV($debug = False)
 							SetLog("Discard row " & $iLine + 1 & ", bad parameter: " & $sErrorText)
 							debugAttackCSV("Discard row " & $iLine + 1 & ", bad parameter: " & $sErrorText)
 						Else ; debuglog vectors
-							For $i = 0 To UBound(Execute("$ATTACKVECTOR_" & $value1)) - 1
-								Local $pixel = Execute("$ATTACKVECTOR_" & $value1 & "[" & $i & "]")
-								debugAttackCSV($i & " - " & $pixel[0] & "," & $pixel[1])
-							Next
+							Local $dbgVec = Execute("$ATTACKVECTOR_" & $value1)
+							If IsArray($dbgVec) Then
+								For $i = 0 To UBound($dbgVec) - 1
+									Local $pixel = $dbgVec[$i]
+									debugAttackCSV($i & " - " & $pixel[0] & "," & $pixel[1])
+								Next
+							Else
+								debugAttackCSV("Vector " & $value1 & " not assigned")
+							EndIf
 						EndIf
 					Case "DROP"
 						KeepClicks()
@@ -288,6 +304,12 @@ Func ParseAttackCSV($debug = False)
 								EndIf
 							EndIf
 						Next
+						; ensure base vector exists before attempting drop
+						Local $vectCheck = Execute("$ATTACKVECTOR_" & $value1)
+						If Not IsArray($vectCheck) Or UBound($vectCheck) = 0 Then
+							SetLog("Discard row, vector " & $value1 & " is empty/missing: row " & $iLine + 1, $COLOR_WARNING)
+							ContinueLoop
+						EndIf
 						
 						If $sErrorText <> "" Then
 							SetLog("Discard row, " & $sErrorText & ": row " & $iLine + 1)

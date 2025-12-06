@@ -16,9 +16,21 @@
 ; ===============================================================================================================================
 Func MakeDropLine($searchvect, $startpoint, $endpoint, $iLineDistanceThreshold = 75, $bLineToCorner = False)
 
-	SetDebugLog("MakeDropLine for " & UBound($searchvect) & " points")
-	If $bLineToCorner = False And UBound($searchvect) > 0 Then $startpoint = $searchvect[0]
-	If $bLineToCorner = False And UBound($searchvect) > 0 Then $endpoint = $searchvect[UBound($searchvect) - 1]
+	If Not IsArray($searchvect) Then
+		SetDebugLog("MakeDropLine: search vector is not an array, skipping", $COLOR_WARNING)
+		Local $aEmpty[0]
+		Return SetError(1, 0, $aEmpty)
+	EndIf
+
+	Local $iCount = UBound($searchvect)
+	If $iCount = 0 Then
+		SetDebugLog("MakeDropLine: empty search vector, returning start/end only", $COLOR_WARNING)
+		Return GetListPixel($startpoint[0] & "," & $startpoint[1] & "|" & $endpoint[0] & "," & $endpoint[1], ",")
+	EndIf
+
+	SetDebugLog("MakeDropLine for " & $iCount & " points")
+	If $bLineToCorner = False And $iCount > 0 Then $startpoint = $searchvect[0]
+	If $bLineToCorner = False And $iCount > 0 Then $endpoint = $searchvect[$iCount - 1]
 	SetDebugLog("MakeDropLine: Start = " & PixelToString($startpoint) & ", End = " & PixelToString($endpoint) & ": " & PixelArrayToString($searchvect, ","))
 
 	Local $startX = $startpoint[0]

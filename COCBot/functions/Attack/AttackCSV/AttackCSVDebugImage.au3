@@ -23,6 +23,11 @@ Func AttackCSVDEBUGIMAGE($bOpenImage = False)
 	Local $hGraphic = _GDIPlus_ImageGetGraphicsContext($EditedImage)
 	Local $hBrush = _GDIPlus_BrushCreateSolid(0xFFFFFFFF)
 	Local $pixel
+	Local $aEmpty[0]
+	If Not IsArray($g_aiPixelTopLeft) Then $g_aiPixelTopLeft = $aEmpty
+	If Not IsArray($g_aiPixelTopRight) Then $g_aiPixelTopRight = $aEmpty
+	If Not IsArray($g_aiPixelBottomLeft) Then $g_aiPixelBottomLeft = $aEmpty
+	If Not IsArray($g_aiPixelBottomRight) Then $g_aiPixelBottomRight = $aEmpty
 
 	; Open box of crayons :-)
 	Local $hPenLtGreen = _GDIPlus_PenCreate(0xFF00DC00, 2)
@@ -327,6 +332,72 @@ Func AttackCSVDEBUGIMAGE($bOpenImage = False)
 		For $i = 0 To UBound($g_aiCSVAirDefensePos) - 1
 			$pixel = $g_aiCSVAirDefensePos[$i]
 			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 10, 25, 25, $hPenPaleBlue)
+		Next
+	EndIf
+
+	; - DRAW Air Sweeper -------------------------------------------------------------------
+	If $g_bCSVLocateSweeper = True And IsArray($g_aiCSVSweeperPos) Then
+		For $i = 0 To UBound($g_aiCSVSweeperPos) - 1
+			$pixel = $g_aiCSVSweeperPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 24, 24, $hPenCyan)
+		Next
+	EndIf
+
+	; - DRAW Monolith -------------------------------------------------------------------
+	If $g_bCSVLocateMonolith = True And IsArray($g_aiCSVMonolithPos) Then
+		For $i = 0 To UBound($g_aiCSVMonolithPos) - 1
+			$pixel = $g_aiCSVMonolithPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 12, 26, 26, $hPenYellow)
+		Next
+	EndIf
+
+	; - DRAW Firespitter -------------------------------------------------------------------
+	If $g_bCSVLocateFireSpitter = True And IsArray($g_aiCSVFireSpitterPos) Then
+		For $i = 0 To UBound($g_aiCSVFireSpitterPos) - 1
+			$pixel = $g_aiCSVFireSpitterPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 12, 24, 24, $hPenDkRed)
+		Next
+	EndIf
+
+	; - DRAW Multi Archer Tower -------------------------------------------------------------------
+	If $g_bCSVLocateMultiArcherTower = True And IsArray($g_aiCSVMultiArcherTowerPos) Then
+		For $i = 0 To UBound($g_aiCSVMultiArcherTowerPos) - 1
+			$pixel = $g_aiCSVMultiArcherTowerPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 20, 24, 24, $hPenLtGrey)
+		Next
+	EndIf
+
+	; - DRAW Multi Gear Tower -------------------------------------------------------------------
+
+	If $g_bCSVLocateMultiGearTower = True And IsArray($g_aiCSVMultiGearTowerPos) Then
+		For $i = 0 To UBound($g_aiCSVMultiGearTowerPos) - 1
+			$pixel = $g_aiCSVMultiGearTowerPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 24, 24, $hPenLtGrey)
+		Next
+	EndIf
+
+	; - DRAW Ricochet Cannon -------------------------------------------------------------------
+	If $g_bCSVLocateRicochetCannon = True And IsArray($g_aiCSVRicochetCannonPos) Then
+		For $i = 0 To UBound($g_aiCSVRicochetCannonPos) - 1
+			$pixel = $g_aiCSVRicochetCannonPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 12, $pixel[1] - 12, 24, 24, $hPenSteelBlue)
+		Next
+	EndIf
+
+	; - DRAW Super Wizard Tower -------------------------------------------------------------------
+
+	If $g_bCSVLocateSuperWizTower = True And IsArray($g_aiCSVSuperWizTowerPos) Then
+		For $i = 0 To UBound($g_aiCSVSuperWizTowerPos) - 1
+			$pixel = $g_aiCSVSuperWizTowerPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 24, 24, $hPenLtBlue)
+		Next
+	EndIf
+
+	; - DRAW Revenge Tower -------------------------------------------------------------------
+	If $g_bCSVLocateRevengeTower = True And IsArray($g_aiCSVRevengeTowerPos) Then
+		For $i = 0 To UBound($g_aiCSVRevengeTowerPos) - 1
+			$pixel = $g_aiCSVRevengeTowerPos[$i]
+			_GDIPlus_GraphicsDrawRect($hGraphic, $pixel[0] - 10, $pixel[1] - 10, 24, 24, $hPenDkGreen)
 		Next
 	EndIf
 

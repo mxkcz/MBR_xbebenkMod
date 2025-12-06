@@ -48,10 +48,13 @@ Func ParseAttackCSV_Settings_variables(ByRef $aiCSVTroops, ByRef $aiCSVSpells, B
 						SetLog("Has to set spell capacity first", $COLOR_ERROR)
 						Return
 					EndIf
-					Switch $g_iTotalCampSpace
-						Case $g_iMaxCapTroopTH[13] + 5 To $g_iMaxCapTroopTH[14]	; TH15 - 16
-							$iTHCol = $iTHBeginCol + 8
-							$iTH = 15
+						Switch $g_iTotalCampSpace
+							Case $g_iMaxCapTroopTH[16] + 5 To $g_iMaxCapTroopTH[17]	; TH17 - 18 // 340
+								$iTHCol = $iTHBeginCol + 11
+								$iTH = 17
+							Case $g_iMaxCapTroopTH[14] + 5 To $g_iMaxCapTroopTH[15]	; TH15 - 16 // 320
+								$iTHCol = $iTHBeginCol + 9
+								$iTH = 15
 						Case $g_iMaxCapTroopTH[12] + 5 To $g_iMaxCapTroopTH[13]	; TH13 - 14 // 280 - 300
 							$iTHCol = $iTHBeginCol + 7
 							$iTH = 13
@@ -83,9 +86,14 @@ Func ParseAttackCSV_Settings_variables(ByRef $aiCSVTroops, ByRef $aiCSVSpells, B
 							$iTHCol = $iTHBeginCol
 							$iTH = 6
 						Case Else
-							SetLog("Invalid camp size ( <" & $g_iMaxCapTroopTH[5] + 5 & " or >" & $g_iMaxCapTroopTH[11] & " ): " & $g_iTotalCampSpace & " for CSV", $COLOR_ERROR)
+							SetLog("Invalid camp size ( <" & $g_iMaxCapTroopTH[5] + 5 & " or >" & $g_iMaxCapTroopTH[18] & " ): " & $g_iTotalCampSpace & " for CSV", $COLOR_ERROR)
 							Return
 					EndSwitch
+				EndIf
+
+				If $iTHCol >= $iTHBeginCol And $iTHCol > UBound($asCommand) - 1 Then
+					SetLog("CSV troop settings line " & $iLine + 1 & " missing TH" & $iTH & " column (index " & $iTHCol & ")", $COLOR_ERROR)
+					ContinueLoop
 				EndIf
 
 				If $g_bDebugAttackCSV Then SetLog("Line: " & $iLine + 1 & " Command: " & $asCommand[$iCommandCol] & ($iTHCol >= $iTHBeginCol ? " Column: " & $iTHCol & " TH" & $iTH : ""), $COLOR_DEBUG)
@@ -153,10 +161,13 @@ Func ParseAttackCSV_Settings_variables(ByRef $aiCSVTroops, ByRef $aiCSVSpells, B
 					If $iCSVTotalCapTroops > $g_iMaxCapTroopTH[$iTH - 2] And $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[$iTH] Then $bTotalInRange = True
 				ElseIf $iTH = 13 Or $iTH = 14 Then
 					If $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[13] Then $bTotalInRange = True
-					;If $iCSVTotalCapTroops > $g_iMaxCapTroopTH[$iTH - 1] And $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[$iTH] Then $bTotalInRange = True
+					;If $iCSVTotalCapTroops > $g_iMaxCapTroopTH[$iTH - 1] And $iCSVTotalCapTroopTH[$iTH] Then $bTotalInRange = True
 				ElseIf $iTH = 15 Or $iTH = 16 Then
-					If $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[14] Then $bTotalInRange = True
+					If $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[15] Then $bTotalInRange = True
+				ElseIf $iTH = 17 Or $iTH = 18 Then
+					If $iCSVTotalCapTroops <= $g_iMaxCapTroopTH[18] Then $bTotalInRange = True
 				EndIf
+			EndIf
 				If $bTotalInRange Then 	;if total not equal to user camp space, reduce/add troops amount based on flexible flag if possible
 					If $iCSVTotalCapTroops <> $g_iTotalCampSpace Then
 						Local $iDiff = $iCSVTotalCapTroops - $g_iTotalCampSpace
@@ -170,22 +181,20 @@ Func ParseAttackCSV_Settings_variables(ByRef $aiCSVTroops, ByRef $aiCSVSpells, B
 						Else
 							SetLog("CSV Troop Total does not equal to Camp Total Space,", $COLOR_ERROR)
 							SetLog("adjust train settings manually", $COLOR_ERROR)
-							For $i = 0 to UBound($aiCSVTroops) - 1 ; set troop amount to all 0
+							For $i = 0 To UBound($aiCSVTroops) - 1 ; set troop amount to all 0
 								$aiCSVTroops[$i] = 0
 							Next
 						EndIf
 					EndIf
 				Else
 					SetLog("CSV troops total: " & $iCSVTotalCapTroops & " for TH" & $iTH & " is out of range", $COLOR_ERROR)
-					For $i = 0 to UBound($aiCSVTroops) - 1 ; set troop amount to all 0
+					For $i = 0 To UBound($aiCSVTroops) - 1 ; set troop amount to all 0
 						$aiCSVTroops[$i] = 0
 					Next
 				EndIf
 			EndIf
 		EndIf
-	Else
 		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $sFilename & ".csv", $COLOR_ERROR)
 		Return
-	EndIf
 	Return 1
 EndFunc   ;==>ParseAttackCSV_Settings_variables

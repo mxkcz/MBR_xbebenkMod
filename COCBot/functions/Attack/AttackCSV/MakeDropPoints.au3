@@ -44,6 +44,11 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 		Case Else
 	EndSwitch
 	If $versus = "IGNORE" Then $versus = "EXT-INT" ; error proof use input if misuse targeted MAKE command
+	If Not IsArray($Vector) Or UBound($Vector) = 0 Then
+		SetLog("MakeDropPoints: empty vector for side " & $side, $COLOR_WARNING)
+		SetError(1, 0, 0)
+		Return 0
+	EndIf
 	If Int($pointsQty) > 0 Then
 		Local $pointsQtyCleaned = Abs(Int($pointsQty))
 	Else
@@ -156,6 +161,11 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	EndSwitch
 
 	If StringLen($Output) > 0 Then $Output = StringLeft($Output, StringLen($Output) - 1)
+	If StringLen($Output) = 0 Then
+		SetLog("MakeDropPoints: no output generated for side " & $side & " (" & $versus & ")", $COLOR_WARNING)
+		SetError(2, 0, 0)
+		Return 0
+	EndIf
 	Return GetListPixel($Output)
 EndFunc   ;==>MakeDropPoints
 
@@ -206,6 +216,22 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			$BuildingEnum = $eBldgMortar
 		Case "AIRDEFENSE"
 			$BuildingEnum = $eBldgAirDefense
+		Case "SWEEPER"
+			$BuildingEnum = $eBldgSweeper
+		Case "MONOLITH"
+			$BuildingEnum = $eBldgMonolith
+		Case "FIRESPITTER"
+			$BuildingEnum = $eBldgFireSpitter
+		Case "MULTIARCHERTOWER"
+			$BuildingEnum = $eBldgMultiArcherTower
+		Case "MULTIGEARTOWER"
+			$BuildingEnum = $eBldgMultiGearTower
+		Case "RICOCHETCANNON"
+			$BuildingEnum = $eBldgRicochetCannon
+		Case "SUPERWIZTOWER"
+			$BuildingEnum = $eBldgSuperWizTower
+		Case "REVENGETOWER"
+			$BuildingEnum = $eBldgRevengeTower
 		Case "EX-WALL"
 			$BuildingEnum = $eExternalWall
 		Case "IN-WALL"
@@ -289,6 +315,11 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 		Case 5
 			$sLoc = $aLocation[0] & "|" & $aLocation[1] ; make string for bldg location
 			$Output = GetDeployableNextTo($sLoc, 10, $g_oBldgAttackInfo.item($eBldgRedLine & "_OBJECTPOINTS")) ; Get 5 near points, 10 pixels outisde red line for drop
+			If StringLen($Output) = 0 Then
+				SetLog("MakeTargetDropPoints: no near points found for " & $g_sBldgNames[$BuildingEnum], $COLOR_WARNING)
+				SetError(5, 0, "")
+				Return
+			EndIf
 			Return GetListPixel($Output, ",", "MakeTargetDropPoints NEARPOINTS") ;imgloc DLL calls return comma separated values
 		Case Else
 			; impossible?

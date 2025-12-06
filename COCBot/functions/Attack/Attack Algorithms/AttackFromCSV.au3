@@ -163,6 +163,13 @@ Func GetMaxPoint($PointList, $Dim)
 	Return $Result
 EndFunc   ;==>GetMaxPoint
 
+Func _EnsureDropLineArray(ByRef $aLine, ByRef $aStartEnd, $sLabel = "")
+	If IsArray($aLine) And UBound($aLine) > 0 Then Return
+	Local $sStartEnd = $aStartEnd[0][0] & "," & $aStartEnd[0][1] & "|" & $aStartEnd[1][0] & "," & $aStartEnd[1][1]
+	$aLine = GetListPixel($sStartEnd, ",", $sLabel & "-fallback")
+	SetDebugLog("DropLine fallback " & $sLabel & " using start/end: " & $sStartEnd, $COLOR_WARNING)
+EndFunc   ;==>_EnsureDropLineArray
+
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: Algorithm_AttackCSV
 ; Description ...:
@@ -209,10 +216,10 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	Local $htimerREDAREA = Round(__timerdiff($hTimer) / 1000, 2)
 	debugAttackCSV("Calculated  (in " & $htimerREDAREA & " seconds) :")
-	debugAttackCSV("	[" & UBound($g_aiPixelTopLeft) & "] pixels TopLeft")
-	debugAttackCSV("	[" & UBound($g_aiPixelTopRight) & "] pixels TopRight")
-	debugAttackCSV("	[" & UBound($g_aiPixelBottomLeft) & "] pixels BottomLeft")
-	debugAttackCSV("	[" & UBound($g_aiPixelBottomRight) & "] pixels BottomRight")
+	debugAttackCSV("	[" & (IsArray($g_aiPixelTopLeft) ? UBound($g_aiPixelTopLeft) : 0) & "] pixels TopLeft")
+	debugAttackCSV("	[" & (IsArray($g_aiPixelTopRight) ? UBound($g_aiPixelTopRight) : 0) & "] pixels TopRight")
+	debugAttackCSV("	[" & (IsArray($g_aiPixelBottomLeft) ? UBound($g_aiPixelBottomLeft) : 0) & "] pixels BottomLeft")
+	debugAttackCSV("	[" & (IsArray($g_aiPixelBottomRight) ? UBound($g_aiPixelBottomRight) : 0) & "] pixels BottomRight")
 
 	If $g_aiAttackScrDroplineEdge[$g_iMatchMode] = $DROPLINE_DROPPOINTS_ONLY Then
 
@@ -222,6 +229,12 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		$g_aiPixelBottomRightDropLine = $g_aiPixelBottomRight
 
 	Else
+
+		Local $aEmpty[0]
+		If Not IsArray($g_aiPixelTopLeft) Then $g_aiPixelTopLeft = $aEmpty
+		If Not IsArray($g_aiPixelTopRight) Then $g_aiPixelTopRight = $aEmpty
+		If Not IsArray($g_aiPixelBottomLeft) Then $g_aiPixelBottomLeft = $aEmpty
+		If Not IsArray($g_aiPixelBottomRight) Then $g_aiPixelBottomRight = $aEmpty
 
 		Local $coordLeft = [$ExternalArea[0][0], $ExternalArea[0][1]]
 		Local $coordTop = [$ExternalArea[2][0], $ExternalArea[2][1]]
@@ -265,6 +278,11 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 				$g_aiPixelBottomLeftDropLine = MakeDropLine($g_aiPixelBottomLeft, $StartEndBottomLeft[0], $StartEndBottomLeft[1], $iLineDistanceThreshold, $g_aiAttackScrDroplineEdge[$g_iMatchMode] = $DROPLINE_FULL_EDGE_FIXED)
 				$g_aiPixelBottomRightDropLine = MakeDropLine($g_aiPixelBottomRight, $StartEndBottomRight[0], $StartEndBottomRight[1], $iLineDistanceThreshold, $g_aiAttackScrDroplineEdge[$g_iMatchMode] = $DROPLINE_FULL_EDGE_FIXED)
 		EndSwitch
+
+		_EnsureDropLineArray($g_aiPixelTopLeftDropLine, $StartEndTopLeft, "TL")
+		_EnsureDropLineArray($g_aiPixelTopRightDropLine, $StartEndTopRight, "TR")
+		_EnsureDropLineArray($g_aiPixelBottomLeftDropLine, $StartEndBottomLeft, "BL")
+		_EnsureDropLineArray($g_aiPixelBottomRightDropLine, $StartEndBottomRight, "BR")
 	EndIf
 
 	;02.04 - MAKE DROP LINE SLICE ----------------------------------------------------------------------------------------------------------------------------
@@ -347,6 +365,8 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	If StringLen($tempvectstr2) > 0 Then $tempvectstr2 = StringLeft($tempvectstr2, StringLen($tempvectstr2) - 1)
 	$g_aiPixelBottomRightDOWNDropLine = GetListPixel($tempvectstr1, ",", "BR-DOWN")
 	$g_aiPixelBottomRightUPDropLine = GetListPixel($tempvectstr2, ",", "BR-UP")
+	debugAttackCSV("DropLine sizes: TL=" & (IsArray($g_aiPixelTopLeftDropLine) ? UBound($g_aiPixelTopLeftDropLine) : 0) & ", TR=" & (IsArray($g_aiPixelTopRightDropLine) ? UBound($g_aiPixelTopRightDropLine) : 0) & ", BL=" & (IsArray($g_aiPixelBottomLeftDropLine) ? UBound($g_aiPixelBottomLeftDropLine) : 0) & ", BR=" & (IsArray($g_aiPixelBottomRightDropLine) ? UBound($g_aiPixelBottomRightDropLine) : 0))
+	debugAttackCSV("Slice sizes: TLup=" & (IsArray($g_aiPixelTopLeftUPDropLine) ? UBound($g_aiPixelTopLeftUPDropLine) : 0) & ", TLdown=" & (IsArray($g_aiPixelTopLeftDOWNDropLine) ? UBound($g_aiPixelTopLeftDOWNDropLine) : 0) & ", TRup=" & (IsArray($g_aiPixelTopRightUPDropLine) ? UBound($g_aiPixelTopRightUPDropLine) : 0) & ", TRdown=" & (IsArray($g_aiPixelTopRightDOWNDropLine) ? UBound($g_aiPixelTopRightDOWNDropLine) : 0) & ", BLup=" & (IsArray($g_aiPixelBottomLeftUPDropLine) ? UBound($g_aiPixelBottomLeftUPDropLine) : 0) & ", BLdown=" & (IsArray($g_aiPixelBottomLeftDOWNDropLine) ? UBound($g_aiPixelBottomLeftDOWNDropLine) : 0) & ", BRup=" & (IsArray($g_aiPixelBottomRightUPDropLine) ? UBound($g_aiPixelBottomRightUPDropLine) : 0) & ", BRdown=" & (IsArray($g_aiPixelBottomRightDOWNDropLine) ? UBound($g_aiPixelBottomRightDOWNDropLine) : 0))
 	SetLog("> Drop Lines located in  " & Round(__timerdiff($hTimer) / 1000, 2) & " seconds", $COLOR_INFO)
 	If _Sleep($DELAYRESPOND) Then Return
 
@@ -724,6 +744,168 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		EndIf
 	Else
 		SetDebugLog("> " & $g_sBldgNames[$eBldgAirDefense] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.1 - Air Sweeper ------------------------------------------------------------------------
+
+	$g_aiCSVSweeperPos = "" ; reset location array?
+
+	If $g_bCSVLocateSweeper Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSweeper & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgSweeper, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgSweeper], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgSweeper & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgSweeper] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgSweeper] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVSweeperPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgSweeper] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.2 - Monolith ------------------------------------------------------------------------
+
+	$g_aiCSVMonolithPos = "" ; reset location array?
+
+	If $g_bCSVLocateMonolith Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMonolith & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgMonolith, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMonolith], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgMonolith & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgMonolith] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgMonolith] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVMonolithPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgMonolith] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.3 - Firespitter ------------------------------------------------------------------------
+
+	$g_aiCSVFireSpitterPos = "" ; reset location array?
+
+	If $g_bCSVLocateFireSpitter Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgFireSpitter & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgFireSpitter, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgFireSpitter], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgFireSpitter & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgFireSpitter] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgFireSpitter] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVFireSpitterPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgFireSpitter] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.4 - Multi Archer Tower ------------------------------------------------------------------------
+
+	$g_aiCSVMultiArcherTowerPos = "" ; reset location array?
+
+	If $g_bCSVLocateMultiArcherTower Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiArcherTower & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgMultiArcherTower, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMultiArcherTower], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgMultiArcherTower & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgMultiArcherTower] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgMultiArcherTower] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVMultiArcherTowerPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgMultiArcherTower] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.5 - Multi Gear Tower ------------------------------------------------------------------------
+	$g_aiCSVMultiGearTowerPos = "" ; reset location array?
+
+	If $g_bCSVLocateMultiGearTower Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiGearTower & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgMultiGearTower, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMultiGearTower], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgMultiGearTower & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgMultiGearTower] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgMultiGearTower] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVMultiGearTowerPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgMultiGearTower] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+	
+	; 12.6 - Ricochet Cannon ------------------------------------------------------------------------
+
+	$g_aiCSVRicochetCannonPos = "" ; reset location array?
+
+	If $g_bCSVLocateRicochetCannon Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRicochetCannon & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgRicochetCannon, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgRicochetCannon], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgRicochetCannon & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgRicochetCannon] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgRicochetCannon] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVRicochetCannonPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgRicochetCannon] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.7 - Super Wizard Tower ------------------------------------------------------------------------
+	$g_aiCSVSuperWizTowerPos = "" ; reset location array?
+
+	if $g_bCSVLocateSuperWizTower Then
+		; Super Wizard Tower shares the same footprint as Wizard Towers, so reuse that detection
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgWizTower, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgWizTower], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgWizTower] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgWizTower] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then
+				$g_aiCSVSuperWizTowerPos = $aResult
+				If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then _ObjAdd($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION", $aResult)
+			EndIf
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgWizTower] & " detection not needed, skipping", $COLOR_DEBUG)
+	EndIf
+
+	; 12.8 - Revenge Tower ------------------------------------------------------------------------
+
+	$g_aiCSVRevengeTowerPos = "" ; reset location array?
+
+	If $g_bCSVLocateRevengeTower Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRevengeTower & "_LOCATION") Then
+			$aResult = GetLocationBuilding($eBldgRevengeTower, $g_iSearchTH, False)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgRevengeTower], $COLOR_ERROR)
+		EndIf
+		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgRevengeTower & "_LOCATION")
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgRevengeTower] & " _LOCATION", @error) ; Log errors
+			SetLog("> " & $g_sBldgNames[$eBldgRevengeTower] & " location not in dictionary", $COLOR_WARNING)
+		Else
+			If IsArray($aResult) Then $g_aiCSVRevengeTowerPos = $aResult
+		EndIf
+	Else
+		SetDebugLog("> " & $g_sBldgNames[$eBldgRevengeTower] & " detection not needed, skipping", $COLOR_DEBUG)
 	EndIf
 
 	; Calculate main attack side

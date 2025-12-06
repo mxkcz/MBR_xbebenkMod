@@ -93,6 +93,22 @@ Func CheckCsvValues($instruction, $variablenumber, $variable)
 							Return True
 						Case "AIRDEFENSE"
 							Return True
+						Case "SWEEPER"
+							Return True
+						Case "MONOLITH"
+							Return True
+						Case "FIRESPITTER"
+							Return True
+						Case "MULTIARCHERTOWER"
+							Return True
+						Case "MULTIGEARTOWER"
+							Return True
+						Case "RICOCHETCANNON"
+							Return True
+						Case "SUPERWIZTOWER"
+							Return True
+						Case "REVENGETOWER"
+							Return True
 						Case "EX-WALL"
 							Return True
 						Case "IN-WALL"
