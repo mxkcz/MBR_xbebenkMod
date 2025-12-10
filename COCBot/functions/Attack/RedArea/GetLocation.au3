@@ -243,11 +243,22 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 	EndIf
 
 	; get max building level available for TH
-	Local $maxLevel = _ObjGetValue($g_oBldgLevels, $iBuildingType)[$iAttackingTH - 1]
+	Local $aLevels = _ObjGetValue($g_oBldgLevels, $iBuildingType)
+	Local $maxLevel = 0
 	If @error Then
 		_ObjErrMsg("_ObjGetValue $g_oBldgLevels", @error) ; Log COM error prevented
-		$maxLevel = 20 ; unknown number of building levels, then set equal to 20
+	ElseIf IsArray($aLevels) And UBound($aLevels) >= $iAttackingTH Then
+		$maxLevel = $aLevels[$iAttackingTH - 1]
 	EndIf
+
+	; If building not unlocked at this TH, skip detection early
+	If $maxLevel <= 0 Then
+		SetDebugLog("Skip " & $g_sBldgNames[$iBuildingType] & " detection for TH" & $iAttackingTH & " (max level 0)", $COLOR_DEBUG)
+		Return
+	EndIf
+
+	; Bias search toward higher level skins unlocked at this TH
+	Local $minLevel = ($maxLevel > 2 ? $maxLevel - 2 : 1)
 
 	If $bForceCaptureRegion = True Then _CaptureRegion2()
 
