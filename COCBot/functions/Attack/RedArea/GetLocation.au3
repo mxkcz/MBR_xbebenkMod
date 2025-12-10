@@ -177,7 +177,7 @@ EndFunc   ;==>GetLocationDarkElixirWithLevel
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; ===============================================================================================================================
-Func GetLocationBuilding($iBuildingType, $iAttackingTH = 16, $bForceCaptureRegion = True)
+Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForceCaptureRegion = True)
 
 	SetDebugLog("Begin GetLocationBuilding: " & $g_sBldgNames[$iBuildingType], $COLOR_DEBUG1)
 	Local $hTimer = __TimerInit() ; timer to track image detection time
@@ -191,7 +191,8 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = 16, $bForceCaptureRegio
 	Local $tempNewLevel, $tempExistingLevel, $sLocCoord, $sNearCoord, $sFarCoord, $directory, $iCountUpdate
 
 	; error proof TH level
-	If $iAttackingTH = "-" Then $iAttackingTH = 16
+	If $iAttackingTH = "-" Then $iAttackingTH = $g_iMaxTHLevel
+	If $iAttackingTH > $g_iMaxTHLevel Then $iAttackingTH = $g_iMaxTHLevel
 
 	; Get path to image file
 	If _ObjSearch($g_oBldgImages, $iBuildingType & "_" & $g_iDetectedImageType) = True Then ; check if image exists to prevent error when snow images are not avialable for building type
@@ -211,10 +212,14 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = 16, $bForceCaptureRegio
 	EndIf
 
 	; Get max number of buildings available for TH level
-	Local $maxReturnPoints = _ObjGetValue($g_oBldgMaxQty, $iBuildingType)[$iAttackingTH - 1]
+	Local $aMaxQty = _ObjGetValue($g_oBldgMaxQty, $iBuildingType)
+	Local $maxReturnPoints = 20 ; fallback default
 	If @error Then
 		_ObjErrMsg("_ObjGetValue $g_oBldgMaxQty", @error) ; Log COM error prevented
-		$maxReturnPoints = 20 ; unknown number of buildings, then set equal to 20 and keep going
+	ElseIf IsArray($aMaxQty) And UBound($aMaxQty) >= $iAttackingTH Then
+		$maxReturnPoints = $aMaxQty[$iAttackingTH - 1]
+	Else
+		SetDebugLog("MaxQty missing for building " & $g_sBldgNames[$iBuildingType] & " TH" & $iAttackingTH & ", using default", $COLOR_WARNING)
 	EndIf
 
 	; Get redline data
