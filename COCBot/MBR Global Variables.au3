@@ -1846,6 +1846,7 @@ $g_oBldgImages.add($eBldgSweeper & "_" & "0", @ScriptDir & "\imgxml\Buildings\Sw
 $g_oBldgImages.add($eBldgMonolith & "_" & "0", @ScriptDir & "\imgxml\Buildings\Monolith")
 $g_oBldgImages.add($eBldgFireSpitter & "_" & "0", @ScriptDir & "\imgxml\Buildings\FireSpitter")
 $g_oBldgImages.add($eBldgMultiArcherTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\MultiArcherTower")
+$g_oBldgImages.add($eBldgMultiGearTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\MultiGearTower")
 $g_oBldgImages.add($eBldgRicochetCannon & "_" & "0", @ScriptDir & "\imgxml\Buildings\RicochetCannon")
 $g_oBldgImages.add($eBldgRevengeTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\RevengeTower")
 ; EOF
