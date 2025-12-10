@@ -105,17 +105,14 @@ Func ParseAttackCSV_Read_SIDE_variables()
 							EndIf
 							If Int($value5) > 0 Then $g_bCSVLocateMortar = True
 							If Int($value6) > 0 Then $g_bCSVLocateAirDefense = True
-							If Int($value7) > 0 Then $g_bCSVLocateScatter = True
-							If Int($value8) > 0 Then $g_bCSVLocateSweeper = True
-							If Int($value9) > 0 Then $g_bCSVLocateMonolith = True
-							If Int($value10) > 0 Then $g_bCSVLocateFireSpitter = True
-							If Int($value11) > 0 Then 
-								$g_bCSVLocateMultiArcherTower = True
-								$g_bCSVLocateMultiGearTower = True
-							EndIf
-							If Int($value12) > 0 Then $g_bCSVLocateRicochetCannon = True
-							If Int($value13) > 0 Then $g_bCSVLocateRevengeTower = True
-							; $value14 = Gem Box placeholder
+								If Int($value7) > 0 Then $g_bCSVLocateScatter = True
+								If Int($value8) > 0 Then $g_bCSVLocateSweeper = True
+								If Int($value9) > 0 Then $g_bCSVLocateMonolith = True
+								If Int($value10) > 0 Then $g_bCSVLocateFireSpitter = True
+								If Int($value11) > 0 Then $g_bCSVLocateMultiArcherTower = True
+								If Int($value12) > 0 Then $g_bCSVLocateRicochetCannon = True
+								If Int($value13) > 0 Then $g_bCSVLocateRevengeTower = True
+								; $value14 = Gem Box placeholder
 						EndIf
 					Case "MAKE" ; check if targeted building vectors are used im MAKE commands >> starting in V7.2+
 						If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then ; check for empty string?
@@ -140,17 +137,16 @@ Func ParseAttackCSV_Read_SIDE_variables()
 									$g_bCSVLocateSweeper = True
 								Case "MONOLITH"
 									$g_bCSVLocateMonolith = True
-								Case "MULTIARCHERTOWER"
+								Case "MULTIARCHER"
 									$g_bCSVLocateMultiArcherTower = True
-								Case "MULTIGEARTOWER"
 									$g_bCSVLocateMultiGearTower = True
-								Case "RICOCHETCANNON"
+								Case "RICOCHETCA"
 									$g_bCSVLocateRicochetCannon = True
 								Case "FIRESPITTER"
 									$g_bCSVLocateFireSpitter = True
-								Case "SUPERWIZTOWER"
+								Case "SUPERWIZTW"
 									$g_bCSVLocateSuperWizTower = True
-								Case "REVENGETOWER"
+								Case "REVENGETW"
 									$g_bCSVLocateRevengeTower = True
 								Case "EX-WALL"
 									$g_bCSVLocateWall = True

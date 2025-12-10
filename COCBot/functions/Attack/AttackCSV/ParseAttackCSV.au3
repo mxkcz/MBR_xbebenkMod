@@ -673,7 +673,7 @@ Func ParseAttackCSV_MainSide($debug = False)
 	EndIf
 
 	Local $line, $acommand, $command
-	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = ""
+	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = "", $value10 = "", $value11 = "", $value12 = "", $value13 = "", $value14 = ""
 	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
 		Local $aLines = FileReadToArray($g_sCSVAttacksPath & "\" & $filename & ".csv")
 
@@ -889,7 +889,7 @@ Func ParseAttackCSV_MainSide($debug = False)
 
 							Switch StringLeft(Slice8($g_aiCSVEagleArtilleryPos), 1)
 								Case 1, 2
-									$heightBottomRight += Int($value1)
+									$heightBottomRight += Int($value1) ; Eagle weight
 								Case 3, 4
 									$heightTopRight += Int($value1)
 								Case 5, 6
@@ -898,37 +898,19 @@ Func ParseAttackCSV_MainSide($debug = False)
 									$heightBottomLeft += Int($value1)
 							EndSwitch
 
-							If IsArray($g_aiCSVScatterPos) Then
-								For $i = 0 To UBound($g_aiCSVScatterPos) - 1
-									Local $pixel = $g_aiCSVScatterPos[$i]
-									If UBound($pixel) = 2 Then
-										Switch StringLeft(Slice8($pixel), 1)
-											Case 1, 2
-												$heightBottomRight += Int($value4)
-											Case 3, 4
-												$heightTopRight += Int($value4)
-											Case 5, 6
-												$heightTopLeft += Int($value4)
-											Case 7, 8
-												$heightBottomLeft += Int($value4)
-										EndSwitch
-									EndIf
-								Next
-							EndIf
-
 							If IsArray($g_aiCSVInfernoPos) Then
 								For $i = 0 To UBound($g_aiCSVInfernoPos) - 1
 									Local $pixel = $g_aiCSVInfernoPos[$i]
 									If UBound($pixel) = 2 Then
 										Switch StringLeft(Slice8($pixel), 1)
 											Case 1, 2
-												$heightBottomRight += Int($value4)
+												$heightBottomRight += Int($value2)
 											Case 3, 4
-												$heightTopRight += Int($value4)
+												$heightTopRight += Int($value2)
 											Case 5, 6
-												$heightTopLeft += Int($value4)
+												$heightTopLeft += Int($value2)
 											Case 7, 8
-												$heightBottomLeft += Int($value4)
+												$heightBottomLeft += Int($value2)
 										EndSwitch
 									EndIf
 								Next
@@ -937,6 +919,24 @@ Func ParseAttackCSV_MainSide($debug = False)
 							If IsArray($g_aiCSVXBowPos) Then
 								For $i = 0 To UBound($g_aiCSVXBowPos) - 1
 									Local $pixel = $g_aiCSVXBowPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value3)
+											Case 3, 4
+												$heightTopRight += Int($value3)
+											Case 5, 6
+												$heightTopLeft += Int($value3)
+											Case 7, 8
+												$heightBottomLeft += Int($value3)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVSuperWizTowerPos) Then
+								For $i = 0 To UBound($g_aiCSVSuperWizTowerPos) - 1
+									Local $pixel = $g_aiCSVSuperWizTowerPos[$i]
 									If UBound($pixel) = 2 Then
 										Switch StringLeft(Slice8($pixel), 1)
 											Case 1, 2
@@ -976,13 +976,13 @@ Func ParseAttackCSV_MainSide($debug = False)
 									If UBound($pixel) = 2 Then
 										Switch StringLeft(Slice8($pixel), 1)
 											Case 1, 2
-												$heightBottomRight += Int($value4)
+												$heightBottomRight += Int($value5)
 											Case 3, 4
-												$heightTopRight += Int($value4)
+												$heightTopRight += Int($value5)
 											Case 5, 6
-												$heightTopLeft += Int($value4)
+												$heightTopLeft += Int($value5)
 											Case 7, 8
-												$heightBottomLeft += Int($value4)
+												$heightBottomLeft += Int($value5)
 										EndSwitch
 									EndIf
 								Next
@@ -994,13 +994,161 @@ Func ParseAttackCSV_MainSide($debug = False)
 									If UBound($pixel) = 2 Then
 										Switch StringLeft(Slice8($pixel), 1)
 											Case 1, 2
-												$heightBottomRight += Int($value4)
+												$heightBottomRight += Int($value6)
 											Case 3, 4
-												$heightTopRight += Int($value4)
+												$heightTopRight += Int($value6)
 											Case 5, 6
-												$heightTopLeft += Int($value4)
+												$heightTopLeft += Int($value6)
 											Case 7, 8
-												$heightBottomLeft += Int($value4)
+												$heightBottomLeft += Int($value6)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							; CSV SIDEB column mapping (by position):
+							; 1: Eagle, 2: Inferno, 3: XBow, 4: WizTower, 5: Mortar, 6: AirDefense, 7: Scatter,
+							; 8: Sweeper, 9: Monolith, 10: FireSpitter, 11: MultiArcher, 12: MultiGear, 13: Ricochet, 14: Revenge
+
+							If IsArray($g_aiCSVScatterPos) Then
+								For $i = 0 To UBound($g_aiCSVScatterPos) - 1
+									Local $pixel = $g_aiCSVScatterPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value7)
+											Case 3, 4
+												$heightTopRight += Int($value7)
+											Case 5, 6
+												$heightTopLeft += Int($value7)
+											Case 7, 8
+												$heightBottomLeft += Int($value7)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVSweeperPos) Then
+								For $i = 0 To UBound($g_aiCSVSweeperPos) - 1
+									Local $pixel = $g_aiCSVSweeperPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value8)
+											Case 3, 4
+												$heightTopRight += Int($value8)
+											Case 5, 6
+												$heightTopLeft += Int($value8)
+											Case 7, 8
+												$heightBottomLeft += Int($value8)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVMonolithPos) Then
+								For $i = 0 To UBound($g_aiCSVMonolithPos) - 1
+									Local $pixel = $g_aiCSVMonolithPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value9)
+											Case 3, 4
+												$heightTopRight += Int($value9)
+											Case 5, 6
+												$heightTopLeft += Int($value9)
+											Case 7, 8
+												$heightBottomLeft += Int($value9)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVFireSpitterPos) Then
+								For $i = 0 To UBound($g_aiCSVFireSpitterPos) - 1
+									Local $pixel = $g_aiCSVFireSpitterPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value10)
+											Case 3, 4
+												$heightTopRight += Int($value10)
+											Case 5, 6
+												$heightTopLeft += Int($value10)
+											Case 7, 8
+												$heightBottomLeft += Int($value10)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVMultiArcherTowerPos) Then
+								For $i = 0 To UBound($g_aiCSVMultiArcherTowerPos) - 1
+									Local $pixel = $g_aiCSVMultiArcherTowerPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value11)
+											Case 3, 4
+												$heightTopRight += Int($value11)
+											Case 5, 6
+												$heightTopLeft += Int($value11)
+											Case 7, 8
+												$heightBottomLeft += Int($value11)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVMultiGearTowerPos) Then
+								For $i = 0 To UBound($g_aiCSVMultiGearTowerPos) - 1
+									Local $pixel = $g_aiCSVMultiGearTowerPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value12)
+											Case 3, 4
+												$heightTopRight += Int($value12)
+											Case 5, 6
+												$heightTopLeft += Int($value12)
+											Case 7, 8
+												$heightBottomLeft += Int($value12)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVRicochetCannonPos) Then
+								For $i = 0 To UBound($g_aiCSVRicochetCannonPos) - 1
+									Local $pixel = $g_aiCSVRicochetCannonPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value13)
+											Case 3, 4
+												$heightTopRight += Int($value13)
+											Case 5, 6
+												$heightTopLeft += Int($value13)
+											Case 7, 8
+												$heightBottomLeft += Int($value13)
+										EndSwitch
+									EndIf
+								Next
+							EndIf
+
+							If IsArray($g_aiCSVRevengeTowerPos) Then
+								For $i = 0 To UBound($g_aiCSVRevengeTowerPos) - 1
+									Local $pixel = $g_aiCSVRevengeTowerPos[$i]
+									If UBound($pixel) = 2 Then
+										Switch StringLeft(Slice8($pixel), 1)
+											Case 1, 2
+												$heightBottomRight += Int($value14)
+											Case 3, 4
+												$heightTopRight += Int($value14)
+											Case 5, 6
+												$heightTopLeft += Int($value14)
+											Case 7, 8
+												$heightBottomLeft += Int($value14)
 										EndSwitch
 									EndIf
 								Next
