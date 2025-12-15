@@ -502,6 +502,20 @@ Func cmbScriptDroplineAB()
 	$g_aiAttackScrDroplineEdge[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
 EndFunc   ;==>cmbScriptDroplineAB
 
+Func OpenAttackCSVSettings()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_DISABLE)
+	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_DISABLE)
+	GUISetState(@SW_SHOW, $g_hGUI_AttackCSVSettings)
+EndFunc   ;==>OpenAttackCSVSettings
+
+Func CloseAttackCSVSettings()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	GUISetState(@SW_HIDE, $g_hGUI_AttackCSVSettings)
+	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_ENABLE)
+	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_ENABLE)
+EndFunc   ;==>CloseAttackCSVSettings
+
 Func AttackNow()
 	Local $tempbRunState = $g_bRunState
 	Local $tempSieges = $g_aiCurrentSiegeMachines

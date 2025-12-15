@@ -16,7 +16,7 @@
 
 Global $g_hGUI_DEADBASE_ATTACK_SCRIPTED = 0
 Global $g_hCmbScriptNameDB = 0, $g_hCmbScriptRedlineImplDB = 0, $g_hCmbScriptDroplineDB = 0
-Global $g_hLblNotesScriptDB = 0
+Global $g_hLblNotesScriptDB = 0, $g_hBtnAttackCSVSettingsDB = 0
 
 Func CreateAttackSearchDeadBaseScripted()
 	$g_hGUI_DEADBASE_ATTACK_SCRIPTED = _GUICreate("", $_GUI_MAIN_WIDTH - 195, $g_iSizeHGrpTab4, 150, 25, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_DEADBASE)
@@ -66,6 +66,10 @@ Func CreateAttackSearchDeadBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrain, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconApply_Info_01", "Apply Settings of troop, spell, redline, dropline, and request"))
 			GUICtrlSetOnEvent(-1, "ApplyScriptDB")
+	$y += 25
+		$g_hBtnAttackCSVSettingsDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, 120, 22)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings_Info", "Open advanced CSV helpers (side weights, vectors, drops, waits)"))
+			GUICtrlSetOnEvent(-1, "OpenAttackCSVSettings")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	;------------------------------------------------------------------------------------------

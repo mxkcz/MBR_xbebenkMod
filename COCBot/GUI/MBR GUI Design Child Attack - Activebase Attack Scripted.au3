@@ -16,7 +16,7 @@
 
 Global $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED = 0
 Global $g_hCmbScriptNameAB = 0, $g_hCmbScriptRedlineImplAB = 0, $g_hCmbScriptDroplineAB = 0
-Global $g_hLblNotesScriptAB = 0 , $g_hbtnAttNow
+Global $g_hLblNotesScriptAB = 0 , $g_hbtnAttNow, $g_hBtnAttackCSVSettingsAB = 0
 
 Func CreateAttackSearchActiveBaseScripted()
 	$g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED = _GUICreate("", $_GUI_MAIN_WIDTH - 195, $g_iSizeHGrpTab4, 150, 25, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_ACTIVEBASE)
@@ -73,6 +73,10 @@ Func CreateAttackSearchActiveBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrain, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconApply_Info_01", -1))
 			GUICtrlSetOnEvent(-1, "ApplyScriptAB")
+	$y += 25
+		$g_hBtnAttackCSVSettingsAB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, 120, 22)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings_Info", "Open advanced CSV helpers (side weights, vectors, drops, waits)"))
+			GUICtrlSetOnEvent(-1, "OpenAttackCSVSettings")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	;------------------------------------------------------------------------------------------
