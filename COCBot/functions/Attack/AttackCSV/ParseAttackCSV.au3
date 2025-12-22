@@ -311,27 +311,39 @@ Func ParseAttackCSV($debug = False)
 							ContinueLoop
 						EndIf
 						
+						Local $bRemain = False
+						Local $bIncludeHeroes = False
+						Local $bIncludeSpells = False
+						Local $sUnknownRemainFlags = ""
 						If $sErrorText <> "" Then
 							SetLog("Discard row, " & $sErrorText & ": row " & $iLine + 1)
 							debugAttackCSV("Discard row, " & $sErrorText & ": row " & $iLine + 1)
 						Else
+							$bRemain = AttackCSV_ParseRemainFlags($value4, $bIncludeHeroes, $bIncludeSpells, $sUnknownRemainFlags)
 							; REMAIN CMD from @chalicucu
-							If $value4 = "REMAIN" Then
+							If $bRemain Then
 								ReleaseClicks()
-								SetLog("Drop|Remain:  Dropping left over troops", $COLOR_BLUE)
+								Local $sRemainNote = ""
+								If $bIncludeHeroes Or $bIncludeSpells Then
+									$sRemainNote = " ("
+									If $bIncludeHeroes Then $sRemainNote &= "heroes"
+									If $bIncludeSpells Then $sRemainNote &= ($bIncludeHeroes ? "+spells" : "spells")
+									$sRemainNote &= ")"
+								EndIf
+								SetLog("Drop|Remain: Dropping left over troops" & $sRemainNote, $COLOR_BLUE)
+								If $sUnknownRemainFlags <> "" Then SetLog("Drop|Remain: Unknown flags [" & $sUnknownRemainFlags & "]", $COLOR_WARNING)
 								If PrepareAttack($g_iMatchMode, True) > 0 Then
-									; a Loop from all troops
-									For $ii = $eBarb To $eIWiza ; launch all remaining troops
-										; Loop on all detected troops
-										For $x = 0 To UBound($g_avAttackTroops) - 1
-											; If the Name exist and haves more than zero is deploy it
-											If $g_avAttackTroops[$x][0] = $ii And $g_avAttackTroops[$x][1] > 0 Then
-												Local $name = GetTroopName($g_avAttackTroops[$x][0], $g_avAttackTroops[$x][1])
-												Setlog("Drop Remaining " & $name & " x" & $g_avAttackTroops[$x][1], $COLOR_DEBUG)
-												DropTroopFromINI($value1, $index1, $index2, $indexArray, $g_avAttackTroops[$x][1], $g_avAttackTroops[$x][1], $g_asTroopShortNames[$ii], $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
-												If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
-											EndIf
-										Next
+									; Drop any remaining troop-type entries found on the attack bar (incl. event troops/CC/siege).
+									For $x = 0 To UBound($g_avAttackTroops) - 1
+										Local $iTroopIndex = $g_avAttackTroops[$x][0]
+										Local $iTroopCount = $g_avAttackTroops[$x][1]
+										If $iTroopCount <= 0 Then ContinueLoop
+										Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
+										If $sShortName = "" Then ContinueLoop
+										Local $name = GetTroopName($iTroopIndex, $iTroopCount)
+										Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
+										DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
+										If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
 									Next
 								EndIf
 							Else
@@ -341,7 +353,7 @@ Func ParseAttackCSV($debug = False)
 						ReleaseClicks($g_iAndroidAdbClicksTroopDeploySize)
 						If _Sleep($DELAYRESPOND) Then Return ; check for pause/stop
 						;set flag if warden was dropped and sleep after delay was to short for icon to update properly
-						If $value4 <> "REMAIN" Then
+						If Not $bRemain Then
 							$iTroopIndex = TroopIndexLookup($value4, "ParseAttackCSV") ; obtain enum
 							$bWardenDrop = ($iTroopIndex = $eWarden) And ($sleepdrop1 < 1000)
 						EndIf
@@ -593,6 +605,60 @@ Func ParseAttackCSV($debug = False)
 		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
 	EndIf
 EndFunc   ;==>ParseAttackCSV
+
+; Side-effect: pure (index -> short name mapping)
+Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $bIncludeSpells = False)
+	If $iTroopIndex >= $eBarb And $iTroopIndex <= $eIWiza Then
+		Return $g_asTroopShortNames[$iTroopIndex]
+	EndIf
+	If $iTroopIndex >= $eWallW And $iTroopIndex <= $eBattleD Then
+		Return $g_asSiegeMachineShortNames[$iTroopIndex - $eWallW]
+	EndIf
+	If $iTroopIndex = $eCastle Then Return "Castle"
+	If $bIncludeHeroes And $iTroopIndex >= $eKing And $iTroopIndex <= $eMinionP Then
+		Return $g_asHeroShortNames[$iTroopIndex - $eKing]
+	EndIf
+	If $bIncludeSpells And $iTroopIndex >= $eLSpell And $iTroopIndex <= $eOgSpell Then
+		Return $g_asSpellShortNames[$iTroopIndex - $eLSpell]
+	EndIf
+	Return ""
+EndFunc   ;==>AttackCSV_GetRemainTroopShortName
+
+; Side-effect: pure (flag parsing)
+Func AttackCSV_ParseRemainFlags($sValue, ByRef $bIncludeHeroes, ByRef $bIncludeSpells, ByRef $sUnknownFlags)
+	$bIncludeHeroes = False
+	$bIncludeSpells = False
+	$sUnknownFlags = ""
+	Local $sClean = StringUpper(StringStripWS($sValue, $STR_STRIPALL))
+	If StringLeft($sClean, 6) <> "REMAIN" Then Return False
+
+	Local $sSuffix = StringTrimLeft($sClean, 6)
+	If $sSuffix = "" Then Return True
+	If StringLeft($sSuffix, 1) = "+" Or StringLeft($sSuffix, 1) = "-" Or StringLeft($sSuffix, 1) = ":" Then
+		$sSuffix = StringTrimLeft($sSuffix, 1)
+	EndIf
+	$sSuffix = StringReplace($sSuffix, "-", "+")
+	$sSuffix = StringReplace($sSuffix, ":", "+")
+	$sSuffix = StringReplace($sSuffix, "/", "+")
+	Local $aFlags = StringSplit($sSuffix, "+", $STR_NOCOUNT)
+	For $i = 0 To UBound($aFlags) - 1
+		Local $sFlag = StringStripWS($aFlags[$i], $STR_STRIPALL)
+		If $sFlag = "" Then ContinueLoop
+		Switch $sFlag
+			Case "ALL", "EVERY", "ANY"
+				$bIncludeHeroes = True
+				$bIncludeSpells = True
+			Case "HERO", "HEROES"
+				$bIncludeHeroes = True
+			Case "SPELL", "SPELLS"
+				$bIncludeSpells = True
+			Case Else
+				If $sUnknownFlags <> "" Then $sUnknownFlags &= ","
+				$sUnknownFlags &= $sFlag
+		EndSwitch
+	Next
+	Return True
+EndFunc   ;==>AttackCSV_ParseRemainFlags
 
 ;This Function is used to check if siege dropped the troops
 Func CheckIfSiegeDroppedTheTroops($hSleepTimer, $aSiegeSlotPos)
