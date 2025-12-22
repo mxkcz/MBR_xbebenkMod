@@ -1631,6 +1631,7 @@ Global Const $g_iCSVSearchFilterCount = 23
 Global Const $g_iCSVSearchResourceMaxIndex = 6
 Global $g_abCSVSearchFilter[$g_iCSVSearchFilterCount] = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
+Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F
 Global $ATTACKVECTOR_G, $ATTACKVECTOR_H, $ATTACKVECTOR_I, $ATTACKVECTOR_J, $ATTACKVECTOR_K, $ATTACKVECTOR_L
