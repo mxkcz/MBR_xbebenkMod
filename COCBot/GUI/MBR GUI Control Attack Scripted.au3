@@ -583,6 +583,19 @@ Func CSVVectorSelect()
 	AttackCSVSettings_LoadVectorFromCSV($g_iAttackCSVSettingsMode)
 EndFunc   ;==>CSVVectorSelect
 
+; Side-effect: io (GUI state updates)
+Func CSVRemainToggle()
+	Local $bEnabled = (GUICtrlRead($g_hChkCSVDropRemaining) = $GUI_CHECKED)
+	If $g_hChkCSVDropIncludeHeroes <> 0 Then
+		GUICtrlSetState($g_hChkCSVDropIncludeHeroes, $bEnabled ? $GUI_ENABLE : $GUI_DISABLE)
+		If Not $bEnabled Then GUICtrlSetState($g_hChkCSVDropIncludeHeroes, $GUI_UNCHECKED)
+	EndIf
+	If $g_hChkCSVDropIncludeSpells <> 0 Then
+		GUICtrlSetState($g_hChkCSVDropIncludeSpells, $bEnabled ? $GUI_ENABLE : $GUI_DISABLE)
+		If Not $bEnabled Then GUICtrlSetState($g_hChkCSVDropIncludeSpells, $GUI_UNCHECKED)
+	EndIf
+EndFunc   ;==>CSVRemainToggle
+
 ; Side-effect: io (file read + GUI state updates)
 Func AttackCSVSettings_LoadFromCSV($iMode)
 	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
@@ -620,6 +633,9 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	GUICtrlSetData($g_hInpCSVDelaySleepMin, "0")
 	GUICtrlSetData($g_hInpCSVDelaySleepMax, "0")
 	GUICtrlSetState($g_hChkCSVDropRemaining, $GUI_UNCHECKED)
+	GUICtrlSetState($g_hChkCSVDropIncludeHeroes, $GUI_UNCHECKED)
+	GUICtrlSetState($g_hChkCSVDropIncludeSpells, $GUI_UNCHECKED)
+	CSVRemainToggle()
 
 	GUICtrlSetData($g_hInpCSVWaitMin, "0")
 	GUICtrlSetData($g_hInpCSVWaitMax, "0")
@@ -698,7 +714,10 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 				$sCCReqValue = AttackCSVSettings_SelectTHValueTrim($aCols, $iTHCol, $iTHStart, $iTHEnd)
 			Case "DROP"
 				Local $sTroop = AttackCSVSettings_GetValue($aCols, 4)
-				If StringUpper($sTroop) = "REMAIN" And Not $bRemainFound Then
+				Local $bIncludeHeroes = False
+				Local $bIncludeSpells = False
+				Local $sUnknownFlags = ""
+				If AttackCSV_ParseRemainFlags($sTroop, $bIncludeHeroes, $bIncludeSpells, $sUnknownFlags) And Not $bRemainFound Then
 					Local $iMin, $iMax
 					AttackCSVSettings_ParseRange(AttackCSVSettings_GetValue($aCols, 2), $iMin, $iMax)
 					GUICtrlSetData($g_hInpCSVIndexMin, $iMin)
@@ -716,6 +735,10 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 					GUICtrlSetData($g_hInpCSVDelaySleepMin, $iMin)
 					GUICtrlSetData($g_hInpCSVDelaySleepMax, $iMax)
 					GUICtrlSetState($g_hChkCSVDropRemaining, $GUI_CHECKED)
+					GUICtrlSetState($g_hChkCSVDropIncludeHeroes, $bIncludeHeroes ? $GUI_CHECKED : $GUI_UNCHECKED)
+					GUICtrlSetState($g_hChkCSVDropIncludeSpells, $bIncludeSpells ? $GUI_CHECKED : $GUI_UNCHECKED)
+					If $sUnknownFlags <> "" Then SetLog("Attack CSV settings: unknown REMAIN flags [" & $sUnknownFlags & "]", $COLOR_WARNING)
+					CSVRemainToggle()
 					$bRemainFound = True
 				EndIf
 			Case "WAIT"
@@ -1059,6 +1082,33 @@ Func AttackCSVSettings_BuildRange($iMin, $iMax)
 	Return $iMin & "-" & $iMax
 EndFunc   ;==>AttackCSVSettings_BuildRange
 
+; Side-effect: io (GUI state reads)
+Func AttackCSVSettings_BuildRemainTroopName($sExisting)
+	Local $bIncludeHeroes = False
+	Local $bIncludeSpells = False
+	If $g_hChkCSVDropIncludeHeroes <> 0 Then $bIncludeHeroes = (GUICtrlRead($g_hChkCSVDropIncludeHeroes) = $GUI_CHECKED)
+	If $g_hChkCSVDropIncludeSpells <> 0 Then $bIncludeSpells = (GUICtrlRead($g_hChkCSVDropIncludeSpells) = $GUI_CHECKED)
+
+	Local $sTarget = "REMAIN"
+	If $bIncludeHeroes And $bIncludeSpells Then
+		$sTarget &= "+HERO+SPELL"
+	ElseIf $bIncludeHeroes Then
+		$sTarget &= "+HERO"
+	ElseIf $bIncludeSpells Then
+		$sTarget &= "+SPELL"
+	EndIf
+
+	If $sExisting = "" Then Return $sTarget
+
+	Local $bExistingHeroes = False
+	Local $bExistingSpells = False
+	Local $sUnknownFlags = ""
+	If AttackCSV_ParseRemainFlags($sExisting, $bExistingHeroes, $bExistingSpells, $sUnknownFlags) Then
+		If $bExistingHeroes = $bIncludeHeroes And $bExistingSpells = $bIncludeSpells Then Return $sExisting
+	EndIf
+	Return $sTarget
+EndFunc   ;==>AttackCSVSettings_BuildRemainTroopName
+
 ; Side-effect: io (GUI state updates)
 Func AttackCSVSettings_SetWaitCheckboxes($sCond)
 	Local $aParams = StringSplit($sCond, ",", $STR_NOCOUNT)
@@ -1193,7 +1243,12 @@ Func AttackCSVSettings_ScanAnchors(ByRef $aLines, ByRef $iRedlnLine, ByRef $iDrp
 			Case "DROP"
 				$iLastDropLine = $iLine
 				Local $sTroop = AttackCSVSettings_GetValue($aCols, 4)
-				If $iRemainLine = -1 And StringUpper($sTroop) = "REMAIN" Then $iRemainLine = $iLine
+				If $iRemainLine = -1 Then
+					Local $bIncludeHeroes = False
+					Local $bIncludeSpells = False
+					Local $sUnknownFlags = ""
+					If AttackCSV_ParseRemainFlags($sTroop, $bIncludeHeroes, $bIncludeSpells, $sUnknownFlags) Then $iRemainLine = $iLine
+				EndIf
 			Case "WAIT"
 				If $iWaitLineAny = -1 Then $iWaitLineAny = $iLine
 				If $iWaitLineCond = -1 And AttackCSVSettings_GetValue($aCols, 2) <> "" Then $iWaitLineCond = $iLine
@@ -1356,17 +1411,20 @@ Func AttackCSVSettings_UpdateDropRemainLine(ByRef $aLines, $iRemainLine, $iLastD
 	Local $sDelayPoint = AttackCSVSettings_BuildRange($iDelayPointMin, $iDelayPointMax)
 	Local $sDelayDrop = AttackCSVSettings_BuildRange($iDelayDropMin, $iDelayDropMax)
 	Local $sSleep = AttackCSVSettings_BuildRange($iSleepMin, $iSleepMax)
+	Local $sRemainName = AttackCSVSettings_BuildRemainTroopName("")
 
 	If $iRemainLine = -1 Then
 		Local $sVector = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVVectorId), $STR_STRIPALL))
 		If $sVector = "" Then $sVector = "A"
-		Local $sLine = "DROP |" & $sVector & " |" & $sIndex & " |" & $sQty & " |REMAIN |" & $sDelayPoint & " |" & $sDelayDrop & " |" & $sSleep & " |"
+		Local $sLine = "DROP |" & $sVector & " |" & $sIndex & " |" & $sQty & " |" & $sRemainName & " |" & $sDelayPoint & " |" & $sDelayDrop & " |" & $sSleep & " |"
 		Local $iInsert = ($iLastDropLine > -1 ? $iLastDropLine + 1 : ($iFirstMakeLine > -1 ? $iFirstMakeLine + 1 : UBound($aLines)))
 		AttackCSVSettings_InsertLine($aLines, $iInsert, $sLine)
 		Return
 	EndIf
 
 	Local $aCols = StringSplit($aLines[$iRemainLine], "|", 2)
+	Local $sExistingRemain = AttackCSVSettings_GetValue($aCols, 4)
+	$sRemainName = AttackCSVSettings_BuildRemainTroopName($sExistingRemain)
 	Local $iOldMin, $iOldMax
 	AttackCSVSettings_ParseRange(AttackCSVSettings_GetValue($aCols, 2), $iOldMin, $iOldMax)
 	If $iOldMin = $iIndexMin And $iOldMax = $iIndexMax Then
@@ -1377,13 +1435,14 @@ Func AttackCSVSettings_UpdateDropRemainLine(ByRef $aLines, $iRemainLine, $iLastD
 				AttackCSVSettings_ParseRange(AttackCSVSettings_GetValue($aCols, 6), $iOldMin, $iOldMax)
 				If $iOldMin = $iDelayDropMin And $iOldMax = $iDelayDropMax Then
 					AttackCSVSettings_ParseRange(AttackCSVSettings_GetValue($aCols, 7), $iOldMin, $iOldMax)
-					If $iOldMin = $iSleepMin And $iOldMax = $iSleepMax Then Return
+					If $iOldMin = $iSleepMin And $iOldMax = $iSleepMax And $sExistingRemain = $sRemainName Then Return
 				EndIf
 			EndIf
 		EndIf
 	EndIf
 	AttackCSVSettings_SetColumn($aCols, 2, $sIndex)
 	AttackCSVSettings_SetColumn($aCols, 3, $sQty)
+	AttackCSVSettings_SetColumn($aCols, 4, $sRemainName)
 	AttackCSVSettings_SetColumn($aCols, 5, $sDelayPoint)
 	AttackCSVSettings_SetColumn($aCols, 6, $sDelayDrop)
 	AttackCSVSettings_SetColumn($aCols, 7, $sSleep)

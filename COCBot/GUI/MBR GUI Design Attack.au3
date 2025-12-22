@@ -41,7 +41,7 @@ Global $g_hBtnRemoveDropOrder = 0
 Global $g_hCmbCSVForceSide = 0, $g_ahCSVSideWeightInputs[7] = [0, 0, 0, 0, 0, 0, 0], $g_ahCSVSideWeightSpin[7] = [0, 0, 0, 0, 0, 0, 0]
 Global $g_ahCSVSideBWeightInputs[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], $g_ahCSVSideBWeightSpin[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 Global $g_hCmbCSVVectorId = 0, $g_hChkCSVVectorTargeted = 0, $g_hCmbCSVTargetBuilding = 0, $g_hCmbCSVPointCount = 0, $g_hInpCSVOffsetTiles = 0, $g_hChkCSVRandomDropSide = 0
-Global $g_hInpCSVIndexMin = 0, $g_hInpCSVIndexMax = 0, $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0, $g_hInpCSVDelayPointMin = 0, $g_hInpCSVDelayPointMax = 0, $g_hInpCSVDelayDropMin = 0, $g_hInpCSVDelayDropMax = 0, $g_hInpCSVDelaySleepMin = 0, $g_hInpCSVDelaySleepMax = 0, $g_hChkCSVDropRemaining = 0
+Global $g_hInpCSVIndexMin = 0, $g_hInpCSVIndexMax = 0, $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0, $g_hInpCSVDelayPointMin = 0, $g_hInpCSVDelayPointMax = 0, $g_hInpCSVDelayDropMin = 0, $g_hInpCSVDelayDropMax = 0, $g_hInpCSVDelaySleepMin = 0, $g_hInpCSVDelaySleepMax = 0, $g_hChkCSVDropRemaining = 0, $g_hChkCSVDropIncludeHeroes = 0, $g_hChkCSVDropIncludeSpells = 0
 Global $g_hInpCSVWaitMin = 0, $g_hInpCSVWaitMax = 0, $g_hChkCSVBreakTH = 0, $g_hChkCSVBreakSiege = 0, $g_hChkCSVBreak50 = 0, $g_hChkCSVBreakAQ = 0, $g_hChkCSVBreakBK = 0, $g_hChkCSVBreakGW = 0, $g_hChkCSVBreakRC = 0, $g_hChkCSVBreakAnyHero = 0
 Global $g_asCSVSearchNames[23] = ["Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall", "Eagle", "Inferno", "X-Bow", "Wizard Tower", "Super Wizard Tower", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer Tower", "Multi Gear Tower", "Ricochet Cannon", "Revenge Tower", "Walls"]
 Global $g_ahCSVSearchToggles[23] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -224,7 +224,11 @@ Func CreateAttackCSVSettingsGUI()
 			$g_hInpCSVDelaySleepMin = GUICtrlCreateInput("0", $x + 125, $y + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 			$g_hInpCSVDelaySleepMax = GUICtrlCreateInput("0", $x + 170, $y + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 			$g_hChkCSVDropRemaining = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain", "Drop remaining troops (REMAIN)"), $x, $y + 130, 240, 20)
-			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_DropRange_Todo", "TODO: map to DROP line builder"), $x, $y + 155, 250, 18)
+				GUICtrlSetOnEvent(-1, "CSVRemainToggle")
+			$g_hChkCSVDropIncludeHeroes = GUICtrlCreateCheckbox("Include heroes in REMAIN", $x + 10, $y + 150, 190, 18)
+				GUICtrlSetState(-1, $GUI_DISABLE)
+			$g_hChkCSVDropIncludeSpells = GUICtrlCreateCheckbox("Include spells in REMAIN", $x + 10, $y + 170, 190, 18)
+				GUICtrlSetState(-1, $GUI_DISABLE)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Wait", "WAIT && break conditions"), $x + 380, $y - 20, 360, 190)
