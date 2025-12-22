@@ -48,6 +48,7 @@ Global $g_ahCSVSearchToggles[23] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 Global $g_hCmbCSVFlexTroop = 0, $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0], $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
 Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0
 Global $g_hLblCSVSidePreview = 0
+Global $g_hBtnAttackCSVSettingsCloseTop = 0
 
 Func CreateAttackTab()
 	$g_hGUI_ATTACK = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $_GUI_CHILD_LEFT, $_GUI_CHILD_TOP, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hFrmBotEx)
@@ -135,9 +136,11 @@ Func CreateDropOrderGUI()
 EndFunc   ;==>CreateDropOrderGUI
 
 Func CreateAttackCSVSettingsGUI()
-	$g_hGUI_AttackCSVSettings = _GUICreate(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "GUI_AttackCSVSettings", "Attack CSV Settings"), $_GUI_MAIN_WIDTH - 40, $_GUI_MAIN_HEIGHT - 150, $g_iFrmBotPosX + 10, $g_iFrmBotPosY + 70, $WS_DLGFRAME, -1, $g_hFrmBot)
+	Local $iDesiredWidth = ($_GUI_MAIN_WIDTH < 1150) ? 1150 : $_GUI_MAIN_WIDTH ; widen to fit wide control groups
+	Local $iGuiWidth = $iDesiredWidth - 40
+	$g_hGUI_AttackCSVSettings = _GUICreate(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "GUI_AttackCSVSettings", "Attack CSV Settings"), $iGuiWidth, $_GUI_MAIN_HEIGHT - 150, $g_iFrmBotPosX + 10, $g_iFrmBotPosY + 70, $WS_DLGFRAME, -1, $g_hFrmBot)
 	GUISetOnEvent($GUI_EVENT_CLOSE, "CloseAttackCSVSettings", $g_hGUI_AttackCSVSettings)
-	Local $iTabWidth = $_GUI_MAIN_WIDTH - 70, $iTabHeight = $_GUI_MAIN_HEIGHT - 200
+	Local $iTabWidth = $iGuiWidth - 30, $iTabHeight = $_GUI_MAIN_HEIGHT - 200
 	Local $x = 25, $y = 40
 	$g_hAttackCSVSettingsTab = GUICtrlCreateTab(10, 10, $iTabWidth, $iTabHeight, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
 
@@ -298,5 +301,7 @@ Func CreateAttackCSVSettingsGUI()
 	GUICtrlCreateTabItem("")
 
 	$g_hBtnAttackCSVSettingsClose = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Close", "Close"), $iTabWidth - 60, $iTabHeight + 25, 85, 25)
+		GUICtrlSetOnEvent(-1, "CloseAttackCSVSettings")
+	$g_hBtnAttackCSVSettingsCloseTop = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Close", "Close"), $iTabWidth - 60, 15, 85, 25)
 		GUICtrlSetOnEvent(-1, "CloseAttackCSVSettings")
 EndFunc   ;==>CreateAttackCSVSettingsGUI

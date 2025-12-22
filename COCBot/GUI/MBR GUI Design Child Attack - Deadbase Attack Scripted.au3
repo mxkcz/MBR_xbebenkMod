@@ -66,7 +66,7 @@ Func CreateAttackSearchDeadBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrain, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconApply_Info_01", "Apply Settings of troop, spell, redline, dropline, and request"))
 			GUICtrlSetOnEvent(-1, "ApplyScriptDB")
-	$y += 25
+	$y += 190 ; place CSV settings button below dropline selector block
 		$g_hBtnAttackCSVSettingsDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, 120, 22)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings_Info", "Open advanced CSV helpers (side weights, vectors, drops, waits)"))
 			GUICtrlSetOnEvent(-1, "OpenAttackCSVSettings")
