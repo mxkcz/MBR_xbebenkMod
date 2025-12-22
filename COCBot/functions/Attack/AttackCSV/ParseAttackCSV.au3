@@ -332,20 +332,28 @@ Func ParseAttackCSV($debug = False)
 								EndIf
 								SetLog("Drop|Remain: Dropping left over troops" & $sRemainNote, $COLOR_BLUE)
 								If $sUnknownRemainFlags <> "" Then SetLog("Drop|Remain: Unknown flags [" & $sUnknownRemainFlags & "]", $COLOR_WARNING)
-								If PrepareAttack($g_iMatchMode, True) > 0 Then
-									; Drop any remaining troop-type entries found on the attack bar (incl. event troops/CC/siege).
-									For $x = 0 To UBound($g_avAttackTroops) - 1
-										Local $iTroopIndex = $g_avAttackTroops[$x][0]
-										Local $iTroopCount = $g_avAttackTroops[$x][1]
-										If $iTroopCount <= 0 Then ContinueLoop
-										Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
-										If $sShortName = "" Then ContinueLoop
-										Local $name = GetTroopName($iTroopIndex, $iTroopCount)
-										Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
-										DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
-										If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
-									Next
+								Local $aRemainBackup = $g_avAttackTroops
+								Local $iRemainTroops = PrepareAttack($g_iMatchMode, True)
+								If $iRemainTroops <= 0 Then
+									SetLog("Drop|Remain: attack bar refresh failed, using cached troop data", $COLOR_WARNING)
+									$g_avAttackTroops = $aRemainBackup
+								Else
+									Local $iRestored = AttackCSV_MergeRemainTroops($g_avAttackTroops, $aRemainBackup)
+									If $iRestored > 0 Then SetLog("Drop|Remain: restored " & $iRestored & " cached troop slots", $COLOR_WARNING)
 								EndIf
+
+								; Drop any remaining troop-type entries found on the attack bar (incl. event troops/CC/siege).
+								For $x = 0 To UBound($g_avAttackTroops) - 1
+									Local $iTroopIndex = $g_avAttackTroops[$x][0]
+									Local $iTroopCount = $g_avAttackTroops[$x][1]
+									If $iTroopCount <= 0 Then ContinueLoop
+									Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
+									If $sShortName = "" Then ContinueLoop
+									Local $name = GetTroopName($iTroopIndex, $iTroopCount)
+									Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
+									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
+									If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
+								Next
 							Else
 								DropTroopFromINI($value1, $index1, $index2, $indexArray, $qty1, $qty2, $value4, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
 							EndIf
@@ -623,6 +631,29 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	EndIf
 	Return ""
 EndFunc   ;==>AttackCSV_GetRemainTroopShortName
+
+; Side-effect: pure (array merge)
+Func AttackCSV_MergeRemainTroops(ByRef $aCurrent, ByRef $aBackup)
+	If UBound($aCurrent, 0) <> 2 Or UBound($aBackup, 0) <> 2 Then Return 0
+	Local $iRows = UBound($aCurrent, 1)
+	Local $iBackupRows = UBound($aBackup, 1)
+	If $iBackupRows < $iRows Then $iRows = $iBackupRows
+	Local $iCols = UBound($aCurrent, 2)
+	Local $iBackupCols = UBound($aBackup, 2)
+	If $iBackupCols < $iCols Then $iCols = $iBackupCols
+	Local $iRestored = 0
+
+	For $i = 0 To $iRows - 1
+		If $aCurrent[$i][0] = -1 And $aBackup[$i][0] >= 0 And $aBackup[$i][1] > 0 Then
+			For $j = 0 To $iCols - 1
+				$aCurrent[$i][$j] = $aBackup[$i][$j]
+			Next
+			$iRestored += 1
+		EndIf
+	Next
+
+	Return $iRestored
+EndFunc   ;==>AttackCSV_MergeRemainTroops
 
 ; Side-effect: pure (flag parsing)
 Func AttackCSV_ParseRemainFlags($sValue, ByRef $bIncludeHeroes, ByRef $bIncludeSpells, ByRef $sUnknownFlags)
