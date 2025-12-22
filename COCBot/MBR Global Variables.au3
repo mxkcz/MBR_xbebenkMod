@@ -1626,6 +1626,10 @@ Global $g_bCSVLocateMultiGearTower = False
 Global $g_bCSVLocateSuperWizTower = False
 Global $g_bCSVLocateRevengeTower = False
 Global $g_bCSVLocateWall = False
+; CSV building detection filter (1 = allowed, 0 = skipped)
+Global Const $g_iCSVSearchFilterCount = 23
+Global Const $g_iCSVSearchResourceMaxIndex = 6
+Global $g_abCSVSearchFilter[$g_iCSVSearchFilterCount] = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F

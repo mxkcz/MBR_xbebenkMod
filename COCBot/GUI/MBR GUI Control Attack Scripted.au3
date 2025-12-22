@@ -504,6 +504,7 @@ EndFunc   ;==>cmbScriptDroplineAB
 
 Func OpenAttackCSVSettings()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	ApplyConfig_AttackCSV("Read")
 	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_DISABLE)
 	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_DISABLE)
 	GUISetState(@SW_SHOW, $g_hGUI_AttackCSVSettings)
@@ -511,10 +512,63 @@ EndFunc   ;==>OpenAttackCSVSettings
 
 Func CloseAttackCSVSettings()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	ApplyConfig_AttackCSV("Save")
 	GUISetState(@SW_HIDE, $g_hGUI_AttackCSVSettings)
 	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_ENABLE)
 	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_ENABLE)
 EndFunc   ;==>CloseAttackCSVSettings
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSetAll($bEnable)
+	For $i = 0 To UBound($g_ahCSVSearchToggles) - 1
+		If $g_ahCSVSearchToggles[$i] <> 0 Then
+			GUICtrlSetState($g_ahCSVSearchToggles[$i], $bEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
+		EndIf
+	Next
+EndFunc   ;==>CSVSearchSetAll
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSetRange($iStart, $iEnd, $bEnable)
+	Local $iMax = UBound($g_ahCSVSearchToggles) - 1
+	If $iStart < 0 Then $iStart = 0
+	If $iEnd > $iMax Then $iEnd = $iMax
+	For $i = $iStart To $iEnd
+		If $g_ahCSVSearchToggles[$i] <> 0 Then
+			GUICtrlSetState($g_ahCSVSearchToggles[$i], $bEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
+		EndIf
+	Next
+EndFunc   ;==>CSVSearchSetRange
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchToggle()
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchToggle
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSelectAll()
+	CSVSearchSetAll(True)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectAll
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSelectNone()
+	CSVSearchSetAll(False)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectNone
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSelectResources()
+	CSVSearchSetAll(False)
+	CSVSearchSetRange(0, $g_iCSVSearchResourceMaxIndex, True)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectResources
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSelectDefenses()
+	CSVSearchSetAll(False)
+	CSVSearchSetRange($g_iCSVSearchResourceMaxIndex + 1, UBound($g_ahCSVSearchToggles) - 1, True)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectDefenses
 
 Func AttackNow()
 	Local $tempbRunState = $g_bRunState

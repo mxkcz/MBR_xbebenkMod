@@ -238,6 +238,8 @@ Func SaveRegularConfig()
 	SaveConfig_600_29_DB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
 	SaveConfig_600_29_LB()
+	; <><><><> Attack CSV / Building Filters <><><><>
+	SaveConfig_AttackCSV()
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
 	SaveConfig_600_30()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
@@ -1045,6 +1047,17 @@ Func SaveConfig_600_29_LB_Scripted()
 	_Ini_Add("attack", "DroplineEdgeAB", $g_aiAttackScrDroplineEdge[$LB])
 	_Ini_Add("attack", "ScriptAB", $g_sAttackScrScriptName[$LB])
 EndFunc   ;==>SaveConfig_600_29_LB_Scripted
+
+; Side-effect: io (config write staging)
+Func SaveConfig_AttackCSV()
+	; <><><><> Attack CSV / Building Filters <><><><>
+	ApplyConfig_AttackCSV(GetApplyConfigSaveAction())
+	Local $sMask = ""
+	For $i = 0 To UBound($g_abCSVSearchFilter) - 1
+		$sMask &= ($g_abCSVSearchFilter[$i] ? 1 : 0) & "|"
+	Next
+	_Ini_Add("attackcsv", "BuildingMask", $sMask)
+EndFunc   ;==>SaveConfig_AttackCSV
 
 Func SaveConfig_600_30()
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>

@@ -103,6 +103,8 @@ Func applyConfig($bRedrawAtExit = True, $TypeReadSave = "Read") ;Applies the dat
 	ApplyConfig_600_29_DB($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
 	ApplyConfig_600_29_LB($TypeReadSave)
+	; <><><><> Attack CSV / Building Filters <><><><>
+	ApplyConfig_AttackCSV($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
 	ApplyConfig_600_30($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
@@ -1755,6 +1757,28 @@ Func ApplyConfig_600_29_LB_Scripted($TypeReadSave)
 			IniWriteS($g_sProfileConfigPath, "attack", "ScriptAB", $g_sAttackScrScriptName[$LB])
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_29_LB_Scripted
+
+; Side-effect: io (GUI state updates)
+Func ApplyConfig_AttackCSV($TypeReadSave)
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $iMax = UBound($g_abCSVSearchFilter)
+	Local $iCtrlMax = UBound($g_ahCSVSearchToggles)
+	If $iCtrlMax < $iMax Then $iMax = $iCtrlMax
+	Switch $TypeReadSave
+		Case "Read"
+			For $i = 0 To $iMax - 1
+				If $g_ahCSVSearchToggles[$i] <> 0 Then
+					GUICtrlSetState($g_ahCSVSearchToggles[$i], $g_abCSVSearchFilter[$i] ? $GUI_CHECKED : $GUI_UNCHECKED)
+				EndIf
+			Next
+		Case "Save"
+			For $i = 0 To $iMax - 1
+				If $g_ahCSVSearchToggles[$i] <> 0 Then
+					$g_abCSVSearchFilter[$i] = (GUICtrlRead($g_ahCSVSearchToggles[$i]) = $GUI_CHECKED)
+				EndIf
+			Next
+	EndSwitch
+EndFunc   ;==>ApplyConfig_AttackCSV
 
 Func ApplyConfig_600_30($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
