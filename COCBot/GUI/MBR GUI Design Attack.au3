@@ -47,7 +47,7 @@ Global $g_asCSVSearchNames[23] = ["Mines", "Elixir Collectors", "Dark Drills", "
 Global $g_ahCSVSearchToggles[23] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 Global $g_hBtnCSVSearchAll = 0, $g_hBtnCSVSearchNone = 0, $g_hBtnCSVSearchResources = 0, $g_hBtnCSVSearchDefenses = 0
 Global $g_hCmbCSVFlexTroop = 0, $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0], $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
-Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0
+Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0, $g_hBtnCSVSettingsApply = 0
 Global $g_hLblCSVSidePreview = 0
 Global $g_hBtnAttackCSVSettingsCloseTop = 0
 
@@ -190,17 +190,22 @@ Func CreateAttackCSVSettingsGUI()
 				GUICtrlSetOnEvent(-1, "CSVVectorSelect")
 			$g_hChkCSVVectorTargeted = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Targeted", "Building targeted (MAKE value8)"), $x + 80, $y - 2, 190, 20)
 				GUICtrlSetState(-1, $GUI_CHECKED)
+				GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 			$g_hCmbCSVTargetBuilding = GUICtrlCreateCombo("", $x + 280, $y - 2, 150, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 				GUICtrlSetData(-1, "TOWNHALL|EAGLE|INFERNO|XBOW|WIZTOWER|SUPERWIZTW|MORTAR|AIRDEFENSE|SWEEPER|MONOLITH|FIRESPITTER|MULTIARCHER|MULTIGEAR|RICOCHETCA|SCATTER|REVENGETW|EX-WALL|IN-WALL", "TOWNHALL")
 				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_TargetBuilding_Info", "Matches MakeTargetDropPoints value8 list"))
+				GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 			$g_hCmbCSVPointCount = GUICtrlCreateCombo("", $x + 450, $y - 2, 60, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 				GUICtrlSetData(-1, "1|5", "5")
 				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_PointCount_Info", "DROP point count (MAKE value3)"))
+				GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Offset", "Offset tiles"), $x + 520, $y, 65, 18)
 			$g_hInpCSVOffsetTiles = GUICtrlCreateInput("0", $x + 590, $y - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+				GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 			$g_hChkCSVRandomDropSide = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_RandomSide", "Random drop side (MAKE RANDOM)"), $x, $y + 30, 220, 20)
 				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_RandomSide_Info", "MAKE RANDOM helper for quadrant selection"))
-			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Targeted_Todo", "TODO: Bind to MAKE/DROP editor to push values into CSV"), $x, $y + 60, 500, 18)
+				GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
+			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Targeted_Info", "Vector edits update the selected MAKE line in CSV."), $x, $y + 60, 500, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 3: Drops & Wait ----
@@ -243,7 +248,8 @@ Func CreateAttackCSVSettingsGUI()
 			$g_hChkCSVBreakGW = GUICtrlCreateCheckbox("Trigger GW ability", $x + 560, $y + 100, 140, 20)
 			$g_hChkCSVBreakRC = GUICtrlCreateCheckbox("Trigger RC ability", $x + 560, $y + 125, 140, 20)
 			$g_hChkCSVBreakAnyHero = GUICtrlCreateCheckbox("Any hero ability combo", $x + 390, $y + 150, 200, 20)
-			GUICtrlCreateLabel("TODO: align with WAIT ranges & combo parsing", $x + 390, $y + 175, 250, 18)
+				GUICtrlSetOnEvent(-1, "CSVWaitComboToggle")
+			GUICtrlCreateLabel("WAIT condition examples: TH,SIEGE,50%,AQ,BK,GW,RC or AQ+BK.", $x + 390, $y + 175, 320, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 4: Search toggles & settings ----
@@ -298,7 +304,9 @@ Func CreateAttackCSVSettingsGUI()
 				GUICtrlSetData(-1, "Drop line fix outer corner|Drop line fist Redline point|Full Drop line fix outer corner|Full Drop line fist Redline point|No Drop line", "Drop line fix outer corner")
 			GUICtrlCreateLabel("CC request text", $x + 440, $y + 210, 100, 18)
 			$g_hTxtCSVCCRequest = GUICtrlCreateInput("", $x + 540, $y + 208, 190, 18)
-			GUICtrlCreateLabel("TODO: push settings into ParseAttackCSV_Settings_variables", $x + 440, $y + 235, 280, 18)
+			$g_hBtnCSVSettingsApply = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply", "Apply to GUI"), $x + 440, $y + 235, 120, 22)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply_Info", "Save CSV settings and apply them to the current script."))
+				GUICtrlSetOnEvent(-1, "AttackCSVSettings_ApplyToGUI")
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 5: Preview ----

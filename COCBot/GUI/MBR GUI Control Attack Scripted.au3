@@ -525,6 +525,22 @@ Func CloseAttackCSVSettings()
 	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_ENABLE)
 EndFunc   ;==>CloseAttackCSVSettings
 
+; Side-effect: io (file read/write + GUI state updates)
+Func AttackCSVSettings_ApplyToGUI()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $sScript = AttackCSVSettings_GetScriptName($g_iAttackCSVSettingsMode)
+	If $sScript = "" Then
+		SetLog("Attack CSV settings: no script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+	AttackCSVSettings_SaveToCSV($g_iAttackCSVSettingsMode)
+	If $g_iAttackCSVSettingsMode = $LB Then
+		ApplyScriptAB()
+	Else
+		ApplyScriptDB()
+	EndIf
+EndFunc   ;==>AttackCSVSettings_ApplyToGUI
+
 ; Side-effect: io (GUI state updates)
 Func CSVSearchSetAll($bEnable)
 	For $i = 0 To UBound($g_ahCSVSearchToggles) - 1
@@ -583,6 +599,12 @@ Func CSVVectorSelect()
 	AttackCSVSettings_LoadVectorFromCSV($g_iAttackCSVSettingsMode)
 EndFunc   ;==>CSVVectorSelect
 
+; Side-effect: io (file read/write)
+Func CSVVectorUpdate()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	AttackCSVSettings_SaveVectorToCSV($g_iAttackCSVSettingsMode)
+EndFunc   ;==>CSVVectorUpdate
+
 ; Side-effect: io (GUI state updates)
 Func CSVRemainToggle()
 	Local $bEnabled = (GUICtrlRead($g_hChkCSVDropRemaining) = $GUI_CHECKED)
@@ -595,6 +617,19 @@ Func CSVRemainToggle()
 		If Not $bEnabled Then GUICtrlSetState($g_hChkCSVDropIncludeSpells, $GUI_UNCHECKED)
 	EndIf
 EndFunc   ;==>CSVRemainToggle
+
+; Side-effect: io (GUI state updates)
+Func CSVWaitComboToggle()
+	Local $bAnyHero = (GUICtrlRead($g_hChkCSVBreakAnyHero) = $GUI_CHECKED)
+	If $g_hChkCSVBreakAQ <> 0 Then
+		GUICtrlSetState($g_hChkCSVBreakAQ, $bAnyHero ? $GUI_DISABLE : $GUI_ENABLE)
+		If $bAnyHero Then GUICtrlSetState($g_hChkCSVBreakAQ, $GUI_UNCHECKED)
+	EndIf
+	If $g_hChkCSVBreakBK <> 0 Then
+		GUICtrlSetState($g_hChkCSVBreakBK, $bAnyHero ? $GUI_DISABLE : $GUI_ENABLE)
+		If $bAnyHero Then GUICtrlSetState($g_hChkCSVBreakBK, $GUI_UNCHECKED)
+	EndIf
+EndFunc   ;==>CSVWaitComboToggle
 
 ; Side-effect: io (file read + GUI state updates)
 Func AttackCSVSettings_LoadFromCSV($iMode)
@@ -647,6 +682,7 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	GUICtrlSetState($g_hChkCSVBreakGW, $GUI_UNCHECKED)
 	GUICtrlSetState($g_hChkCSVBreakRC, $GUI_UNCHECKED)
 	GUICtrlSetState($g_hChkCSVBreakAnyHero, $GUI_UNCHECKED)
+	CSVWaitComboToggle()
 
 	If $g_hCmbCSVFlexTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVFlexTroop, -1)
 	For $i = 0 To UBound($g_ahCSVHeroAbilityMode) - 1
@@ -783,6 +819,17 @@ Func AttackCSVSettings_LoadVectorFromCSV($iMode)
 	If @error Then Return
 	AttackCSVSettings_LoadVectorFromLines($aLines)
 EndFunc   ;==>AttackCSVSettings_LoadVectorFromCSV
+
+; Side-effect: io (file read/write)
+Func AttackCSVSettings_SaveVectorToCSV($iMode)
+	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
+	If $sScript = "" Then Return
+	Local $sPath = $g_sCSVAttacksPath & "\" & $sScript & ".csv"
+	Local $aLines = AttackCSVSettings_ReadLines($sPath)
+	If @error Then Return
+	AttackCSVSettings_UpdateMakeLine($aLines)
+	AttackCSVSettings_WriteLines($sPath, $aLines)
+EndFunc   ;==>AttackCSVSettings_SaveVectorToCSV
 
 ; Side-effect: io (GUI state updates)
 Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
@@ -1120,6 +1167,9 @@ Func AttackCSVSettings_SetWaitCheckboxes($sCond)
 				GUICtrlSetState($g_hChkCSVBreakTH, $GUI_CHECKED)
 			Case "SIEGE"
 				GUICtrlSetState($g_hChkCSVBreakSiege, $GUI_CHECKED)
+			Case "TH+SIEGE", "SIEGE+TH"
+				GUICtrlSetState($g_hChkCSVBreakTH, $GUI_CHECKED)
+				GUICtrlSetState($g_hChkCSVBreakSiege, $GUI_CHECKED)
 			Case "50%"
 				GUICtrlSetState($g_hChkCSVBreak50, $GUI_CHECKED)
 			Case "AQ"
@@ -1135,6 +1185,7 @@ Func AttackCSVSettings_SetWaitCheckboxes($sCond)
 		EndSwitch
 	Next
 	If $bAnyHeroCombo Then GUICtrlSetState($g_hChkCSVBreakAnyHero, $GUI_CHECKED)
+	CSVWaitComboToggle()
 EndFunc   ;==>AttackCSVSettings_SetWaitCheckboxes
 
 ; Side-effect: pure (GUI state reads)
@@ -1148,9 +1199,9 @@ Func AttackCSVSettings_BuildWaitConditions()
 	Else
 		If GUICtrlRead($g_hChkCSVBreakAQ) = $GUI_CHECKED Then $sCond &= "AQ,"
 		If GUICtrlRead($g_hChkCSVBreakBK) = $GUI_CHECKED Then $sCond &= "BK,"
-		If GUICtrlRead($g_hChkCSVBreakGW) = $GUI_CHECKED Then $sCond &= "GW,"
-		If GUICtrlRead($g_hChkCSVBreakRC) = $GUI_CHECKED Then $sCond &= "RC,"
 	EndIf
+	If GUICtrlRead($g_hChkCSVBreakGW) = $GUI_CHECKED Then $sCond &= "GW,"
+	If GUICtrlRead($g_hChkCSVBreakRC) = $GUI_CHECKED Then $sCond &= "RC,"
 	If StringRight($sCond, 1) = "," Then $sCond = StringTrimRight($sCond, 1)
 	Return $sCond
 EndFunc   ;==>AttackCSVSettings_BuildWaitConditions
