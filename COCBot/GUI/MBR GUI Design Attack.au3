@@ -140,41 +140,86 @@ EndFunc   ;==>CreateDropOrderGUI
 Func CreateAttackCSVSettingsGUI()
 	Local $iDesiredWidth = ($_GUI_MAIN_WIDTH < 1150) ? 1150 : $_GUI_MAIN_WIDTH ; widen to fit wide control groups
 	Local $iGuiWidth = $iDesiredWidth - 40
-	$g_hGUI_AttackCSVSettings = _GUICreate(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "GUI_AttackCSVSettings", "Attack CSV Settings"), $iGuiWidth, $_GUI_MAIN_HEIGHT - 150, $g_iFrmBotPosX + 10, $g_iFrmBotPosY + 70, $WS_DLGFRAME, -1, $g_hFrmBot)
+	Local $iGuiHeight = $_GUI_MAIN_HEIGHT - 150
+	$g_hGUI_AttackCSVSettings = _GUICreate(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "GUI_AttackCSVSettings", "Attack CSV Settings"), $iGuiWidth, $iGuiHeight, $g_iFrmBotPosX + 10, $g_iFrmBotPosY + 70, $WS_DLGFRAME, -1, $g_hFrmBot)
 	GUISetOnEvent($GUI_EVENT_CLOSE, "CloseAttackCSVSettings", $g_hGUI_AttackCSVSettings)
 	Local $iTabWidth = $iGuiWidth - 30, $iTabHeight = $_GUI_MAIN_HEIGHT - 200
-	Local $x = 25, $y = 40
-	$g_hAttackCSVSettingsTab = GUICtrlCreateTab(10, 10, $iTabWidth, $iTabHeight, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
+	Local $iTabX = 10, $iTabY = 10
+	Local $iTabLeft = $iTabX + 15, $iTabTop = $iTabY + 50
+	Local $x = $iTabLeft, $y = $iTabTop
+	Local $iGroupLeft = $iTabLeft - 10
+	Local $iTabInnerW = $iTabWidth - 30
+	Local $iGroupGap = 15
+	$g_hAttackCSVSettingsTab = GUICtrlCreateTab($iTabX, $iTabY, $iTabWidth, $iTabHeight, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
+	Local $iTabHeaderH = $iTabTop - $iTabY
 
 	; ---- Tab 1: Side weighting & forcing ----
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Side", "Side Weights"))
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_ForceSide", "Forced side"), $x - 10, $y - 15, 320, 70)
-			$g_hCmbCSVForceSide = GUICtrlCreateCombo("", $x, $y, 220, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iSideGapX = 20
+		Local $iForceGroupH = 70
+		Local $iSideGroupH = 200
+		Local $iSideBGroupH = 270
+		Local $iLeftGroupW = 320
+		Local $iRightGroupW = 400
+		Local $bSideWide = ($iTabInnerW >= ($iLeftGroupW + $iRightGroupW + $iSideGapX))
+		Local $iLeftGroupX = $iGroupLeft
+		Local $iRightGroupX = $iLeftGroupX + $iLeftGroupW + $iSideGapX
+		Local $iForceGroupY = $y - 15
+		Local $iSideGroupY = $iForceGroupY + $iForceGroupH + 10
+		Local $iSideBGroupY = $iForceGroupY
+		If Not $bSideWide Then
+			$iLeftGroupW = $iTabInnerW
+			$iRightGroupW = $iTabInnerW
+			$iRightGroupX = $iLeftGroupX
+			$iSideBGroupY = $iSideGroupY + $iSideGroupH + $iGroupGap
+		EndIf
+
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_ForceSide", "Forced side"), $iLeftGroupX, $iForceGroupY, $iLeftGroupW, $iForceGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_ForceSide_Info", "Overrides SIDE/SIDEB weight selection when set."))
+			Local $iForceComboW = $iLeftGroupW - 90
+			If $iForceComboW < 140 Then $iForceComboW = 140
+			$g_hCmbCSVForceSide = GUICtrlCreateCombo("", $x, $y, $iForceComboW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 				GUICtrlSetData(-1, "Auto (weight-based)|TOP-LEFT|TOP-RIGHT|BOTTOM-LEFT|BOTTOM-RIGHT|TOP-RAND", "Auto (weight-based)")
 				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_ForceSide_Info", "Matches SIDE/SIDEB value8. TOP-RAND randomizes left/right on top."))
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 		; SIDE weights (resource focus)
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideWeights", "SIDE weights (resource)"), $x - 10, $y + 65, 320, 200)
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideWeights", "SIDE weights (resource)"), $iLeftGroupX, $iSideGroupY, $iLeftGroupW, $iSideGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideWeights_Info", "Higher values push SIDE selection toward resource-heavy edges."))
 			Local $aSideWeightNames[7] = ["Gold Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall"]
+			Local $iSideColW = Int(($iLeftGroupW - 20) / 2)
+			Local $iSideLabelW = $iSideColW - 45
+			If $iSideLabelW < 70 Then $iSideLabelW = 70
+			Local $iSideInputW = $iSideColW - $iSideLabelW - 10
+			If $iSideInputW < 35 Then $iSideInputW = 35
+			If $iSideInputW > 50 Then $iSideInputW = 50
 			For $i = 0 To UBound($aSideWeightNames) - 1
 				Local $iRow = Mod($i, 4), $iCol = Int($i / 4)
-				Local $iOffsetX = $x + ($iCol * 150), $iOffsetY = ($y + 90) + ($iRow * 30)
-				GUICtrlCreateLabel($aSideWeightNames[$i] & ":", $iOffsetX, $iOffsetY + 4, 95, 18)
-				$g_ahCSVSideWeightInputs[$i] = GUICtrlCreateInput("0", $iOffsetX + 100, $iOffsetY, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+				Local $iOffsetX = $iLeftGroupX + 10 + ($iCol * $iSideColW), $iOffsetY = $iSideGroupY + 25 + ($iRow * 30)
+				GUICtrlCreateLabel($aSideWeightNames[$i] & ":", $iOffsetX, $iOffsetY + 4, $iSideLabelW, 18)
+				$g_ahCSVSideWeightInputs[$i] = GUICtrlCreateInput("0", $iOffsetX + $iSideLabelW + 5, $iOffsetY, $iSideInputW, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 				$g_ahCSVSideWeightSpin[$i] = GUICtrlCreateUpdown($g_ahCSVSideWeightInputs[$i])
 					GUICtrlSetLimit(-1, 99, 0)
 			Next
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 		; SIDEB weights (defense focus, incl. new defenses)
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideBWeights", "SIDEB weights (defenses)"), $x + 330, $y - 15, 400, 270)
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideBWeights", "SIDEB weights (defenses)"), $iRightGroupX, $iSideBGroupY, $iRightGroupW, $iSideBGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_SideBWeights_Info", "Higher values prioritize defense-heavy edges in SIDEB."))
 			Local $aSideBWeightNames[14] = ["Eagle", "Inferno", "X-Bow", "Wizard Tower/Super Wiz", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer", "Multi Gear", "Ricochet Cannon", "Revenge Tower"]
+			Local $iSideBColW = Int(($iRightGroupW - 20) / 2)
+			Local $iSideBLabelW = $iSideBColW - 50
+			If $iSideBLabelW < 90 Then $iSideBLabelW = 90
+			Local $iSideBInputW = $iSideBColW - $iSideBLabelW - 10
+			If $iSideBInputW < 35 Then $iSideBInputW = 35
+			If $iSideBInputW > 50 Then $iSideBInputW = 50
 			For $j = 0 To UBound($aSideBWeightNames) - 1
 				Local $iRowB = Mod($j, 7), $iColB = Int($j / 7)
-				Local $iOffsetXB = $x + 340 + ($iColB * 190), $iOffsetYB = ($y + 10) + ($iRowB * 30)
-				GUICtrlCreateLabel($aSideBWeightNames[$j] & ":", $iOffsetXB, $iOffsetYB + 4, 120, 18)
-				$g_ahCSVSideBWeightInputs[$j] = GUICtrlCreateInput("0", $iOffsetXB + 125, $iOffsetYB, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+				Local $iOffsetXB = $iRightGroupX + 10 + ($iColB * $iSideBColW), $iOffsetYB = $iSideBGroupY + 25 + ($iRowB * 30)
+				GUICtrlCreateLabel($aSideBWeightNames[$j] & ":", $iOffsetXB, $iOffsetYB + 4, $iSideBLabelW, 18)
+				$g_ahCSVSideBWeightInputs[$j] = GUICtrlCreateInput("0", $iOffsetXB + $iSideBLabelW + 5, $iOffsetYB, $iSideBInputW, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 				$g_ahCSVSideBWeightSpin[$j] = GUICtrlCreateUpdown($g_ahCSVSideBWeightInputs[$j])
 					GUICtrlSetLimit(-1, 99, 0)
 			Next
@@ -182,9 +227,10 @@ Func CreateAttackCSVSettingsGUI()
 
 	; ---- Tab 2: Vectors ----
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Vector", "Vectors"))
-		$x = 25
-		$y = 60
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Targeted", "Targeted vectors"), $x - 10, $y - 20, 720, 130)
+		$x = $iTabLeft
+		$y = $iTabTop
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Targeted", "Targeted vectors"), $iGroupLeft, $y - 20, $iTabInnerW, 130)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Targeted_Info", "Edits the selected MAKE line (value2..value8) for this vector."))
 		$g_hCmbCSVVectorId = GUICtrlCreateCombo("", $x, $y, 60, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			GUICtrlSetData(-1, "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z", "A")
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_VectorId_Info", "MAKE/DROP vector letter"))
@@ -200,9 +246,11 @@ Func CreateAttackCSVSettingsGUI()
 			GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 		GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Offset", "Offset tiles"), $x + 350, $y, 65, 18)
 		$g_hInpCSVOffsetTiles = GUICtrlCreateInput("0", $x + 420, $y - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Inp_AttackCSVSettings_Offset_Info", "MAKE value4 (tile offset)."))
 			GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 		$g_hChkCSVVectorTargeted = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Targeted", "Building targeted (MAKE value8)"), $x, $y + 28, 180, 20)
 			GUICtrlSetState(-1, $GUI_CHECKED)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Targeted_Info", "When enabled, uses value8 target building for MakeTargetDropPoints."))
 			GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 		$g_hCmbCSVTargetBuilding = GUICtrlCreateCombo("", $x + 190, $y + 28, 140, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			GUICtrlSetData(-1, "TOWNHALL|EAGLE|INFERNO|XBOW|WIZTOWER|SUPERWIZTW|MORTAR|AIRDEFENSE|SWEEPER|MONOLITH|FIRESPITTER|MULTIARCHER|MULTIGEAR|RICOCHETCA|SCATTER|REVENGETW|EX-WALL|IN-WALL", "TOWNHALL")
@@ -226,75 +274,135 @@ Func CreateAttackCSVSettingsGUI()
 
 	; ---- Tab 3: Drops & Wait ----
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Drops", "Drops && Wait"))
-		$x = 25
-		$y = 60
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_DropRange", "DROP ranges && leftovers"), $x - 10, $y - 20, 360, 190)
-			GUICtrlCreateLabel("Index min/max", $x, $y, 90, 18)
-			$g_hInpCSVIndexMin = GUICtrlCreateInput("1", $x + 95, $y - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVIndexMax = GUICtrlCreateInput("5", $x + 140, $y - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			GUICtrlCreateLabel("Qty min/max", $x, $y + 25, 90, 18)
-			$g_hInpCSVQtyMin = GUICtrlCreateInput("1", $x + 95, $y + 23, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVQtyMax = GUICtrlCreateInput("5", $x + 140, $y + 23, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			GUICtrlCreateLabel("Delay point ms", $x, $y + 50, 90, 18)
-			$g_hInpCSVDelayPointMin = GUICtrlCreateInput("0", $x + 95, $y + 48, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVDelayPointMax = GUICtrlCreateInput("0", $x + 140, $y + 48, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			GUICtrlCreateLabel("Delay drop ms", $x, $y + 75, 90, 18)
-			$g_hInpCSVDelayDropMin = GUICtrlCreateInput("0", $x + 95, $y + 73, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVDelayDropMax = GUICtrlCreateInput("0", $x + 140, $y + 73, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			GUICtrlCreateLabel("Sleep after drop ms", $x, $y + 100, 110, 18)
-			$g_hInpCSVDelaySleepMin = GUICtrlCreateInput("0", $x + 125, $y + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVDelaySleepMax = GUICtrlCreateInput("0", $x + 170, $y + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hChkCSVDropRemaining = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain", "Drop remaining troops (REMAIN)"), $x, $y + 130, 240, 20)
-				GUICtrlSetOnEvent(-1, "CSVRemainToggle")
-			$g_hChkCSVDropIncludeHeroes = GUICtrlCreateCheckbox("Include heroes in REMAIN", $x + 10, $y + 150, 190, 18)
-				GUICtrlSetState(-1, $GUI_DISABLE)
-			$g_hChkCSVDropIncludeSpells = GUICtrlCreateCheckbox("Include spells in REMAIN", $x + 10, $y + 170, 190, 18)
-				GUICtrlSetState(-1, $GUI_DISABLE)
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iDropGroupW = 360
+		Local $iWaitGroupW = 360
+		Local $iDropGroupH = 215
+		Local $iWaitGroupH = 215
+		Local $iDropGroupGapX = 20
+		Local $bDropWide = ($iTabInnerW >= ($iDropGroupW + $iWaitGroupW + $iDropGroupGapX))
+		Local $iDropGroupX = $iGroupLeft
+		Local $iDropGroupY = $y - 20
+		Local $iWaitGroupX = $iDropGroupX + $iDropGroupW + $iDropGroupGapX
+		Local $iWaitGroupY = $y - 20
+		If Not $bDropWide Then
+			$iDropGroupW = $iTabInnerW
+			$iWaitGroupW = $iTabInnerW
+			$iWaitGroupX = $iDropGroupX
+			$iWaitGroupY = $iDropGroupY + $iDropGroupH + $iGroupGap
+		EndIf
+		Local $iDropX = $iDropGroupX + 10
+		Local $iDropY = $iDropGroupY + 20
+		Local $iWaitX = $iWaitGroupX + 10
+		Local $iWaitY = $iWaitGroupY + 20
+
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_DropRange", "DROP ranges && leftovers"), $iDropGroupX, $iDropGroupY, $iDropGroupW, $iDropGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_DropRange_Info", "Edits DROP ranges used by REMAIN helper lines."))
+			GUICtrlCreateLabel("Index min/max", $iDropX, $iDropY, 90, 18)
+			$g_hInpCSVIndexMin = GUICtrlCreateInput("1", $iDropX + 95, $iDropY - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVIndexMax = GUICtrlCreateInput("5", $iDropX + 140, $iDropY - 2, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			GUICtrlCreateLabel("Qty min/max", $iDropX, $iDropY + 25, 90, 18)
+			$g_hInpCSVQtyMin = GUICtrlCreateInput("1", $iDropX + 95, $iDropY + 23, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVQtyMax = GUICtrlCreateInput("5", $iDropX + 140, $iDropY + 23, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			GUICtrlCreateLabel("Delay point ms", $iDropX, $iDropY + 50, 90, 18)
+			$g_hInpCSVDelayPointMin = GUICtrlCreateInput("0", $iDropX + 95, $iDropY + 48, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVDelayPointMax = GUICtrlCreateInput("0", $iDropX + 140, $iDropY + 48, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			GUICtrlCreateLabel("Delay drop ms", $iDropX, $iDropY + 75, 90, 18)
+			$g_hInpCSVDelayDropMin = GUICtrlCreateInput("0", $iDropX + 95, $iDropY + 73, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVDelayDropMax = GUICtrlCreateInput("0", $iDropX + 140, $iDropY + 73, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			GUICtrlCreateLabel("Sleep after drop ms", $iDropX, $iDropY + 100, 110, 18)
+			$g_hInpCSVDelaySleepMin = GUICtrlCreateInput("0", $iDropX + 125, $iDropY + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVDelaySleepMax = GUICtrlCreateInput("0", $iDropX + 170, $iDropY + 98, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+		$g_hChkCSVDropRemaining = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain", "Drop remaining troops (REMAIN)"), $iDropX, $iDropY + 130, 240, 20)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain_Info", "Adds or updates a REMAIN DROP line for the selected vector."))
+			GUICtrlSetOnEvent(-1, "CSVRemainToggle")
+		$g_hChkCSVDropIncludeHeroes = GUICtrlCreateCheckbox("Include heroes in REMAIN", $iDropX + 10, $iDropY + 150, 190, 18)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain_Hero_Info", "Include heroes when using REMAIN."))
+			GUICtrlSetState(-1, $GUI_DISABLE)
+		$g_hChkCSVDropIncludeSpells = GUICtrlCreateCheckbox("Include spells in REMAIN", $iDropX + 10, $iDropY + 170, 190, 18)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_DropRemain_Spell_Info", "Include spells when using REMAIN."))
+			GUICtrlSetState(-1, $GUI_DISABLE)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Wait", "WAIT && break conditions"), $x + 380, $y - 20, 360, 190)
-			GUICtrlCreateLabel("Wait ms min/max", $x + 390, $y, 100, 18)
-			$g_hInpCSVWaitMin = GUICtrlCreateInput("0", $x + 495, $y - 2, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hInpCSVWaitMax = GUICtrlCreateInput("0", $x + 550, $y - 2, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_hChkCSVBreakTH = GUICtrlCreateCheckbox("Break on Town Hall destroy", $x + 390, $y + 25, 200, 20)
-			$g_hChkCSVBreakSiege = GUICtrlCreateCheckbox("Break when Siege drops", $x + 390, $y + 50, 200, 20)
-			$g_hChkCSVBreak50 = GUICtrlCreateCheckbox("Break at 50% damage", $x + 390, $y + 75, 200, 20)
-			$g_hChkCSVBreakAQ = GUICtrlCreateCheckbox("Trigger AQ ability", $x + 390, $y + 100, 140, 20)
-			$g_hChkCSVBreakBK = GUICtrlCreateCheckbox("Trigger BK ability", $x + 390, $y + 125, 140, 20)
-			$g_hChkCSVBreakGW = GUICtrlCreateCheckbox("Trigger GW ability", $x + 560, $y + 100, 140, 20)
-			$g_hChkCSVBreakRC = GUICtrlCreateCheckbox("Trigger RC ability", $x + 560, $y + 125, 140, 20)
-			$g_hChkCSVBreakAnyHero = GUICtrlCreateCheckbox("Any hero ability combo", $x + 390, $y + 150, 200, 20)
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Wait", "WAIT && break conditions"), $iWaitGroupX, $iWaitGroupY, $iWaitGroupW, $iWaitGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Wait_Info", "Edits the WAIT line time range and break conditions."))
+			GUICtrlCreateLabel("Wait ms min/max", $iWaitX, $iWaitY, 100, 18)
+			$g_hInpCSVWaitMin = GUICtrlCreateInput("0", $iWaitX + 105, $iWaitY - 2, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hInpCSVWaitMax = GUICtrlCreateInput("0", $iWaitX + 160, $iWaitY - 2, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+			$g_hChkCSVBreakTH = GUICtrlCreateCheckbox("Break on Town Hall destroy", $iWaitX, $iWaitY + 25, 200, 20)
+			$g_hChkCSVBreakSiege = GUICtrlCreateCheckbox("Break when Siege drops", $iWaitX, $iWaitY + 50, 200, 20)
+			$g_hChkCSVBreak50 = GUICtrlCreateCheckbox("Break at 50% damage", $iWaitX, $iWaitY + 75, 200, 20)
+			$g_hChkCSVBreakAQ = GUICtrlCreateCheckbox("Trigger AQ ability", $iWaitX, $iWaitY + 100, 140, 20)
+			$g_hChkCSVBreakBK = GUICtrlCreateCheckbox("Trigger BK ability", $iWaitX, $iWaitY + 125, 140, 20)
+			$g_hChkCSVBreakGW = GUICtrlCreateCheckbox("Trigger GW ability", $iWaitX + 170, $iWaitY + 100, 140, 20)
+			$g_hChkCSVBreakRC = GUICtrlCreateCheckbox("Trigger RC ability", $iWaitX + 170, $iWaitY + 125, 140, 20)
+			$g_hChkCSVBreakAnyHero = GUICtrlCreateCheckbox("Any hero ability combo", $iWaitX, $iWaitY + 150, 200, 20)
 				GUICtrlSetOnEvent(-1, "CSVWaitComboToggle")
-			GUICtrlCreateLabel("WAIT condition examples: TH,SIEGE,50%,AQ,BK,GW,RC or AQ+BK.", $x + 390, $y + 175, 320, 18)
+			Local $iWaitExampleW = $iWaitGroupW - 20
+			If $iWaitExampleW < 220 Then $iWaitExampleW = 220
+			GUICtrlCreateLabel("WAIT condition examples: TH,SIEGE,50%,AQ,BK,GW,RC or AQ+BK.", $iWaitX, $iWaitY + 175, $iWaitExampleW, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 4: Search toggles & settings ----
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Search", "Search && Settings"))
-		$x = 25
-		$y = 60
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Search", "CSV building detection limits"), $x - 10, $y - 20, 420, 220)
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iSearchGroupW = 420
+		Local $iAutoGroupW = 320
+		Local $iSearchGroupH = 260
+		Local $iAutoGroupH = 250
+		Local $iSearchGapX = 20
+		Local $bSearchWide = ($iTabInnerW >= ($iSearchGroupW + $iAutoGroupW + $iSearchGapX))
+		Local $iSearchGroupX = $iGroupLeft
+		Local $iSearchGroupY = $y - 20
+		Local $iAutoGroupX = $iSearchGroupX + $iSearchGroupW + $iSearchGapX
+		Local $iAutoGroupY = $y - 20
+		If Not $bSearchWide Then
+			$iSearchGroupW = $iTabInnerW
+			$iAutoGroupW = $iTabInnerW
+			$iAutoGroupX = $iSearchGroupX
+			$iAutoGroupY = $iSearchGroupY + $iSearchGroupH + $iGroupGap
+		EndIf
+		Local $iSearchX = $iSearchGroupX + 10
+		Local $iSearchY = $iSearchGroupY + 20
+		Local $iAutoX = $iAutoGroupX + 10
+		Local $iAutoY = $iAutoGroupY + 20
+
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Search", "CSV building detection limits"), $iSearchGroupX, $iSearchGroupY, $iSearchGroupW, $iSearchGroupH)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Search_Info", "Unchecked buildings are skipped for SIDE/SIDEB priority detection. MAKE targets remain enabled."))
-			$g_hBtnCSVSearchAll = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchAll", "All"), $x, $y - 2, 60, 20)
+			$g_hBtnCSVSearchAll = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchAll", "All"), $iSearchX, $iSearchY - 2, 60, 20)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchAll_Info", "Enable all building searches."))
 				GUICtrlSetOnEvent(-1, "CSVSearchSelectAll")
-			$g_hBtnCSVSearchNone = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchNone", "None"), $x + 70, $y - 2, 60, 20)
+			$g_hBtnCSVSearchNone = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchNone", "None"), $iSearchX + 70, $iSearchY - 2, 60, 20)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchNone_Info", "Disable all building searches."))
 				GUICtrlSetOnEvent(-1, "CSVSearchSelectNone")
-			$g_hBtnCSVSearchResources = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchResources", "Resources"), $x + 140, $y - 2, 90, 20)
+			$g_hBtnCSVSearchResources = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchResources", "Resources"), $iSearchX + 140, $iSearchY - 2, 90, 20)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchResources_Info", "Enable resource buildings only."))
 				GUICtrlSetOnEvent(-1, "CSVSearchSelectResources")
-			$g_hBtnCSVSearchDefenses = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchDefenses", "Defenses"), $x + 240, $y - 2, 90, 20)
+			$g_hBtnCSVSearchDefenses = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchDefenses", "Defenses"), $iSearchX + 240, $iSearchY - 2, 90, 20)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchDefenses_Info", "Enable defense buildings only."))
 				GUICtrlSetOnEvent(-1, "CSVSearchSelectDefenses")
-			Local $iSearchStartY = $y + 22
+			Local $iSearchStartY = $iSearchY + 22
+			Local $iSearchRowCount = 8
 			For $k = 0 To UBound($g_asCSVSearchNames) - 1
 				Local $iRowSearch = Mod($k, 8), $iColSearch = Int($k / 8)
-				Local $iOffsetXSearch = $x + ($iColSearch * 140), $iOffsetYSearch = $iSearchStartY + ($iRowSearch * 25)
+				Local $iOffsetXSearch = $iSearchX + ($iColSearch * 140), $iOffsetYSearch = $iSearchStartY + ($iRowSearch * 25)
 				$g_ahCSVSearchToggles[$k] = GUICtrlCreateCheckbox($g_asCSVSearchNames[$k], $iOffsetXSearch, $iOffsetYSearch, 130, 18)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Search_Info", "Enable/disable search for this building in SIDE/SIDEB."))
 				GUICtrlSetOnEvent(-1, "CSVSearchToggle")
 			Next
-			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Search_Note", "Tip: keep only the buildings you want to prioritize."), $x, $y + 195, 380, 18)
+			Local $iSearchNoteY = $iSearchStartY + ($iSearchRowCount * 25) + 5
+			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Search_Note", "Tip: keep only the buildings you want to prioritize."), $iSearchX, $iSearchNoteY, $iSearchGroupW - 40, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Automation", "CSV settings automation"), $x + 430, $y - 20, 320, 220)
-			GUICtrlCreateLabel("Flex troop (col 3)", $x + 440, $y, 110, 18)
-			$g_hCmbCSVFlexTroop = GUICtrlCreateCombo("", $x + 560, $y - 2, 170, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Automation", "CSV settings automation"), $iAutoGroupX, $iAutoGroupY, $iAutoGroupW, $iAutoGroupH)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Automation_Info", "Apply script settings back into GUI elements."))
+			GUICtrlCreateLabel("Flex troop (col 3)", $iAutoX, $iAutoY, 110, 18)
+			Local $iFlexComboW = $iAutoGroupW - 140
+			If $iFlexComboW < 150 Then $iFlexComboW = 150
+			$g_hCmbCSVFlexTroop = GUICtrlCreateCombo("", $iAutoX + 120, $iAutoY - 2, $iFlexComboW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_Flex_Info", "Mark one TRAIN troop as flexible (col 3 = 1)."))
 				If IsArray($g_asTroopNames) Then
 					Local $sFlexTroopList = ""
 					For $iFlex = 0 To UBound($g_asTroopNames) - 1
@@ -303,46 +411,59 @@ Func CreateAttackCSVSettingsGUI()
 					$sFlexTroopList = StringTrimRight($sFlexTroopList, 1)
 					GUICtrlSetData(-1, $sFlexTroopList)
 				EndIf
-			GUICtrlCreateLabel("Hero ability mode/delay (s)", $x + 440, $y + 30, 170, 18)
+			GUICtrlCreateLabel("Hero ability mode/delay (s)", $iAutoX, $iAutoY + 30, 170, 18)
 			Local $aHeroNames[4] = ["BK", "AQ", "GW", "RC"]
 			For $h = 0 To 3
-				Local $iOffsetYHero = $y + 55 + ($h * 25)
-				GUICtrlCreateLabel($aHeroNames[$h], $x + 440, $iOffsetYHero + 2, 20, 18)
-				$g_ahCSVHeroAbilityMode[$h] = GUICtrlCreateCombo("", $x + 470, $iOffsetYHero, 90, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+				Local $iOffsetYHero = $iAutoY + 55 + ($h * 25)
+				GUICtrlCreateLabel($aHeroNames[$h], $iAutoX, $iOffsetYHero + 2, 20, 18)
+				$g_ahCSVHeroAbilityMode[$h] = GUICtrlCreateCombo("", $iAutoX + 30, $iOffsetYHero, 90, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 					GUICtrlSetData(-1, "Auto|Manual|Both|Off", "Auto")
-				$g_ahCSVHeroAbilityDelay[$h] = GUICtrlCreateInput("0", $x + 565, $iOffsetYHero, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+					_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_HeroMode_Info", "Hero ability mode stored in TRAIN column."))
+				$g_ahCSVHeroAbilityDelay[$h] = GUICtrlCreateInput("0", $iAutoX + 125, $iOffsetYHero, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+					_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Inp_AttackCSVSettings_HeroDelay_Info", "Delay in seconds for hero ability (TRAIN value)."))
 			Next
-			GUICtrlCreateLabel("Redline preset", $x + 440, $y + 160, 90, 18)
-			$g_hCmbCSVRedlinePreset = GUICtrlCreateCombo("", $x + 540, $y + 158, 190, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+			GUICtrlCreateLabel("Redline preset", $iAutoX, $iAutoY + 160, 90, 18)
+			Local $iPresetW = $iAutoGroupW - 120
+			If $iPresetW < 160 Then $iPresetW = 160
+			$g_hCmbCSVRedlinePreset = GUICtrlCreateCombo("", $iAutoX + 100, $iAutoY + 158, $iPresetW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 				GUICtrlSetData(-1, "ImgLoc Raw Redline|ImgLoc Redline Drop Points|Original Redline|External Edges", "ImgLoc Raw Redline")
-			GUICtrlCreateLabel("Dropline preset", $x + 440, $y + 185, 90, 18)
-			$g_hCmbCSVDroplinePreset = GUICtrlCreateCombo("", $x + 540, $y + 183, 190, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_Redline_Info", "Updates REDLN preset in CSV settings."))
+			GUICtrlCreateLabel("Dropline preset", $iAutoX, $iAutoY + 185, 90, 18)
+			$g_hCmbCSVDroplinePreset = GUICtrlCreateCombo("", $iAutoX + 100, $iAutoY + 183, $iPresetW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 				GUICtrlSetData(-1, "Drop line fix outer corner|Drop line fist Redline point|Full Drop line fix outer corner|Full Drop line fist Redline point|No Drop line", "Drop line fix outer corner")
-			GUICtrlCreateLabel("CC request text", $x + 440, $y + 210, 100, 18)
-			$g_hTxtCSVCCRequest = GUICtrlCreateInput("", $x + 540, $y + 208, 190, 18)
-			$g_hBtnCSVSettingsApply = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply", "Apply to GUI"), $x + 440, $y + 235, 120, 22)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply_Info", "Save CSV settings and apply them to the current script."))
-				GUICtrlSetOnEvent(-1, "AttackCSVSettings_ApplyToGUI")
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_Dropline_Info", "Updates DRPLN preset in CSV settings."))
+			GUICtrlCreateLabel("CC request text", $iAutoX, $iAutoY + 210, 100, 18)
+			$g_hTxtCSVCCRequest = GUICtrlCreateInput("", $iAutoX + 100, $iAutoY + 208, $iPresetW, 18)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Txt_AttackCSVSettings_CCReq_Info", "Updates CCREQ in CSV settings."))
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 5: Preview ----
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Preview", "Vector preview"))
-		$x = 25
-		$y = 60
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Preview", "MAINSIDE vector mapping"), $x - 10, $y - 20, 740, 260)
+		$x = $iTabLeft
+		$y = $iTabTop
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Preview", "MAINSIDE vector mapping"), $iGroupLeft, $y - 20, $iTabInnerW, 260)
 			Local $sPreview = "BOTTOM-RIGHT:" & @CRLF & " FRONT_LEFT=BOTTOM-RIGHT-DOWN, FRONT_RIGHT=BOTTOM-RIGHT-UP" & @CRLF & " RIGHT_FRONT=TOP-RIGHT-DOWN, RIGHT_BACK=TOP-RIGHT-UP" & @CRLF & " LEFT_FRONT=BOTTOM-LEFT-DOWN, LEFT_BACK=BOTTOM-LEFT-UP" & @CRLF & " BACK_LEFT=TOP-LEFT-DOWN, BACK_RIGHT=TOP-LEFT-UP" & @CRLF & @CRLF & _
 							  "BOTTOM-LEFT:" & @CRLF & " FRONT_LEFT=BOTTOM-LEFT-UP, FRONT_RIGHT=BOTTOM-LEFT-DOWN" & @CRLF & " RIGHT_FRONT=BOTTOM-RIGHT-DOWN, RIGHT_BACK=BOTTOM-RIGHT-UP" & @CRLF & " LEFT_FRONT=TOP-LEFT-DOWN, LEFT_BACK=TOP-LEFT-UP" & @CRLF & " BACK_LEFT=TOP-RIGHT-UP, BACK_RIGHT=TOP-RIGHT-DOWN" & @CRLF & @CRLF & _
 							  "TOP-LEFT:" & @CRLF & " FRONT_LEFT=TOP-LEFT-UP, FRONT_RIGHT=TOP-LEFT-DOWN" & @CRLF & " RIGHT_FRONT=BOTTOM-LEFT-UP, RIGHT_BACK=BOTTOM-LEFT-DOWN" & @CRLF & " LEFT_FRONT=TOP-RIGHT-UP, LEFT_BACK=TOP-RIGHT-DOWN" & @CRLF & " BACK_LEFT=BOTTOM-RIGHT-UP, BACK_RIGHT=BOTTOM-RIGHT-DOWN" & @CRLF & @CRLF & _
 							  "TOP-RIGHT:" & @CRLF & " FRONT_LEFT=TOP-RIGHT-DOWN, FRONT_RIGHT=TOP-RIGHT-UP" & @CRLF & " RIGHT_FRONT=TOP-LEFT-UP, RIGHT_BACK=TOP-LEFT-DOWN" & @CRLF & " LEFT_FRONT=BOTTOM-RIGHT-UP, LEFT_BACK=BOTTOM-RIGHT-DOWN" & @CRLF & " BACK_LEFT=BOTTOM-LEFT-DOWN, BACK_RIGHT=BOTTOM-LEFT-UP"
-			$g_hLblCSVSidePreview = GUICtrlCreateEdit($sPreview, $x + 5, $y, 715, 210, BitOR($ES_MULTILINE, $WS_VSCROLL))
+			$g_hLblCSVSidePreview = GUICtrlCreateEdit($sPreview, $x + 5, $y, $iTabInnerW - 25, 210, BitOR($ES_MULTILINE, $WS_VSCROLL))
 				GUICtrlSetState(-1, $GUI_DISABLE)
-				GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Preview", "Reference for MAKE/DROP vector names derived from MAINSIDE/forced side."), $x + 5, $y + 215, 620, 18)
+				GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Preview", "Reference for MAKE/DROP vector names derived from MAINSIDE/forced side."), $x + 5, $y + 215, $iTabInnerW - 30, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	GUICtrlCreateTabItem("")
 
-	$g_hBtnAttackCSVSettingsClose = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Close", "Close"), $iTabWidth - 60, $iTabHeight + 25, 85, 25)
+	Local $iCloseBtnW = 85, $iCloseBtnH = 25
+	Local $iApplyBtnW = 120, $iApplyBtnH = 25
+	Local $iBtnGap = 10
+	Local $iTabRight = $iTabX + $iTabWidth
+	Local $iTopBtnY = $iTabHeight - 120
+	Local $iCloseBtnX = 10
+	Local $iApplyBtnX = $iCloseBtnX + $iCloseBtnW + $iBtnGap
+	$g_hBtnCSVSettingsApply = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply", "Apply to GUI"), $iApplyBtnX, $iTopBtnY, $iApplyBtnW, $iApplyBtnH)
+		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Apply_Info", "Save CSV settings and apply them to the current script."))
+		GUICtrlSetOnEvent(-1, "AttackCSVSettings_ApplyToGUI")
+	$g_hBtnAttackCSVSettingsClose = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Close", "Close"), $iCloseBtnX, $iTopBtnY, $iCloseBtnW, $iCloseBtnH)
 		GUICtrlSetOnEvent(-1, "CloseAttackCSVSettings")
-	$g_hBtnAttackCSVSettingsCloseTop = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Close", "Close"), $iTabWidth - 60, 15, 85, 25)
-		GUICtrlSetOnEvent(-1, "CloseAttackCSVSettings")
+	$g_hBtnAttackCSVSettingsCloseTop = $g_hBtnAttackCSVSettingsClose
 EndFunc   ;==>CreateAttackCSVSettingsGUI
