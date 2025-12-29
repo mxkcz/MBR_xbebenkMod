@@ -837,7 +837,13 @@ Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
 	If $sVector = "" Then Return
 
 	GUICtrlSetState($g_hChkCSVVectorTargeted, $GUI_UNCHECKED)
-	GUICtrlSetState($g_hChkCSVRandomDropSide, $GUI_UNCHECKED)
+	If $g_hCmbCSVVectorSide <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVVectorSide, 0)
+	If $g_hCmbCSVVectorVersus <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVVectorVersus, 0)
+	If $g_hCmbCSVTargetBuilding <> 0 Then AttackCSVSettings_SetComboText($g_hCmbCSVTargetBuilding, "TOWNHALL")
+	If $g_hInpCSVPointCount <> 0 Then GUICtrlSetData($g_hInpCSVPointCount, "1")
+	If $g_hInpCSVOffsetTiles <> 0 Then GUICtrlSetData($g_hInpCSVOffsetTiles, "0")
+	If $g_hInpCSVRandomX <> 0 Then GUICtrlSetData($g_hInpCSVRandomX, "0")
+	If $g_hInpCSVRandomY <> 0 Then GUICtrlSetData($g_hInpCSVRandomY, "0")
 
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
@@ -848,11 +854,17 @@ Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
 		Local $sSide = AttackCSVSettings_GetValue($aCols, 2)
 		Local $sPoints = AttackCSVSettings_GetValue($aCols, 3)
 		Local $sOffset = AttackCSVSettings_GetValue($aCols, 4)
+		Local $sVersus = AttackCSVSettings_GetValue($aCols, 5)
+		Local $sRandX = AttackCSVSettings_GetValue($aCols, 6)
+		Local $sRandY = AttackCSVSettings_GetValue($aCols, 7)
 		Local $sBuilding = AttackCSVSettings_GetValue($aCols, 8)
 
-		GUICtrlSetState($g_hChkCSVRandomDropSide, StringUpper($sSide) = "RANDOM" ? $GUI_CHECKED : $GUI_UNCHECKED)
-		AttackCSVSettings_SetComboText($g_hCmbCSVPointCount, $sPoints)
+		If $sSide <> "" Then AttackCSVSettings_SetComboText($g_hCmbCSVVectorSide, $sSide)
+		If $sPoints <> "" Then GUICtrlSetData($g_hInpCSVPointCount, $sPoints)
 		If $sOffset <> "" Then GUICtrlSetData($g_hInpCSVOffsetTiles, $sOffset)
+		If $sVersus <> "" Then AttackCSVSettings_SetComboText($g_hCmbCSVVectorVersus, $sVersus)
+		If $sRandX <> "" Then GUICtrlSetData($g_hInpCSVRandomX, $sRandX)
+		If $sRandY <> "" Then GUICtrlSetData($g_hInpCSVRandomY, $sRandY)
 		If $sBuilding <> "" Then
 			GUICtrlSetState($g_hChkCSVVectorTargeted, $GUI_CHECKED)
 			AttackCSVSettings_SetComboText($g_hCmbCSVTargetBuilding, $sBuilding)
@@ -1418,25 +1430,31 @@ Func AttackCSVSettings_UpdateMakeLine(ByRef $aLines)
 	Local $sVector = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVVectorId), $STR_STRIPALL))
 	If $sVector = "" Then Return
 
-	Local $sPoints = StringStripWS(GUICtrlRead($g_hCmbCSVPointCount), $STR_STRIPALL)
+	Local $sSide = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVVectorSide), $STR_STRIPALL))
+	Local $sPoints = StringStripWS(GUICtrlRead($g_hInpCSVPointCount), $STR_STRIPALL)
 	Local $sOffset = StringStripWS(GUICtrlRead($g_hInpCSVOffsetTiles), $STR_STRIPALL)
+	Local $sVersus = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVVectorVersus), $STR_STRIPALL))
+	Local $sRandX = StringStripWS(GUICtrlRead($g_hInpCSVRandomX), $STR_STRIPALL)
+	Local $sRandY = StringStripWS(GUICtrlRead($g_hInpCSVRandomY), $STR_STRIPALL)
 	Local $bTargeted = (GUICtrlRead($g_hChkCSVVectorTargeted) = $GUI_CHECKED)
 	Local $sBuilding = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVTargetBuilding), $STR_STRIPALL))
-	Local $bRandomSide = (GUICtrlRead($g_hChkCSVRandomDropSide) = $GUI_CHECKED)
 
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
 		If AttackCSVSettings_GetCommand($aCols) <> "MAKE" Then ContinueLoop
 		If AttackCSVSettings_GetValue($aCols, 1) <> $sVector Then ContinueLoop
 
+		If $sSide <> "" Then AttackCSVSettings_SetColumn($aCols, 2, $sSide)
+		If $sPoints <> "" Then AttackCSVSettings_SetColumn($aCols, 3, $sPoints)
+		If $sOffset <> "" Then AttackCSVSettings_SetColumn($aCols, 4, $sOffset)
+		If $sVersus <> "" Then AttackCSVSettings_SetColumn($aCols, 5, $sVersus)
+		If $sRandX <> "" Then AttackCSVSettings_SetColumn($aCols, 6, $sRandX)
+		If $sRandY <> "" Then AttackCSVSettings_SetColumn($aCols, 7, $sRandY)
 		If $bTargeted Then
-			If $sPoints <> "" Then AttackCSVSettings_SetColumn($aCols, 3, $sPoints)
-			If $sOffset <> "" Then AttackCSVSettings_SetColumn($aCols, 4, $sOffset)
 			AttackCSVSettings_SetColumn($aCols, 8, $sBuilding)
 		Else
 			AttackCSVSettings_SetColumn($aCols, 8, "")
 		EndIf
-		If $bRandomSide Then AttackCSVSettings_SetColumn($aCols, 2, "RANDOM")
 
 		$aLines[$iLine] = AttackCSVSettings_JoinColumns($aCols)
 		ExitLoop
