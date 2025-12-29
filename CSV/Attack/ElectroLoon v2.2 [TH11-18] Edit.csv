@@ -36,7 +36,7 @@ REDLN |0          |0          |0          |0          |0          |0          |0
 DRPLN |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |0          |
       |                                                                                                                                                           |
       |___________|___________|____TH06___|____TH07___|____TH08___|____TH09___|____TH10___|____TH11___|____TH12___|____TH13___|____TH14___|____TH15___|____TH16___|____TH17___|____TH18___|
-CCREQ |           |           |           |           |           |           |           |Ball   Rage|Ball   Rage|Ball   Rage|Ball   Rage|Ball   Rage|Ball Rage Freeze Blimps|Ball Rage Freeze Blimps|Ball Rage Freeze Blimps|
+CCREQ |           |           |           |           |           |           |           |Ball   Rage|Ball   Rage|Ball   Rage|Ball   Rage|Ball   Rage| Ball Rage Freeze Blimps |Ball Rage Freeze Blimps|Ball Rage Freeze Blimps|
       |                                                                                                                                                           |
       |EXTR. GOLD |EXTR.ELIXIR|EXTR. DARK |DEPO. GOLD |DEPO.ELIXIR|DEPO. DARK |TOWNHALL   |FORCED SIDE|___________|___________|___________|___________|___________|___________|___________|
 SIDE  |0          |0          |0          |0          |0          |0          |10         |  |           |           |           |           |           |           |           |
@@ -51,7 +51,7 @@ MAKE  |D          |FRONT-RIGHT|10         |-11        |INT-EXT    |0          |0
 MAKE  |E          |FRONT-LEFT |10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |F          |FRONT-RIGHT|10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |G          |LEFT-FRONT |1          |1          |IGNORE     |0          |0          |INFERNO    |           |           |           |           |           |           |
-MAKE  |H          |FRONT-RIGHT|10         |-23        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
+MAKE  |H          |FRONT-RIGHT|10         |-23        |INT-EXT    |0          |0          |  |           |           |           |           |           |           |
 MAKE  |I          |FRONT-RIGHT|1          |0          |EXT-INT    |1          |1          |           |           |           |           |           |           |           |
 MAKE  |J          |FRONT-LEFT |10         |0          |INT-EXT    |5          |5          |           |           |           |           |           |           |           |
 MAKE  |K          |RIGHT-FRONT|1          |1          |IGNORE     |0          |0          |INFERNO    |           |           |           |           |           |           |
