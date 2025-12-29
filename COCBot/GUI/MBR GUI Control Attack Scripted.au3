@@ -14,6 +14,9 @@
 ; ===============================================================================================================================
 #include-once
 
+Global $g_bCSVSettingsDirty = False
+Global $g_sCSVSettingsLastLoad = ""
+
 Func PopulateComboScriptsFilesDB()
 	Dim $FileSearch, $NewFile
 	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
@@ -542,6 +545,187 @@ Func AttackCSVSettings_ApplyToGUI()
 EndFunc   ;==>AttackCSVSettings_ApplyToGUI
 
 ; Side-effect: io (GUI state updates)
+Func CSVSettings_SetDirty($bDirty)
+	$g_bCSVSettingsDirty = $bDirty
+	If $g_hLblCSVSettingsDirty <> 0 Then
+		GUICtrlSetData($g_hLblCSVSettingsDirty, $bDirty ? "Status: Unsaved" : "Status: Saved")
+		GUICtrlSetColor($g_hLblCSVSettingsDirty, $bDirty ? $COLOR_ERROR : $COLOR_BLACK)
+	EndIf
+EndFunc   ;==>CSVSettings_SetDirty
+
+; Side-effect: io (GUI state updates)
+Func CSVSettings_MarkDirty()
+	If Not $g_bCSVSettingsDirty Then CSVSettings_SetDirty(True)
+EndFunc   ;==>CSVSettings_MarkDirty
+
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_UpdateHeader($sScript, $sPath, $sLoaded)
+	Local $sLabelScript = ($sScript <> "") ? $sScript : "-"
+	Local $sLabelPath = ($sPath <> "") ? $sPath : "-"
+	Local $sLabelLoaded = ($sLoaded <> "") ? $sLoaded : "-"
+	; TODO: add a tooltip or truncation when the path exceeds the label width.
+	If $g_hLblCSVSettingsScript <> 0 Then GUICtrlSetData($g_hLblCSVSettingsScript, "Script: " & $sLabelScript)
+	If $g_hLblCSVSettingsPath <> 0 Then GUICtrlSetData($g_hLblCSVSettingsPath, "Path: " & $sLabelPath)
+	If $g_hLblCSVSettingsLoaded <> 0 Then GUICtrlSetData($g_hLblCSVSettingsLoaded, "Loaded: " & $sLabelLoaded)
+EndFunc   ;==>AttackCSVSettings_UpdateHeader
+
+; Side-effect: io (file read + GUI state updates)
+Func AttackCSVSettings_ReloadFromCSV()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	; TODO: prompt before discarding unsaved edits instead of only logging.
+	If $g_bCSVSettingsDirty Then SetLog("Attack CSV settings: reload requested, discarding unsaved edits.", $COLOR_WARNING)
+	AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
+EndFunc   ;==>AttackCSVSettings_ReloadFromCSV
+
+; Side-effect: io (file read + logging)
+Func AttackCSVSettings_ValidateCSV()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	; TODO: extend validation to DROP/TRAIN/REMAIN consistency and full ParseAttackCSV rules.
+	Local $sScript = AttackCSVSettings_GetScriptName($g_iAttackCSVSettingsMode)
+	If $sScript = "" Then
+		SetLog("Attack CSV validation: no script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+	Local $sPath = $g_sCSVAttacksPath & "\" & $sScript & ".csv"
+	Local $aLines = AttackCSVSettings_ReadLines($sPath)
+	If @error Then Return
+
+	Local $iErrors = 0
+	Local $iWarnings = 0
+	For $iLine = 0 To UBound($aLines) - 1
+		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
+		Local $sCmd = AttackCSVSettings_GetCommand($aCols)
+		If $sCmd = "" Or $sCmd = "NOTE" Then ContinueLoop
+
+		Switch $sCmd
+			Case "MAKE"
+				Local $sVec = StringUpper(AttackCSVSettings_GetValue($aCols, 1))
+				If $sVec = "" Or Not CheckCsvValues("MAKE", 1, $sVec) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE vector invalid (" & $sVec & ")", $COLOR_ERROR)
+					$iErrors += 1
+				EndIf
+				Local $sSide = StringUpper(AttackCSVSettings_GetValue($aCols, 2))
+				If $sSide <> "" And Not CheckCsvValues("MAKE", 2, $sSide) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE side invalid (" & $sSide & ")", $COLOR_ERROR)
+					$iErrors += 1
+				EndIf
+				Local $sPoints = AttackCSVSettings_GetValue($aCols, 3)
+				If $sPoints <> "" And Not AttackCSVSettings_IsNumericValue($sPoints) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE points not numeric (" & $sPoints & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				ElseIf $sPoints <> "" And $sPoints <> "1" And $sPoints <> "5" Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE points unusual (" & $sPoints & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				EndIf
+				Local $sOffset = AttackCSVSettings_GetValue($aCols, 4)
+				If $sOffset <> "" And Not AttackCSVSettings_IsNumericValue($sOffset) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE offset not numeric (" & $sOffset & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				EndIf
+				Local $sDropPoints = StringUpper(AttackCSVSettings_GetValue($aCols, 5))
+				If $sDropPoints <> "" And Not CheckCsvValues("MAKE", 5, $sDropPoints) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE drop points invalid (" & $sDropPoints & ")", $COLOR_ERROR)
+					$iErrors += 1
+				EndIf
+				Local $sRandX = AttackCSVSettings_GetValue($aCols, 6)
+				If $sRandX <> "" And Not AttackCSVSettings_IsNumericValue($sRandX) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE random X not numeric (" & $sRandX & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				EndIf
+				Local $sRandY = AttackCSVSettings_GetValue($aCols, 7)
+				If $sRandY <> "" And Not AttackCSVSettings_IsNumericValue($sRandY) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE random Y not numeric (" & $sRandY & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				EndIf
+				Local $sBuilding = StringUpper(AttackCSVSettings_GetValue($aCols, 8))
+				If $sBuilding <> "" And Not CheckCsvValues("MAKE", 8, $sBuilding) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " MAKE target invalid (" & $sBuilding & ")", $COLOR_ERROR)
+					$iErrors += 1
+				EndIf
+			Case "SIDE"
+				For $i = 1 To 7
+					Local $sVal = AttackCSVSettings_GetValue($aCols, $i)
+					If $sVal <> "" And Not AttackCSVSettings_IsNumericValue($sVal) Then
+						SetLog("CSV validate: line " & ($iLine + 1) & " SIDE weight invalid (" & $sVal & ")", $COLOR_WARNING)
+						$iWarnings += 1
+					EndIf
+				Next
+				Local $sForce = StringUpper(AttackCSVSettings_GetValue($aCols, 8))
+				If $sForce <> "" Then
+					Switch $sForce
+						Case "TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT", "TOP-RAND"
+						Case Else
+							SetLog("CSV validate: line " & ($iLine + 1) & " SIDE forced value invalid (" & $sForce & ")", $COLOR_WARNING)
+							$iWarnings += 1
+					EndSwitch
+				EndIf
+			Case "SIDEB"
+				For $i = 1 To 14
+					Local $sVal = AttackCSVSettings_GetValue($aCols, $i)
+					If $sVal <> "" And Not AttackCSVSettings_IsNumericValue($sVal) Then
+						SetLog("CSV validate: line " & ($iLine + 1) & " SIDEB weight invalid (" & $sVal & ")", $COLOR_WARNING)
+						$iWarnings += 1
+					EndIf
+				Next
+			Case "WAIT"
+				Local $sWait = AttackCSVSettings_GetValue($aCols, 1)
+				If $sWait <> "" And Not AttackCSVSettings_IsRangeValue($sWait) Then
+					SetLog("CSV validate: line " & ($iLine + 1) & " WAIT time invalid (" & $sWait & ")", $COLOR_WARNING)
+					$iWarnings += 1
+				EndIf
+				Local $sCond = AttackCSVSettings_GetValue($aCols, 2)
+				If $sCond <> "" Then
+					Local $sUnknown = ""
+					If Not AttackCSVSettings_ValidateWaitConditions($sCond, $sUnknown) Then
+						SetLog("CSV validate: line " & ($iLine + 1) & " WAIT condition unknown (" & $sUnknown & ")", $COLOR_WARNING)
+						$iWarnings += 1
+					EndIf
+				EndIf
+		EndSwitch
+	Next
+
+	If $iErrors = 0 And $iWarnings = 0 Then
+		SetLog("Attack CSV validation: OK (" & $sScript & ")", $COLOR_SUCCESS)
+	Else
+		SetLog("Attack CSV validation: " & $iErrors & " error(s), " & $iWarnings & " warning(s).", $COLOR_WARNING)
+	EndIf
+EndFunc   ;==>AttackCSVSettings_ValidateCSV
+
+; Side-effect: io (GUI state updates)
+Func CSVSideWeightsPresetZero()
+	For $i = 0 To UBound($g_ahCSVSideWeightInputs) - 1
+		If $g_ahCSVSideWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideWeightInputs[$i], "0")
+	Next
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSideWeightsPresetZero
+
+; Side-effect: io (GUI state updates)
+Func CSVSideWeightsPresetEqual()
+	Local $iEqualWeight = 5
+	For $i = 0 To UBound($g_ahCSVSideWeightInputs) - 1
+		If $g_ahCSVSideWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideWeightInputs[$i], $iEqualWeight)
+	Next
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSideWeightsPresetEqual
+
+; Side-effect: io (GUI state updates)
+Func CSVSideBWeightsPresetZero()
+	For $i = 0 To UBound($g_ahCSVSideBWeightInputs) - 1
+		If $g_ahCSVSideBWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideBWeightInputs[$i], "0")
+	Next
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSideBWeightsPresetZero
+
+; Side-effect: io (GUI state updates)
+Func CSVSideBWeightsPresetEqual()
+	Local $iEqualWeight = 5
+	For $i = 0 To UBound($g_ahCSVSideBWeightInputs) - 1
+		If $g_ahCSVSideBWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideBWeightInputs[$i], $iEqualWeight)
+	Next
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSideBWeightsPresetEqual
+
+; Side-effect: io (GUI state updates)
 Func CSVSearchSetAll($bEnable)
 	For $i = 0 To UBound($g_ahCSVSearchToggles) - 1
 		If $g_ahCSVSearchToggles[$i] <> 0 Then
@@ -594,6 +778,26 @@ Func CSVSearchSelectDefenses()
 EndFunc   ;==>CSVSearchSelectDefenses
 
 ; Side-effect: io (GUI state updates)
+Func CSVSearchSelectStorages()
+	CSVSearchSetAll(False)
+	; TODO: derive indices from $g_asCSVSearchNames to avoid hardcoded values.
+	; Storage indices: Gold, Elixir, Dark
+	CSVSearchSetRange(3, 5, True)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectStorages
+
+; Side-effect: io (GUI state updates)
+Func CSVSearchSelectCoreDef()
+	CSVSearchSetAll(False)
+	; TODO: derive indices from $g_asCSVSearchNames to avoid hardcoded values.
+	; Eagle/Inferno/X-Bow + Scatter + Monolith
+	CSVSearchSetRange(7, 9, True)
+	CSVSearchSetRange(14, 14, True)
+	CSVSearchSetRange(16, 16, True)
+	ApplyConfig_AttackCSV("Save")
+EndFunc   ;==>CSVSearchSelectCoreDef
+
+; Side-effect: io (GUI state updates)
 Func CSVVectorSelect()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
 	AttackCSVSettings_LoadVectorFromCSV($g_iAttackCSVSettingsMode)
@@ -616,6 +820,7 @@ Func CSVRemainToggle()
 		GUICtrlSetState($g_hChkCSVDropIncludeSpells, $bEnabled ? $GUI_ENABLE : $GUI_DISABLE)
 		If Not $bEnabled Then GUICtrlSetState($g_hChkCSVDropIncludeSpells, $GUI_UNCHECKED)
 	EndIf
+	CSVSettings_MarkDirty()
 EndFunc   ;==>CSVRemainToggle
 
 ; Side-effect: io (GUI state updates)
@@ -629,6 +834,7 @@ Func CSVWaitComboToggle()
 		GUICtrlSetState($g_hChkCSVBreakBK, $bAnyHero ? $GUI_DISABLE : $GUI_ENABLE)
 		If $bAnyHero Then GUICtrlSetState($g_hChkCSVBreakBK, $GUI_UNCHECKED)
 	EndIf
+	CSVSettings_MarkDirty()
 EndFunc   ;==>CSVWaitComboToggle
 
 ; Side-effect: io (file read + GUI state updates)
@@ -643,6 +849,8 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	If @error Then Return
 
 	SetLog("Attack CSV settings load: " & $sScript, $COLOR_INFO)
+	$g_sCSVSettingsLastLoad = AttackCSVSettings_FormatTimeStamp()
+	AttackCSVSettings_UpdateHeader($sScript, $sPath, $g_sCSVSettingsLastLoad)
 
 	Local $iTHCol = AttackCSVSettings_GetTHColumnIndex()
 	Local $iTHStart = 3
@@ -808,6 +1016,7 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	If $sCCReqValue <> "" Then GUICtrlSetData($g_hTxtCSVCCRequest, $sCCReqValue)
 
 	AttackCSVSettings_LoadVectorFromLines($aLines)
+	CSVSettings_SetDirty(False)
 EndFunc   ;==>AttackCSVSettings_LoadFromCSV
 
 ; Side-effect: io (file read + GUI state updates)
@@ -845,6 +1054,8 @@ Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
 	If $g_hInpCSVRandomX <> 0 Then GUICtrlSetData($g_hInpCSVRandomX, "0")
 	If $g_hInpCSVRandomY <> 0 Then GUICtrlSetData($g_hInpCSVRandomY, "0")
 
+	Local $iFoundLine = -1
+	Local $sFoundLine = ""
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
 		If AttackCSVSettings_GetCommand($aCols) <> "MAKE" Then ContinueLoop
@@ -871,9 +1082,24 @@ Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
 		Else
 			GUICtrlSetState($g_hChkCSVVectorTargeted, $GUI_UNCHECKED)
 		EndIf
+		$iFoundLine = $iLine + 1
+		$sFoundLine = $aLines[$iLine]
 		ExitLoop
 	Next
+	AttackCSVSettings_SetVectorRowInfo($sVector, $iFoundLine, $sFoundLine)
 EndFunc   ;==>AttackCSVSettings_LoadVectorFromLines
+
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_SetVectorRowInfo($sVector, $iLineIndex, $sLine)
+	Local $sLabel = "Editing MAKE line: " & $sVector
+	If $iLineIndex > 0 Then
+		$sLabel &= " (line " & $iLineIndex & ")"
+	Else
+		$sLabel &= " (not found)"
+	EndIf
+	If $g_hLblCSVVectorEditInfo <> 0 Then GUICtrlSetData($g_hLblCSVVectorEditInfo, $sLabel)
+	If $g_hTxtCSVVectorRow <> 0 Then GUICtrlSetData($g_hTxtCSVVectorRow, $sLine)
+EndFunc   ;==>AttackCSVSettings_SetVectorRowInfo
 
 ; Side-effect: io (file read/write)
 Func AttackCSVSettings_SaveToCSV($iMode)
@@ -978,6 +1204,7 @@ Func AttackCSVSettings_SaveToCSV($iMode)
 
 	AttackCSVSettings_WriteLines($sPath, $aLines)
 	SetLog("Attack CSV settings saved: " & $sScript, $COLOR_INFO)
+	CSVSettings_SetDirty(False)
 EndFunc   ;==>AttackCSVSettings_SaveToCSV
 
 ; Side-effect: io (GUI state reads)
@@ -1218,6 +1445,46 @@ Func AttackCSVSettings_BuildWaitConditions()
 	Return $sCond
 EndFunc   ;==>AttackCSVSettings_BuildWaitConditions
 
+; Side-effect: pure (formatting)
+Func AttackCSVSettings_FormatTimeStamp()
+	Return StringFormat("%04d-%02d-%02d %02d:%02d:%02d", @YEAR, @MON, @MDAY, @HOUR, @MIN, @SEC)
+EndFunc   ;==>AttackCSVSettings_FormatTimeStamp
+
+; Side-effect: pure (validation)
+Func AttackCSVSettings_IsNumericValue($sValue)
+	Local $sTrim = StringStripWS($sValue, $STR_STRIPALL)
+	If $sTrim = "" Then Return False
+	If Not StringIsInt($sTrim) Then Return False
+	If Number($sTrim) < 0 Then Return False
+	Return True
+EndFunc   ;==>AttackCSVSettings_IsNumericValue
+
+; Side-effect: pure (validation)
+Func AttackCSVSettings_IsRangeValue($sValue)
+	Local $sTrim = StringStripWS($sValue, $STR_STRIPALL)
+	If $sTrim = "" Then Return False
+	If StringRegExp($sTrim, "^\d+$") Then Return True
+	If StringRegExp($sTrim, "^\d+\-\d+$") Then Return True
+	If StringRegExp($sTrim, "^\d+(,\d+)+$") Then Return True
+	Return False
+EndFunc   ;==>AttackCSVSettings_IsRangeValue
+
+; Side-effect: pure (validation)
+Func AttackCSVSettings_ValidateWaitConditions($sCond, ByRef $sUnknown)
+	$sUnknown = ""
+	Local $aParts = StringSplit($sCond, ",", $STR_NOCOUNT)
+	For $i = 0 To UBound($aParts) - 1
+		Local $sPart = StringUpper(StringStripWS($aParts[$i], $STR_STRIPALL))
+		If $sPart = "" Then ContinueLoop
+		Switch $sPart
+			Case "TH", "SIEGE", "TH+SIEGE", "SIEGE+TH", "50%", "AQ", "BK", "GW", "RC", "AQ+BK", "BK+AQ"
+			Case Else
+				$sUnknown &= ($sUnknown = "" ? "" : ",") & $sPart
+		EndSwitch
+	Next
+	Return ($sUnknown = "")
+EndFunc   ;==>AttackCSVSettings_ValidateWaitConditions
+
 ; Side-effect: pure (state derivation)
 Func AttackCSVSettings_GetTHColumnIndex()
 	If $g_iTownHallLevel >= 6 And $g_iTownHallLevel <= 18 Then Return 3 + ($g_iTownHallLevel - 6)
@@ -1439,6 +1706,8 @@ Func AttackCSVSettings_UpdateMakeLine(ByRef $aLines)
 	Local $bTargeted = (GUICtrlRead($g_hChkCSVVectorTargeted) = $GUI_CHECKED)
 	Local $sBuilding = StringUpper(StringStripWS(GUICtrlRead($g_hCmbCSVTargetBuilding), $STR_STRIPALL))
 
+	Local $iFoundLine = -1
+	Local $sUpdatedLine = ""
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
 		If AttackCSVSettings_GetCommand($aCols) <> "MAKE" Then ContinueLoop
@@ -1456,9 +1725,12 @@ Func AttackCSVSettings_UpdateMakeLine(ByRef $aLines)
 			AttackCSVSettings_SetColumn($aCols, 8, "")
 		EndIf
 
-		$aLines[$iLine] = AttackCSVSettings_JoinColumns($aCols)
+		$sUpdatedLine = AttackCSVSettings_JoinColumns($aCols)
+		$aLines[$iLine] = $sUpdatedLine
+		$iFoundLine = $iLine + 1
 		ExitLoop
 	Next
+	AttackCSVSettings_SetVectorRowInfo($sVector, $iFoundLine, $sUpdatedLine)
 EndFunc   ;==>AttackCSVSettings_UpdateMakeLine
 
 ; Side-effect: io (GUI state reads)
