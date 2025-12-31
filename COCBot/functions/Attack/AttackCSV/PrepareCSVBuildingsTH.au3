@@ -1,3 +1,4 @@
+
 ; Purpose: Adjust CSV building image sources and locate flags based on TH level.
 ; Assumptions: CSV locate flags already parsed; $g_oBldgLevels/$g_oBldgImages initialized.
 ; Author: mxkcz

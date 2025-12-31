@@ -1,4 +1,5 @@
-NOTE  |Author: Leandro v2 / Edit Mike v1 / Edit mxkcz v2.3 / Updated for TH18 + added defenses + funneling bk+aq and 4 loons / 2 edrag on opposite site
+NOTE  |Author: Leandro v2 / Edit Mike v1 / Edit mxkcz v2.4 / Updated for TH18 + added defenses + funneling bk+aq and 4 loons / 2 edrag on opposite site
+NOTE  |CSV_VERSION|2.4
 NOTE  |
 NOTE  |Townhall TH11  TH12-13  TH14  TH15  TH16  TH17  TH18
 NOTE  |Edragon         7           7      8      8      8      8
@@ -62,9 +63,9 @@ MAKE  |O          |FRONT-RIGHT|10         |0          |EXT-INT    |5          |5
 MAKE  |P          |BACK-LEFT  |1          |1          |IGNORE     |0          |0          |AIRDEFENSE |           |           |           |           |           |           |
 MAKE  |Q          |BACK-RIGHT |1          |1          |IGNORE     |0          |0          |AIRDEFENSE |           |           |           |           |           |           |
 MAKE  |R          |BACK-LEFT  |1          |1          |IGNORE     |0          |0          |SUPERWIZTW |         |           |           |           |           |           |
-MAKE  |S          |FRONT-LEFT |10         |-23        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
-MAKE  |T          |FRONT-RIGHT|10         |-23        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
-MAKE  |U          |FRONT-RIGHT|10         |0        |EXT-INT    |5          |5          |           |           |           |           |           |           |           |
+MAKE  |S          |FRONT-LEFT |10         |-25        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
+MAKE  |T          |FRONT-RIGHT|10         |-25        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
+MAKE  |U          |FRONT-RIGHT|10         |0          |EXT-INT    |5          |5          |           |           |           |           |           |           |           |
 
 
       |                                                                                                                       |           |           |           |
@@ -72,17 +73,16 @@ MAKE  |U          |FRONT-RIGHT|10         |0        |EXT-INT    |5          |5  
 DROP  |A          |4          |1          |KING       |0          |0          |750-900    |           |           |           |           |           |           |           |
 DROP  |A          |4          |1          |QUEEN      |50-70      |0          |150-200    |           |           |           |           |           |           |           |
 DROP  |U          |3,4        |4          |Ball       |90-110     |57-70      |15-20      |           |           |           |           |           |           |           |
-DROP  |U          |3,4        |2          |EDrag      |90-110     |67-80      |15-20      |           |           |           |           |           |           |           |
-DROP  |A          |7,8,9,10   |5          |Ball       |90-110     |57-70      |15-20      |           |           |           |           |           |           |           |
-DROP  |B          |1,2,3,4    |5          |Ball       |90-110     |57-70      |90-110     |           |           |           |           |           |           |           |
-DROP  |A          |7,8,9,10   |5          |Ball       |90-110     |57-70      |15-20      |           |           |           |           |           |           |           |
-DROP  |B          |1,2,3,4    |5          |Ball       |90-110     |57-70      |90-110     |           |           |           |           |           |           |           |
-DROP  |O          |8,10       |3          |Ball       |95-110     |57-70      |15-20      |           |           |           |           |           |           |           |
-DROP  |A          |7,8,9,10   |4          |EDrag      |90-110     |67-80      |15-20      |           |           |           |           |           |           |           |
-DROP  |B          |1,2,3,4    |4          |EDrag      |90-110     |67-80      |0          |           |           |           |           |           |           |           |
-DROP  |A          |7,8,9,10   |4          |EDrag      |90-110     |67-80      |0          |           |           |           |           |           |           |           |
-DROP  |B          |1,2,3,4    |4          |EDrag      |90-110     |67-80      |200-400    |           |           |           |           |           |           |           |
-DROP  |A          |10         |1          |Warden     |50-70      |0          |500-650    |           |           |           |           |           |           |           |
+DROP  |U          |3,4        |2          |EDrag      |90-110     |67-80      |4000-7000  |           |           |           |           |           |           |           |
+DROP  |A          |8,9,10     |5          |Ball       |90-110     |57-70      |90-110     |           |           |           |           |           |           |           |
+DROP  |B          |1,2,3      |5          |Ball       |90-110     |57-70      |90-110     |           |           |           |           |           |           |           |
+DROP  |A          |8,9,10     |5          |Ball       |90-110     |57-70      |15-20      |           |           |           |           |           |           |           |
+DROP  |B          |1,2,3      |5          |Ball       |90-110     |57-70      |90-110     |           |           |           |           |           |           |           |
+DROP  |A          |8,9,10     |4          |EDrag      |90-110     |67-80      |90-110     |           |           |           |           |           |           |           |
+DROP  |B          |1,2,3      |4          |EDrag      |90-110     |67-80      |90-110     |           |           |           |           |           |           |           |
+DROP  |A          |8,9,10     |4          |EDrag      |90-110     |67-80      |90-110     |           |           |           |           |           |           |           |
+DROP  |B          |1,2,3      |4          |EDrag      |90-110     |67-80      |200-400    |           |           |           |           |           |           |           |
+DROP  |A          |10         |1          |Warden     |50-70      |0          |100-150    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |PRINCE     |0          |0          |150-200    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |WallW      |0          |50-70      |150-170    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |Logl       |0          |50-70      |150-170    |           |           |           |           |           |           |           |
@@ -96,15 +96,15 @@ DROP  |D          |4          |1          |RSpell     |0          |0          |5
 WAIT  |2000-4000  |           |           |           |           |           |           |           |           |           |           |           |           |           |
 DROP  |E          |3          |1          |RSpell     |0          |0          |150-170    |           |           |           |           |           |           |           |
 DROP  |F          |2          |1          |RSpell     |0          |0          |250-300    |           |           |           |           |           |           |           |
-DROP  |E          |5          |1          |FSpell     |0          |0          |390-530    |           |           |           |           |           |           |           |
-DROP  |E          |1          |1          |FSpell     |0          |0          |390-530    |           |           |           |           |           |           |           |
-DROP  |F          |4          |1          |FSpell     |0          |0          |100-200    |           |           |           |           |           |           |           |
-DROP  |F          |1          |1          |FSpell     |0          |0          |400-550    |           |           |           |           |           |           |           |
-DROP  |S          |1          |1          |FSpell     |0          |0          |50-200     |           |           |           |           |           |           |           |
-DROP  |T          |4          |1          |FSpell     |0          |0          |200-250    |           |           |           |           |           |           |           |
+DROP  |M          |1          |1          |FSpell     |0          |0          |390-530    |           |           |           |           |           |           |           |
+DROP  |G          |1          |1          |FSpell     |0          |0          |390-530    |           |           |           |           |           |           |           |
+DROP  |K          |1          |1          |FSpell     |0          |0          |100-200    |           |           |           |           |           |           |           |
+DROP  |L          |1          |1          |FSpell     |0          |0          |400-550    |           |           |           |           |           |           |           |
+DROP  |N          |1          |1          |FSpell     |0          |0          |50-200     |           |           |           |           |           |           |           |
+DROP  |P          |1          |1          |FSpell     |0          |0          |200-250    |           |           |           |           |           |           |           |
 DROP  |Q          |1          |1          |FSpell     |0          |0          |400-550    |           |           |           |           |           |           |           |
 DROP  |R          |1          |1          |FSpell     |0          |0          |0          |           |           |           |           |           |           |           |
-WAIT  |15000-22000|TH,SIEGE,50%,AQ,BK,GW,RC   |           |           |           |           |           |           |           |           |           |           |           |           |
+WAIT  |15000-22000|TH,SIEGE,50%,AQ,BK,GW,RC|           |           |           |           |           |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |Warden     |150-250    |10-50      |500-650    |           |           |           |           |           |           |           |
 DROP  |I          |1          |1          |CHAMPION   |0          |0          |300-500    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |KING       |200-500    |80-90      |150-250    |           |           |           |           |           |           |           |

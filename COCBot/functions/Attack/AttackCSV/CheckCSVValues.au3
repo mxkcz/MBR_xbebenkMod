@@ -101,6 +101,8 @@ Func CheckCsvValues($instruction, $variablenumber, $variable)
 							Return True
 						Case "MULTIARCHER"
 							Return True
+						Case "MULTIGEAR"
+							Return True
 						Case "RICOCHETCA"
 							Return True
 						Case "SUPERWIZTW"

@@ -153,6 +153,9 @@ Func ParseAttackCSV_Read_SIDE_variables()
 									$g_bCSVLocateMultiGearTower = True
 									$abLocateFromMake[18] = True
 									$abLocateFromMake[19] = True
+								Case "MULTIGEAR"
+									$g_bCSVLocateMultiGearTower = True
+									$abLocateFromMake[19] = True
 								Case "RICOCHETCA"
 									$g_bCSVLocateRicochetCannon = True
 									$abLocateFromMake[20] = True

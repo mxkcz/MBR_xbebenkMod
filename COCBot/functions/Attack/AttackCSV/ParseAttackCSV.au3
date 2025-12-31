@@ -19,6 +19,7 @@ Func ParseAttackCSV($debug = False)
 	Local $iTroopIndex, $bWardenDrop = False
 	; TL , TR , BL , BR
 	Local $sides2drop[4] = [False, False, False, False]
+	Local $aVectorTargetBuilding[26]
 
 	For $v = 0 To 25 ; Zero all 26 vectors from last atttack in case here is error MAKE'ing new vectors
 		Assign("ATTACKVECTOR_" & Chr(65 + $v), "", $ASSIGN_EXISTFAIL) ; start with character "A" = ASCII 65
@@ -118,6 +119,13 @@ Func ParseAttackCSV($debug = False)
 							If CheckCsvValues("MAKE", 1, $value1) And CheckCsvValues("MAKE", 5, $value5) Then
 								$sTargetVectors = StringReplace($sTargetVectors, $value3, "", Default, $STR_NOCASESENSEBASIC) ; if re-making a vector, must remove from target vector string
 								If CheckCsvValues("MAKE", 8, $value8) Then ; Vector is targeted towards building
+									Local $sVecKey = StringUpper($value1)
+									If StringLen($sVecKey) = 1 Then
+										Local $iVecIndex = Asc($sVecKey) - 65
+										If $iVecIndex >= 0 And $iVecIndex < UBound($aVectorTargetBuilding) Then
+											$aVectorTargetBuilding[$iVecIndex] = StringUpper($value8)
+										EndIf
+									EndIf
 									; new field definitions:
 									; value2 = $side = target side string
 									; value3 = Drop point count can be 1 or 5 value only
@@ -304,6 +312,27 @@ Func ParseAttackCSV($debug = False)
 								EndIf
 							EndIf
 						Next
+						Local $iAttackTH = 0
+						If IsNumber($g_iSearchTH) Then $iAttackTH = Int($g_iSearchTH)
+						If $iAttackTH >= 18 And StringUpper($value4) = "FSPELL" Then
+							Local $bSkipFreeze = False
+							For $v = 0 To UBound($tmpVectorList) - 1
+								Local $sVecKey = StringUpper($tmpVectorList[$v])
+								If StringLen($sVecKey) = 1 Then
+									Local $iVecIndex = Asc($sVecKey) - 65
+									If $iVecIndex >= 0 And $iVecIndex < UBound($aVectorTargetBuilding) Then
+										If $aVectorTargetBuilding[$iVecIndex] = "TOWNHALL" Then
+											$bSkipFreeze = True
+											ExitLoop
+										EndIf
+									EndIf
+								EndIf
+							Next
+							If $bSkipFreeze Then
+								SetLog("CSV: skip Freeze on TownHall at TH18 (vector " & $value1 & ")", $COLOR_INFO)
+								ContinueLoop
+							EndIf
+						EndIf
 						; ensure base vector exists before attempting drop
 						Local $vectCheck = Execute("$ATTACKVECTOR_" & $value1)
 						If Not IsArray($vectCheck) Or UBound($vectCheck) = 0 Then

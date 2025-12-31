@@ -224,6 +224,8 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			$BuildingEnum = $eBldgFireSpitter
 		Case "MULTIARCHER"
 			$BuildingEnum = $eBldgMultiArcherTower
+		Case "MULTIGEAR"
+			$BuildingEnum = $eBldgMultiGearTower
 		Case "RICOCHETCA"
 			$BuildingEnum = $eBldgRicochetCannon
 		Case "SUPERWIZTW"

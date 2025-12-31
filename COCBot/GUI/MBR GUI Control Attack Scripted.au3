@@ -16,6 +16,7 @@
 
 Global $g_bCSVSettingsDirty = False
 Global $g_sCSVSettingsLastLoad = ""
+Global $g_sCSVSettingsVersion = ""
 
 Func PopulateComboScriptsFilesDB()
 	Dim $FileSearch, $NewFile
@@ -35,6 +36,7 @@ Func PopulateComboScriptsFilesDB()
 	GUICtrlSetData($g_hCmbScriptNameDB, $output)
 	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameDB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameDB, ""))
 	GUICtrlSetData($g_hLblNotesScriptDB, "")
+	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV: -")
 EndFunc   ;==>PopulateComboScriptsFilesDB
 
 Func PopulateComboScriptsFilesAB()
@@ -55,6 +57,7 @@ Func PopulateComboScriptsFilesAB()
 	GUICtrlSetData($g_hCmbScriptNameAB, $output)
 	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameAB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameAB, ""))
 	GUICtrlSetData($g_hLblNotesScriptAB, "")
+	If $g_hLblCSVScriptVersionAB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionAB, "CSV: -")
 EndFunc   ;==>PopulateComboScriptsFilesAB
 
 
@@ -64,6 +67,7 @@ Func cmbScriptNameDB()
 	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB) + 1]
 	Local $f, $result = ""
 	Local $tempvect, $line, $t
+	Local $sVersion = "unknown"
 
 	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
 		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
@@ -77,9 +81,11 @@ Func cmbScriptNameDB()
 			EndIf
 		WEnd
 		FileClose($f)
+		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
 
 	EndIf
 	GUICtrlSetData($g_hLblNotesScriptDB, $result)
+	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV: " & $sVersion)
 
 EndFunc   ;==>cmbScriptNameDB
 
@@ -89,6 +95,7 @@ Func cmbScriptNameAB()
 	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB) + 1]
 	Local $f, $result = ""
 	Local $tempvect, $line, $t
+	Local $sVersion = "unknown"
 
 	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
 		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
@@ -102,9 +109,11 @@ Func cmbScriptNameAB()
 			EndIf
 		WEnd
 		FileClose($f)
+		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
 
 	EndIf
 	GUICtrlSetData($g_hLblNotesScriptAB, $result)
+	If $g_hLblCSVScriptVersionAB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionAB, "CSV: " & $sVersion)
 
 EndFunc   ;==>cmbScriptNameAB
 
@@ -559,14 +568,16 @@ Func CSVSettings_MarkDirty()
 EndFunc   ;==>CSVSettings_MarkDirty
 
 ; Side-effect: io (GUI state updates)
-Func AttackCSVSettings_UpdateHeader($sScript, $sPath, $sLoaded)
+Func AttackCSVSettings_UpdateHeader($sScript, $sPath, $sLoaded, $sVersion = "")
 	Local $sLabelScript = ($sScript <> "") ? $sScript : "-"
 	Local $sLabelPath = ($sPath <> "") ? $sPath : "-"
 	Local $sLabelLoaded = ($sLoaded <> "") ? $sLoaded : "-"
+	Local $sLabelVersion = ($sVersion <> "") ? $sVersion : "-"
 	; TODO: add a tooltip or truncation when the path exceeds the label width.
 	If $g_hLblCSVSettingsScript <> 0 Then GUICtrlSetData($g_hLblCSVSettingsScript, "Script: " & $sLabelScript)
 	If $g_hLblCSVSettingsPath <> 0 Then GUICtrlSetData($g_hLblCSVSettingsPath, "Path: " & $sLabelPath)
 	If $g_hLblCSVSettingsLoaded <> 0 Then GUICtrlSetData($g_hLblCSVSettingsLoaded, "Loaded: " & $sLabelLoaded)
+	If $g_hLblCSVSettingsVersion <> 0 Then GUICtrlSetData($g_hLblCSVSettingsVersion, "CSV: " & $sLabelVersion)
 EndFunc   ;==>AttackCSVSettings_UpdateHeader
 
 ; Side-effect: io (file read + GUI state updates)
@@ -576,6 +587,33 @@ Func AttackCSVSettings_ReloadFromCSV()
 	If $g_bCSVSettingsDirty Then SetLog("Attack CSV settings: reload requested, discarding unsaved edits.", $COLOR_WARNING)
 	AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
 EndFunc   ;==>AttackCSVSettings_ReloadFromCSV
+
+; Side-effect: automation (triggers attack flow using DB scripted settings)
+Func AttackCSVSettings_AttackNowDB()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $sScript = AttackCSVSettings_GetScriptName($DB)
+	If $sScript = "" Then
+		SetLog("CSV settings DB test: no DB script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+	SetLog("CSV settings DB test: " & $sScript & " (manual target required)", $COLOR_INFO)
+
+	Local $tempbRunState = $g_bRunState
+	Local $tempSieges = $g_aiCurrentSiegeMachines
+	$g_aiCurrentSiegeMachines[$eSiegeWallWrecker] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeBattleBlimp] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeStoneSlammer] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeBarracks] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeLogLauncher] = 1
+	$g_aiAttackAlgorithm[$DB] = 1
+	$g_sAttackScrScriptName[$DB] = $sScript
+	$g_iMatchMode = $DB
+	$g_bRunState = True
+	PrepareAttack($g_iMatchMode)
+	Attack()
+	$g_aiCurrentSiegeMachines = $tempSieges
+	$g_bRunState = $tempbRunState
+EndFunc   ;==>AttackCSVSettings_AttackNowDB
 
 ; Side-effect: io (file read + logging)
 Func AttackCSVSettings_ValidateCSV()
@@ -806,8 +844,22 @@ EndFunc   ;==>CSVVectorSelect
 ; Side-effect: io (file read/write)
 Func CSVVectorUpdate()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	CSVVectorSyncTargetedState()
 	AttackCSVSettings_SaveVectorToCSV($g_iAttackCSVSettingsMode)
 EndFunc   ;==>CSVVectorUpdate
+
+; Side-effect: io (GUI state updates)
+Func CSVVectorSyncTargetedState()
+	Local $bTargeted = (GUICtrlRead($g_hChkCSVVectorTargeted) = $GUI_CHECKED)
+	If $g_hInpCSVRandomX <> 0 Then
+		GUICtrlSetState($g_hInpCSVRandomX, $bTargeted ? $GUI_DISABLE : $GUI_ENABLE)
+		If $bTargeted Then GUICtrlSetData($g_hInpCSVRandomX, "0")
+	EndIf
+	If $g_hInpCSVRandomY <> 0 Then
+		GUICtrlSetState($g_hInpCSVRandomY, $bTargeted ? $GUI_DISABLE : $GUI_ENABLE)
+		If $bTargeted Then GUICtrlSetData($g_hInpCSVRandomY, "0")
+	EndIf
+EndFunc   ;==>CSVVectorSyncTargetedState
 
 ; Side-effect: io (GUI state updates)
 Func CSVRemainToggle()
@@ -850,7 +902,8 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 
 	SetLog("Attack CSV settings load: " & $sScript, $COLOR_INFO)
 	$g_sCSVSettingsLastLoad = AttackCSVSettings_FormatTimeStamp()
-	AttackCSVSettings_UpdateHeader($sScript, $sPath, $g_sCSVSettingsLastLoad)
+	$g_sCSVSettingsVersion = AttackCSVSettings_DetectVersion($aLines)
+	AttackCSVSettings_UpdateHeader($sScript, $sPath, $g_sCSVSettingsLastLoad, $g_sCSVSettingsVersion)
 
 	Local $iTHCol = AttackCSVSettings_GetTHColumnIndex()
 	Local $iTHStart = 3
@@ -1086,6 +1139,7 @@ Func AttackCSVSettings_LoadVectorFromLines(ByRef $aLines)
 		$sFoundLine = $aLines[$iLine]
 		ExitLoop
 	Next
+	CSVVectorSyncTargetedState()
 	AttackCSVSettings_SetVectorRowInfo($sVector, $iFoundLine, $sFoundLine)
 EndFunc   ;==>AttackCSVSettings_LoadVectorFromLines
 
@@ -1228,6 +1282,13 @@ Func AttackCSVSettings_ReadLines($sPath)
 	EndIf
 	Return $aLines
 EndFunc   ;==>AttackCSVSettings_ReadLines
+
+; Side-effect: io (file read)
+Func AttackCSVSettings_GetVersionFromFile($sPath)
+	Local $aLines = AttackCSVSettings_ReadLines($sPath)
+	If @error Then Return "unknown"
+	Return AttackCSVSettings_DetectVersion($aLines)
+EndFunc   ;==>AttackCSVSettings_GetVersionFromFile
 
 ; Side-effect: io (file write)
 Func AttackCSVSettings_WriteLines($sPath, ByRef $aLines)
@@ -1449,6 +1510,43 @@ EndFunc   ;==>AttackCSVSettings_BuildWaitConditions
 Func AttackCSVSettings_FormatTimeStamp()
 	Return StringFormat("%04d-%02d-%02d %02d:%02d:%02d", @YEAR, @MON, @MDAY, @HOUR, @MIN, @SEC)
 EndFunc   ;==>AttackCSVSettings_FormatTimeStamp
+
+; Side-effect: pure (version parsing)
+Func AttackCSVSettings_DetectVersion(ByRef $aLines)
+	Local $sVersion = ""
+	For $i = 0 To UBound($aLines) - 1
+		Local $aCols = StringSplit($aLines[$i], "|", 2)
+		If AttackCSVSettings_GetCommand($aCols) <> "NOTE" Then ContinueLoop
+		Local $sKey = StringUpper(AttackCSVSettings_GetValueTrim($aCols, 1))
+		If $sKey = "CSV_VERSION" Then
+			Local $sVal = AttackCSVSettings_GetValueTrim($aCols, 2)
+			$sVersion = AttackCSVSettings_NormalizeVersion($sVal)
+			ExitLoop
+		EndIf
+		Local $sNote = AttackCSVSettings_GetValueTrim($aCols, 1)
+		For $j = 2 To UBound($aCols) - 1
+			Local $sPart = AttackCSVSettings_GetValueTrim($aCols, $j)
+			If $sPart <> "" Then $sNote &= " " & $sPart
+		Next
+		Local $aMatch = StringRegExp($sNote, "(?i)v\\d+(?:\\.\\d+)?", 1)
+		If IsArray($aMatch) Then
+			$sVersion = AttackCSVSettings_NormalizeVersion($aMatch[0])
+			ExitLoop
+		EndIf
+	Next
+	If $sVersion = "" Then Return "unknown"
+	Return $sVersion
+EndFunc   ;==>AttackCSVSettings_DetectVersion
+
+; Side-effect: pure (version formatting)
+Func AttackCSVSettings_NormalizeVersion($sVersion)
+	Local $sVal = StringStripWS($sVersion, $STR_STRIPALL)
+	If $sVal = "" Then Return ""
+	If StringLeft($sVal, 1) = "V" Or StringLeft($sVal, 1) = "v" Then
+		$sVal = StringTrimLeft($sVal, 1)
+	EndIf
+	Return "v" & $sVal
+EndFunc   ;==>AttackCSVSettings_NormalizeVersion
 
 ; Side-effect: pure (validation)
 Func AttackCSVSettings_IsNumericValue($sValue)

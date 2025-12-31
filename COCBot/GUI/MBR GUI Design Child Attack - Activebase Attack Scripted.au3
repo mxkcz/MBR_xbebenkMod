@@ -16,7 +16,7 @@
 
 Global $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED = 0
 Global $g_hCmbScriptNameAB = 0, $g_hCmbScriptRedlineImplAB = 0, $g_hCmbScriptDroplineAB = 0
-Global $g_hLblNotesScriptAB = 0 , $g_hbtnAttNow, $g_hBtnAttackCSVSettingsAB = 0
+Global $g_hLblNotesScriptAB = 0, $g_hLblCSVScriptVersionAB = 0, $g_hbtnAttNow, $g_hBtnAttackCSVSettingsAB = 0
 
 Func CreateAttackSearchActiveBaseScripted()
 	$g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED = _GUICreate("", $_GUI_MAIN_WIDTH - 195, $g_iSizeHGrpTab4, 150, 25, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_ACTIVEBASE)
@@ -33,6 +33,7 @@ Func CreateAttackSearchActiveBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnReload, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconReload_Info_01", -1))
 			GUICtrlSetOnEvent(-1, 'UpdateComboScriptNameAB') ; Run this function when the secondary GUI [X] is clicked
+		$g_hLblCSVScriptVersionAB = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Lbl_ScriptCSVVersion", "CSV: -"), $x, $y + 22, 200, 16)
 
 	$y += 25
 		$g_hLblNotesScriptAB =  GUICtrlCreateLabel("", $x, $y + 5, 200, 180)
