@@ -310,6 +310,21 @@ Func ParseAttackCSV($debug = False)
 							SetLog("Discard row, vector " & $value1 & " is empty/missing: row " & $iLine + 1, $COLOR_WARNING)
 							ContinueLoop
 						EndIf
+
+						; validate index values against actual vector length
+						Local $iVectorMax = UBound($vectCheck)
+						If IsArray($indexArray) Then
+							For $i = $index1 To $index2
+								If $indexArray[$i] < 1 Or $indexArray[$i] > $iVectorMax Then
+									$sErrorText &= "Invalid INDEX for vector length"
+									SetDebugLog("$indexArray[" & $i & "]=" & $indexArray[$i] & ", max=" & $iVectorMax, $COLOR_ERROR)
+									ExitLoop
+								EndIf
+							Next
+						ElseIf $index1 < 1 Or $index2 < 1 Or $index1 > $iVectorMax Or $index2 > $iVectorMax Then
+							$sErrorText &= "Invalid INDEX for vector length"
+							SetDebugLog("$index1: " & $index1 & ", $index2: " & $index2 & ", max=" & $iVectorMax, $COLOR_ERROR)
+						EndIf
 						
 						Local $bRemain = False
 						Local $bIncludeHeroes = False

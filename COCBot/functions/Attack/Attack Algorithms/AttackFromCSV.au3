@@ -194,6 +194,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	;00 read attack file SIDE row and valorize variables
 	ParseAttackCSV_Read_SIDE_variables()
+	PrepareCSVBuildingsTH($g_iSearchTH)
 	$g_iCSVLastTroopPositionDropTroopFromINI = -1
 	If _Sleep($DELAYRESPOND) Then Return
 
@@ -868,24 +869,48 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	; 12.7 - Super Wizard Tower ------------------------------------------------------------------------
 	$g_aiCSVSuperWizTowerPos = "" ; reset location array?
 
-	if $g_bCSVLocateSuperWizTower Then
-		; Super Wizard Tower shares the same footprint as Wizard Towers, so reuse that detection
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then
-			$aResult = GetLocationBuilding($eBldgWizTower, $g_iSearchTH, False)
-			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgWizTower], $COLOR_ERROR)
-		EndIf
-		$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION")
-		If @error Then
-			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgWizTower] & " _LOCATION", @error) ; Log errors
-			SetLog("> " & $g_sBldgNames[$eBldgWizTower] & " location not in dictionary", $COLOR_WARNING)
+	If $g_bCSVLocateSuperWizTower Then
+		If $g_bCSVUseWizTowerForSuperWiz Then
+			; Super Wizard Tower not unlocked/unknown TH: reuse Wizard Tower detection
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then
+				$aResult = GetLocationBuilding($eBldgWizTower, $g_iSearchTH, False)
+				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgWizTower], $COLOR_ERROR)
+			EndIf
+			$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION")
+			If @error Then
+				_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgWizTower] & " _LOCATION", @error) ; Log errors
+				SetLog("> " & $g_sBldgNames[$eBldgWizTower] & " location not in dictionary", $COLOR_WARNING)
+			Else
+				If IsArray($aResult) Then
+					$g_aiCSVSuperWizTowerPos = $aResult
+					If _ObjSearch($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION") Then
+						_ObjPutValue($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION", $aResult)
+					Else
+						_ObjAdd($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION", $aResult)
+					EndIf
+					If _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_OBJECTPOINTS") Then
+						Local $sWizPoints = _ObjGetValue($g_oBldgAttackInfo, $eBldgWizTower & "_OBJECTPOINTS")
+						If Not @error And $sWizPoints <> "" Then
+							_ObjPutValue($g_oBldgAttackInfo, $eBldgSuperWizTower & "_OBJECTPOINTS", $sWizPoints)
+						EndIf
+					EndIf
+				EndIf
+			EndIf
 		Else
-			If IsArray($aResult) Then
-				$g_aiCSVSuperWizTowerPos = $aResult
-				If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then _ObjAdd($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION", $aResult)
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION") Then
+				$aResult = GetLocationBuilding($eBldgSuperWizTower, $g_iSearchTH, False)
+				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgSuperWizTower], $COLOR_ERROR)
+			EndIf
+			$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION")
+			If @error Then
+				_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgSuperWizTower] & " _LOCATION", @error) ; Log errors
+				SetLog("> " & $g_sBldgNames[$eBldgSuperWizTower] & " location not in dictionary", $COLOR_WARNING)
+			Else
+				If IsArray($aResult) Then $g_aiCSVSuperWizTowerPos = $aResult
 			EndIf
 		EndIf
 	Else
-		SetDebugLog("> " & $g_sBldgNames[$eBldgWizTower] & " detection not needed, skipping", $COLOR_DEBUG)
+		SetDebugLog("> " & $g_sBldgNames[$eBldgSuperWizTower] & " detection not needed, skipping", $COLOR_DEBUG)
 	EndIf
 
 	; 12.8 - Revenge Tower ------------------------------------------------------------------------

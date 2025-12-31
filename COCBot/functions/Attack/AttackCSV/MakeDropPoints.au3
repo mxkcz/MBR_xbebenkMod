@@ -311,7 +311,7 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			SetLog("Target drop point for " &  $g_sBldgNames[$BuildingEnum] & " (adding " & $addtiles & " tiles): " & $sLoc)
 			Return GetListPixel($sLoc, "-", "MakeTargetDropPoints TARGET") ; return ADDTILES modified location array
 		Case 5
-			$sLoc = $aLocation[0] & "|" & $aLocation[1] ; make string for bldg location
+			$sLoc = $aLocation[0] & "," & $aLocation[1] ; make string for bldg location
 			$Output = GetDeployableNextTo($sLoc, 10, $g_oBldgAttackInfo.item($eBldgRedLine & "_OBJECTPOINTS")) ; Get 5 near points, 10 pixels outisde red line for drop
 			If StringLen($Output) = 0 Then
 				SetLog("MakeTargetDropPoints: no near points found for " & $g_sBldgNames[$BuildingEnum], $COLOR_WARNING)

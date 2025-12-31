@@ -44,6 +44,7 @@
 #include "functions\Attack\AttackCSV\Line2Points.au3"
 #include "functions\Attack\AttackCSV\MakeDropLine.au3"
 #include "functions\Attack\AttackCSV\MakeDropPoints.au3"
+#include "functions\Attack\AttackCSV\PrepareCSVBuildingsTH.au3"
 #include "functions\Attack\AttackCSV\ParseAttackCSV.au3"
 #include "functions\Attack\AttackCSV\ParseAttackCSV_Read_SIDE_variables.au3"
 #include "functions\Attack\AttackCSV\Slice8.au3"

@@ -1603,6 +1603,7 @@ Global $g_aiCSVMultiArcherTowerPos
 Global $g_aiCSVMultiGearTowerPos
 Global $g_aiCSVSuperWizTowerPos
 Global $g_aiCSVRevengeTowerPos
+Global $g_bCSVUseWizTowerForSuperWiz = False ; CSV prep: reuse Wizard Tower imgloc when Super Wiz is locked/unknown
 Global $g_bCSVLocateMine = False
 Global $g_bCSVLocateElixir = False
 Global $g_bCSVLocateDrill = False
@@ -1842,8 +1843,8 @@ $g_oBldgImages.add($eBldgInferno & "_" & "0", @ScriptDir & "\imgxml\Buildings\In
 $g_oBldgImages.add($eBldgXBow & "_" & "0", @ScriptDir & "\imgxml\Buildings\Xbow")
 $g_oBldgImages.add($eBldgWizTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\WTower")
 $g_oBldgImages.add($eBldgWizTower & "_" & "1", @ScriptDir & "\imgxml\Buildings\WTowerSnow")
-$g_oBldgImages.add($eBldgSuperWizTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\WTower")
-$g_oBldgImages.add($eBldgSuperWizTower & "_" & "1", @ScriptDir & "\imgxml\Buildings\WTowerSnow")
+$g_oBldgImages.add($eBldgSuperWizTower & "_" & "0", @ScriptDir & "\imgxml\Buildings\SuperwizTower")
+$g_oBldgImages.add($eBldgSuperWizTower & "_" & "1", @ScriptDir & "\imgxml\Buildings\SuperwizTower")
 $g_oBldgImages.add($eBldgMortar & "_" & "0", @ScriptDir & "\imgxml\Buildings\Mortars")
 $g_oBldgImages.add($eBldgAirDefense & "_" & "0", @ScriptDir & "\imgxml\Buildings\ADefense")
 $g_oBldgImages.add($eBldgScatter & "_" & "0", @ScriptDir & "\imgxml\Buildings\ScatterShot")
