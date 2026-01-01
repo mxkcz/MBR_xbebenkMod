@@ -21,27 +21,31 @@ Func FillArmyCamp()
 		If OpenArmyOverview() Then 
 			If _Sleep(500) Then Return
 			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 210, 480, 230) Then ;check on troops
-				SetLog("Your troop need to fill", $COLOR_DEBUG)
-				FillIncorrectTroopCombo()
-				ClickAway()
-				If _Sleep(500) Then Return
+				If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 270, 480, 295) Then ;check on acivate supertroop
+					SetLog("SuperTroop Need to activate", $COLOR_DEBUG)
+					Click($g_iQuickMISX, $g_iQuickMISY)
+					If _Sleep(500) Then Return
+					If WaitforPixel(590, 490, 591, 490, "84CD2C", 20, 1) Then 
+						SetLog("Activate Boost SuperTroop", $COLOR_DEBUG)
+						Click(490, 450)
+					EndIf				
+				Else
+					SetLog("Your troop need to fill", $COLOR_DEBUG)
+					FillIncorrectTroopCombo()
+					ClickAway()
+					If _Sleep(500) Then Return
+				EndIf
 			EndIf
 			
 			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 320, 320, 480, 345) Then ;check on spells
-				SetLog("Your troop need to fill", $COLOR_DEBUG)
+				SetLog("Your spell need to fill", $COLOR_DEBUG)
 				FillIncorrectSpellCombo()
 				ClickAway()
 				If _Sleep(500) Then Return
 			EndIf
 			
-			If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 380, 270, 800, 295) Then ;check on acivate supertroop
-				SetLog("SuperTroop Need to activate", $COLOR_DEBUG)
-				ClickAway()
-				If _Sleep(500) Then Return
-				BoostSuperTroop()
-			EndIf
-			CheckHeroOnUpgrade()
 			CheckCookieReinforcement()
+			CheckHeroOnUpgrade()
 			
 			;close Army window
 			ClickAway()
@@ -100,11 +104,12 @@ Func CheckHeroOnUpgrade()
 				If Ubound($aHero) = 1 Then ExitLoop
 				If $bWardenFound And Ubound($aHero) = 2 Then ExitLoop
 			Else
-				Click($x, $y, 1, 0, "Hammer")
+				Click($x, $y, 1, 0, "Hammer Close")
 				ExitLoop
 			EndIf
 		Next
 		If _Sleep(500) Then Return
+		Return False
 	EndIf
 EndFunc
 
@@ -140,9 +145,6 @@ Func CheckCookieReinforcement()
 			Click($g_iQuickMISX, $g_iQuickMISY)
 			SetLog("Fill Reinforcement using Castle Cake", $COLOR_ACTION)
 		EndIf
-		
-		ClickAway()
-		If _Sleep(500) Then Return
 	EndIf
 EndFunc
 
