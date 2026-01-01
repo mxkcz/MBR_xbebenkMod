@@ -188,7 +188,6 @@ Func _SearchUpgrade($bTest = False, $bSkip1st = False, $bLowCost = False, $bUseW
 		EndIf
 		
 		If $bSkipNew Then ;Townhall on upgrade, enable lowcost upgrade
-			$bLowCost = True
 			$bUseWallReserve = False
 		EndIf
 		
