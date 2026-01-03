@@ -79,6 +79,8 @@ Func CheckCsvValues($instruction, $variablenumber, $variable)
 					EndSwitch
 				Case 8 ; check for valid building targets
 					Switch $variable
+						Case "PRIO"
+							Return True
 						Case "TOWNHALL"
 							Return True
 						Case "EAGLE"

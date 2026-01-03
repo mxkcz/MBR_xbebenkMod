@@ -1604,6 +1604,7 @@ Global $g_aiCSVMultiGearTowerPos
 Global $g_aiCSVSuperWizTowerPos
 Global $g_aiCSVRevengeTowerPos
 Global $g_bCSVUseWizTowerForSuperWiz = False ; CSV prep: reuse Wizard Tower imgloc when Super Wiz is locked/unknown
+Global $g_aiCSVSideBWeights[14]
 Global $g_bCSVLocateMine = False
 Global $g_bCSVLocateElixir = False
 Global $g_bCSVLocateDrill = False

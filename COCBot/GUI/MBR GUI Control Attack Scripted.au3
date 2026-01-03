@@ -530,7 +530,9 @@ EndFunc   ;==>OpenAttackCSVSettings
 
 Func CloseAttackCSVSettings()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
-	AttackCSVSettings_SaveToCSV($g_iAttackCSVSettingsMode)
+	If $g_bCSVSettingsDirty Then
+		SetLog("Attack CSV settings: close requested with unsaved edits.", $COLOR_WARNING)
+	EndIf
 	ApplyConfig_AttackCSV("Save")
 	GUISetState(@SW_HIDE, $g_hGUI_AttackCSVSettings)
 	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_ENABLE)
@@ -614,6 +616,70 @@ Func AttackCSVSettings_AttackNowDB()
 	$g_aiCurrentSiegeMachines = $tempSieges
 	$g_bRunState = $tempbRunState
 EndFunc   ;==>AttackCSVSettings_AttackNowDB
+
+; Side-effect: automation (debug CSV building locate pass with test image support)
+Func debugCSVLocateBuildings()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $sScript = AttackCSVSettings_GetScriptName($g_iAttackCSVSettingsMode)
+	If $sScript = "" Then
+		SetLog("CSV locate debug: no script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+
+	BeginImageTest() ; allow screenshot or file-based test
+
+	Local $currentRunState = $g_bRunState
+	Local $currentDebugAttackCSV = $g_bDebugAttackCSV
+	Local $currentMakeIMGCSV = $g_bDebugMakeIMGCSV
+	Local $currentiMatchMode = $g_iMatchMode
+	Local $currentdebugsetlog = $g_bDebugSetlog
+	Local $currentDebugBuildingPos = $g_bDebugBuildingPos
+	Local $currentScript = $g_sAttackScrScriptName[$g_iAttackCSVSettingsMode]
+
+	$g_bRunState = True
+	$g_bDebugAttackCSV = True
+	$g_bDebugMakeIMGCSV = True
+	$g_bDebugSetlog = True
+	$g_bDebugBuildingPos = True
+
+	$g_iMatchMode = $g_iAttackCSVSettingsMode
+	$g_sAttackScrScriptName[$g_iMatchMode] = $sScript
+
+	; reset village measures
+	setVillageOffset(0, 0, 1)
+	ConvertInternalExternArea()
+
+	If Not CheckZoomOut("debugCSVLocateBuildings") Then
+		SetLog("CheckZoomOut failed", $COLOR_INFO)
+	EndIf
+	ResetTHsearch()
+	SetLog("CSV locate debug: FindTownhall()", $COLOR_INFO)
+	SetLog("FindTownhall() = " & FindTownhall(True), $COLOR_INFO)
+	SetLog("$g_sImglocRedline = " & $g_sImglocRedline, $COLOR_INFO)
+
+	If $g_bDebugMakeIMGCSV And TestCapture() = 0 Then
+		If $g_iSearchTH = "-" Then ; If TH is unknown, try again to find as it is needed for filename
+			imglocTHSearch(True, False, False)
+		EndIf
+		SaveDebugImage("clean", False, Default, "TH" & $g_iSearchTH & "-") ; make clean snapshot as well
+	EndIf
+	;~ SetLog("CSV locate debug: PrepareAttack()", $COLOR_INFO)
+	;~ PrepareAttack($g_iMatchMode)
+
+	;~ SetLog("CSV locate debug: Algorithm_AttackCSV()", $COLOR_INFO)
+	;~ Algorithm_AttackCSV(True, False) ; test mode, skip redline capture
+	SetLog("CSV locate debug: DONE", $COLOR_INFO)
+
+	EndImageTest() ; clear test image handle
+
+	$g_bRunState = $currentRunState
+	$g_bDebugAttackCSV = $currentDebugAttackCSV
+	$g_bDebugMakeIMGCSV = $currentMakeIMGCSV
+	$g_iMatchMode = $currentiMatchMode
+	$g_bDebugSetlog = $currentdebugsetlog
+	$g_bDebugBuildingPos = $currentDebugBuildingPos
+	$g_sAttackScrScriptName[$g_iAttackCSVSettingsMode] = $currentScript
+EndFunc   ;==>debugCSVLocateBuildings
 
 ; Side-effect: io (file read + logging)
 Func AttackCSVSettings_ValidateCSV()
@@ -919,7 +985,7 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	If $g_hCmbCSVForceSide <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVForceSide, 0)
 
 	GUICtrlSetData($g_hInpCSVIndexMin, "1")
-	GUICtrlSetData($g_hInpCSVIndexMax, "5")
+	GUICtrlSetData($g_hInpCSVIndexMax, "10")
 	GUICtrlSetData($g_hInpCSVQtyMin, "1")
 	GUICtrlSetData($g_hInpCSVQtyMax, "5")
 	GUICtrlSetData($g_hInpCSVDelayPointMin, "0")
@@ -1082,7 +1148,7 @@ Func AttackCSVSettings_LoadVectorFromCSV($iMode)
 	AttackCSVSettings_LoadVectorFromLines($aLines)
 EndFunc   ;==>AttackCSVSettings_LoadVectorFromCSV
 
-; Side-effect: io (file read/write)
+; Side-effect: io (file read)
 Func AttackCSVSettings_SaveVectorToCSV($iMode)
 	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
 	If $sScript = "" Then Return
@@ -1090,7 +1156,7 @@ Func AttackCSVSettings_SaveVectorToCSV($iMode)
 	Local $aLines = AttackCSVSettings_ReadLines($sPath)
 	If @error Then Return
 	AttackCSVSettings_UpdateMakeLine($aLines)
-	AttackCSVSettings_WriteLines($sPath, $aLines)
+	CSVSettings_MarkDirty()
 EndFunc   ;==>AttackCSVSettings_SaveVectorToCSV
 
 ; Side-effect: io (GUI state updates)

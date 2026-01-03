@@ -39,6 +39,10 @@ Func ParseAttackCSV_Read_SIDE_variables()
 	$g_bCSVLocateWall = False
 	; $g_bCSVLocateGemBox = False
 	Local $abLocateFromMake[$g_iCSVSearchFilterCount]
+	Local $bPrioMakeFound = False
+	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
+		$g_aiCSVSideBWeights[$i] = 0
+	Next
 
 	If $g_iMatchMode = $DB Then
 		Local $filename = $g_sAttackScrScriptName[$DB]
@@ -115,9 +119,25 @@ Func ParseAttackCSV_Read_SIDE_variables()
 								If Int($value13) > 0 Then $g_bCSVLocateRevengeTower = True
 								; $value14 = Gem Box placeholder
 						EndIf
+						$g_aiCSVSideBWeights[0] = Int($value1)
+						$g_aiCSVSideBWeights[1] = Int($value2)
+						$g_aiCSVSideBWeights[2] = Int($value3)
+						$g_aiCSVSideBWeights[3] = Int($value4)
+						$g_aiCSVSideBWeights[4] = Int($value5)
+						$g_aiCSVSideBWeights[5] = Int($value6)
+						$g_aiCSVSideBWeights[6] = Int($value7)
+						$g_aiCSVSideBWeights[7] = Int($value8)
+						$g_aiCSVSideBWeights[8] = Int($value9)
+						$g_aiCSVSideBWeights[9] = Int($value10)
+						$g_aiCSVSideBWeights[10] = Int($value11)
+						$g_aiCSVSideBWeights[11] = Int($value12)
+						$g_aiCSVSideBWeights[12] = Int($value13)
+						$g_aiCSVSideBWeights[13] = Int($value14)
 					Case "MAKE" ; check if targeted building vectors are used im MAKE commands >> starting in V7.2+
 						If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then ; check for empty string?
 							Switch $value8
+								Case "PRIO"
+									$bPrioMakeFound = True
 								Case "TOWNHALL"
 									$g_bCSVLocateStorageTownHall = True
 									$abLocateFromMake[6] = True
@@ -183,6 +203,7 @@ Func ParseAttackCSV_Read_SIDE_variables()
 				EndSwitch
 			EndIf
 		Next
+		If $bPrioMakeFound Then _CSVEnablePrioLocateFromWeights($abLocateFromMake)
 		ApplyCSVSearchFilter($abLocateFromMake)
 	Else
 		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
@@ -219,3 +240,65 @@ Func ApplyCSVSearchFilter(ByRef $abLocateFromMake)
 	$g_bCSVLocateRevengeTower = $g_bCSVLocateRevengeTower And ($g_abCSVSearchFilter[21] Or $abLocateFromMake[21])
 	$g_bCSVLocateWall = $g_bCSVLocateWall And ($g_abCSVSearchFilter[22] Or $abLocateFromMake[22])
 EndFunc   ;==>ApplyCSVSearchFilter
+
+; Side-effect: impure-deterministic (mutates locate flags using PRIO weights)
+Func _CSVEnablePrioLocateFromWeights(ByRef $abLocateFromMake)
+	If $g_aiCSVSideBWeights[0] > 0 Then
+		$g_bCSVLocateEagle = True
+		$abLocateFromMake[7] = True
+	EndIf
+	If $g_aiCSVSideBWeights[1] > 0 Then
+		$g_bCSVLocateInferno = True
+		$abLocateFromMake[8] = True
+	EndIf
+	If $g_aiCSVSideBWeights[2] > 0 Then
+		$g_bCSVLocateXBow = True
+		$abLocateFromMake[9] = True
+	EndIf
+	If $g_aiCSVSideBWeights[3] > 0 Then
+		$g_bCSVLocateWizTower = True
+		$g_bCSVLocateSuperWizTower = True
+		$abLocateFromMake[10] = True
+		$abLocateFromMake[11] = True
+	EndIf
+	If $g_aiCSVSideBWeights[4] > 0 Then
+		$g_bCSVLocateMortar = True
+		$abLocateFromMake[12] = True
+	EndIf
+	If $g_aiCSVSideBWeights[5] > 0 Then
+		$g_bCSVLocateAirDefense = True
+		$abLocateFromMake[13] = True
+	EndIf
+	If $g_aiCSVSideBWeights[6] > 0 Then
+		$g_bCSVLocateScatter = True
+		$abLocateFromMake[14] = True
+	EndIf
+	If $g_aiCSVSideBWeights[7] > 0 Then
+		$g_bCSVLocateSweeper = True
+		$abLocateFromMake[15] = True
+	EndIf
+	If $g_aiCSVSideBWeights[8] > 0 Then
+		$g_bCSVLocateMonolith = True
+		$abLocateFromMake[16] = True
+	EndIf
+	If $g_aiCSVSideBWeights[9] > 0 Then
+		$g_bCSVLocateFireSpitter = True
+		$abLocateFromMake[17] = True
+	EndIf
+	If $g_aiCSVSideBWeights[10] > 0 Then
+		$g_bCSVLocateMultiArcherTower = True
+		$abLocateFromMake[18] = True
+	EndIf
+	If $g_aiCSVSideBWeights[11] > 0 Then
+		$g_bCSVLocateMultiGearTower = True
+		$abLocateFromMake[19] = True
+	EndIf
+	If $g_aiCSVSideBWeights[12] > 0 Then
+		$g_bCSVLocateRicochetCannon = True
+		$abLocateFromMake[20] = True
+	EndIf
+	If $g_aiCSVSideBWeights[13] > 0 Then
+		$g_bCSVLocateRevengeTower = True
+		$abLocateFromMake[21] = True
+	EndIf
+EndFunc   ;==>_CSVEnablePrioLocateFromWeights

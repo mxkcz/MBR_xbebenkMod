@@ -119,6 +119,11 @@ Func ParseAttackCSV($debug = False)
 							If CheckCsvValues("MAKE", 1, $value1) And CheckCsvValues("MAKE", 5, $value5) Then
 								$sTargetVectors = StringReplace($sTargetVectors, $value3, "", Default, $STR_NOCASESENSEBASIC) ; if re-making a vector, must remove from target vector string
 								If CheckCsvValues("MAKE", 8, $value8) Then ; Vector is targeted towards building
+									Local $bPrio = (StringUpper($value8) = "PRIO")
+									Local $sAddTiles = $value4
+									If $bPrio And (StringStripWS($sAddTiles, $STR_STRIPALL) = "" Or Not StringIsInt($sAddTiles)) Then $sAddTiles = "1"
+									Local $sVersus = $value5
+									If $bPrio And Not CheckCsvValues("MAKE", 5, $sVersus) Then $sVersus = "EXT-INT"
 									Local $sVecKey = StringUpper($value1)
 									If StringLen($sVecKey) = 1 Then
 										Local $iVecIndex = Asc($sVecKey) - 65
@@ -136,9 +141,20 @@ Func ParseAttackCSV($debug = False)
 									; value8 = Building target for drop points
 									If $value3 = 1 Or $value3 = 5 Then ; check for valid number of drop points
 										SetLog(Eval($sidex) & ", " & $value3 & ", " & $value4 & ", " & $value8)
-										Local $tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $value4, $value8)
+										Local $tmpArray = 0
+										Local $bFallback = False
+										If $bPrio Then
+											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $sAddTiles, $value8)
+											If @error Then
+												$bFallback = True
+												SetDebugLog("CSV PRIO: no weighted defense found, falling back to ADDTILES " & $sAddTiles, $COLOR_DEBUG)
+												$tmpArray = MakeDropPoints(Eval($sidex), $value3, $sAddTiles, $sVersus, $value6, $value7)
+											EndIf
+										Else
+											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $value4, $value8)
+										EndIf
 										If @error Or Not IsArray($tmpArray) Or UBound($tmpArray) = 0 Then
-											$sErrorText = "MakeTargetDropPoints, err:" & (@error ? @error : "empty vector")
+											$sErrorText = ($bFallback ? "MakeDropPoints, err:" : "MakeTargetDropPoints, err:") & (@error ? @error : "empty vector")
 										Else
 											Assign("ATTACKVECTOR_" & $value1, $tmpArray) ; assing vector
 											$sTargetVectors &= $value1 ; add letter of every vector using building target to string to error check DROP command

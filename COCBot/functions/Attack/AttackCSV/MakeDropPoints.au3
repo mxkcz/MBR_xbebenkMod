@@ -202,6 +202,15 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 	Local $sLoc, $aLocation, $pixel[2], $BuildingEnum, $result, $array
 
 	Switch $building ; translate CSV building name into building enum
+		Case "PRIO" ; TODO: instead lookup buildings from prefilled map (individually for db/lb if different csv) and also assign buildings based on distance to attack side (to avoid freezing buildings early on the opposite attack site for example); add logging if it there's duplicate buildings
+			Local $sResolved = ""
+			$BuildingEnum = _CSVPrioResolveBuilding($side, $sResolved)
+			If @error Then
+				SetLog("PRIO target: no weighted defense found on " & $side, $COLOR_WARNING)
+				SetError(@error, 0, "")
+				Return
+			EndIf
+			$building = $sResolved
 		Case "TOWNHALL"
 			$BuildingEnum = $eBldgTownHall
 		Case "EAGLE"
@@ -328,4 +337,57 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 	EndSwitch
 
 EndFunc   ;==>MakeTargetDropPoints
+
+; Side-effect: impure-deterministic (reads weight and building location data)
+Func _CSVPrioResolveBuilding($side, ByRef $sResolved)
+	Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
+			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
+	Local $aCandidateName[15] = ["EAGLE", "INFERNO", "XBOW", "SUPERWIZTW", "WIZTOWER", "MORTAR", "AIRDEFENSE", _
+			"SCATTER", "SWEEPER", "MONOLITH", "FIRESPITTER", "MULTIARCHER", "MULTIGEAR", "RICOCHETCA", "REVENGETW"]
+	Local $aWeightIndex[15] = [0, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+	Local $iBestWeight = 0
+	Local $iBestEnum = -1
+	Local $sBestName = ""
+
+	For $i = 0 To UBound($aCandidateEnum) - 1
+		Local $iWeightIndex = $aWeightIndex[$i]
+		If $iWeightIndex < 0 Or $iWeightIndex >= UBound($g_aiCSVSideBWeights) Then ContinueLoop
+		Local $iWeight = $g_aiCSVSideBWeights[$iWeightIndex]
+		If $iWeight <= 0 Then ContinueLoop
+		If $iBestEnum <> -1 And $iWeight < $iBestWeight Then ContinueLoop
+		If Not _CSVPrioHasBuildingOnSide($aCandidateEnum[$i], $side) Then ContinueLoop
+		If $iWeight > $iBestWeight Then
+			$iBestWeight = $iWeight
+			$iBestEnum = $aCandidateEnum[$i]
+			$sBestName = $aCandidateName[$i]
+		ElseIf $iWeight = $iBestWeight And $iBestEnum = -1 Then
+			$iBestWeight = $iWeight
+			$iBestEnum = $aCandidateEnum[$i]
+			$sBestName = $aCandidateName[$i]
+		EndIf
+	Next
+
+	If $iBestEnum = -1 Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+	$sResolved = $sBestName
+	Return $iBestEnum
+EndFunc   ;==>_CSVPrioResolveBuilding
+
+; Side-effect: impure-deterministic (reads building location data)
+Func _CSVPrioHasBuildingOnSide($iBuildingEnum, $side)
+	Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iBuildingEnum & "_LOCATION")
+	If @error Then Return False
+	If Not IsArray($aLoc) Then Return False
+	If UBound($aLoc, 1) > 1 And IsArray($aLoc[1]) Then
+		For $i = 0 To UBound($aLoc) - 1
+			Local $aPoint = $aLoc[$i]
+			If IsPointOnSide($aPoint, $side) Then Return True
+		Next
+		Return False
+	EndIf
+	Return True
+EndFunc   ;==>_CSVPrioHasBuildingOnSide
 

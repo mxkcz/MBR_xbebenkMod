@@ -52,7 +52,7 @@ Global $g_hBtnCSVSideZero = 0, $g_hBtnCSVSideEqual = 0, $g_hBtnCSVSideBZero = 0,
 Global $g_hCmbCSVFlexTroop = 0, $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0], $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
 Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0, $g_hBtnCSVSettingsApply = 0
 Global $g_hLblCSVSettingsScript = 0, $g_hLblCSVSettingsPath = 0, $g_hLblCSVSettingsLoaded = 0, $g_hLblCSVSettingsVersion = 0, $g_hLblCSVSettingsDirty = 0
-Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsUpgrade = 0, $g_hBtnCSVSettingsTestDB = 0
+Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsUpgrade = 0, $g_hBtnCSVSettingsTestDB = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsDebugLocate = 0
 Global $g_hLblCSVVectorEditInfo = 0, $g_hTxtCSVVectorRow = 0
 Global $g_hLblCSVSidePreview = 0
 Global $g_hBtnAttackCSVSettingsCloseTop = 0
@@ -175,19 +175,26 @@ Func CreateAttackCSVSettingsGUI()
 	Local $iApplyBtnX = $iCloseBtnX - $iApplyBtnW - $iBtnGap
 	Local $iHeaderBtnW = 95, $iHeaderBtnH = $iApplyBtnH, $iHeaderBtnGap = 8
 	Local $iHeaderBtnUpgradeW = $iHeaderBtnW + 10
+	Local $iHeaderBtnDebugW = $iHeaderBtnUpgradeW
 	Local $iHeaderBtnX = $iHeaderX
 	Local $iHeaderBtnY = $iHeaderY
 	Local $iHeaderLabelW = $iTabRight - $iHeaderX - 20
 	If $iHeaderLabelW < 220 Then $iHeaderLabelW = 220
 	Local $iHeaderStatusX = $iHeaderX + 210
 	If $iHeaderStatusX + 140 > $iTabRight - 10 Then $iHeaderStatusX = $iTabRight - 150
+	Local $sCSVVectorList = "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z"
+	Local $sCSVTargetBuildings = "PRIO|TOWNHALL|EAGLE|INFERNO|XBOW|WIZTOWER|SUPERWIZTW|MORTAR|AIRDEFENSE|SWEEPER|MONOLITH|FIRESPITTER|MULTIARCHER|MULTIGEAR|RICOCHETCA|SCATTER|REVENGETW|EX-WALL|IN-WALL"
 	$g_hBtnCSVSettingsReload = GUICtrlCreateButton("Reload CSV", $iHeaderBtnX, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Reload_Info", "Reloads settings from the CSV file, discarding unsaved edits."))
 		GUICtrlSetOnEvent(-1, "AttackCSVSettings_ReloadFromCSV")
 	$g_hBtnCSVSettingsValidate = GUICtrlCreateButton("Validate CSV", $iHeaderBtnX + $iHeaderBtnW + $iHeaderBtnGap, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_Validate_Info", "Runs quick validation for MAKE/SIDE/WAIT values in the CSV."))
 		GUICtrlSetOnEvent(-1, "AttackCSVSettings_ValidateCSV")
-	$g_hBtnCSVSettingsTestDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDB", "Test DB"), $iHeaderBtnX + (($iHeaderBtnW + $iHeaderBtnGap) * 2) + $iHeaderBtnUpgradeW + $iHeaderBtnGap, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
+	Local $iHeaderBtnDebugX = $iHeaderBtnX + (($iHeaderBtnW + $iHeaderBtnGap) * 2)
+	$g_hBtnCSVSettingsDebugLocate = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_DebugLocate", "Debug Locate"), $iHeaderBtnDebugX, $iHeaderBtnY, $iHeaderBtnDebugW, $iHeaderBtnH)
+		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_DebugLocate_Info", "Run a CSV locate/building debug pass on the current base."))
+		GUICtrlSetOnEvent(-1, "debugCSVLocateBuildings")
+	$g_hBtnCSVSettingsTestDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDB", "Test DB"), $iHeaderBtnDebugX + $iHeaderBtnDebugW + $iHeaderBtnGap, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDB_Info", "Run a manual DB test attack using the selected Dead Base script (target must be selected)."))
 		GUICtrlSetOnEvent(-1, "AttackCSVSettings_AttackNowDB")
 	$g_hLblCSVSettingsScript = GUICtrlCreateLabel("Script: -", $iHeaderX, $iHeaderLabelY, $iHeaderLabelW, 16)
@@ -296,7 +303,7 @@ Func CreateAttackCSVSettingsGUI()
 		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Targeted", "Targeted vectors"), $iGroupLeft, $y - 20, $iTabInnerW, 160)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Targeted_Info", "Edits the selected MAKE line (value2..value8) for this vector."))
 		$g_hCmbCSVVectorId = GUICtrlCreateCombo("", $x, $y, 60, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-			GUICtrlSetData(-1, "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z", "A")
+			GUICtrlSetData(-1, $sCSVVectorList, "A")
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_VectorId_Info", "MAKE/DROP vector letter"))
 			GUICtrlSetOnEvent(-1, "CSVVectorSelect")
 		GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_VectorSide", "Side"), $x + 70, $y, 40, 18)
@@ -317,7 +324,7 @@ Func CreateAttackCSVSettingsGUI()
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Targeted_Info", "When enabled, uses value8 target building for MakeTargetDropPoints."))
 			GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 		$g_hCmbCSVTargetBuilding = GUICtrlCreateCombo("", $x + 190, $y + 28, 140, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-			GUICtrlSetData(-1, "TOWNHALL|EAGLE|INFERNO|XBOW|WIZTOWER|SUPERWIZTW|MORTAR|AIRDEFENSE|SWEEPER|MONOLITH|FIRESPITTER|MULTIARCHER|MULTIGEAR|RICOCHETCA|SCATTER|REVENGETW|EX-WALL|IN-WALL", "TOWNHALL")
+			GUICtrlSetData(-1, $sCSVTargetBuildings, "TOWNHALL")
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_TargetBuilding_Info", "Matches MakeTargetDropPoints value8 list"))
 			GUICtrlSetOnEvent(-1, "CSVVectorUpdate")
 		GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_DropPoints", "Drop points"), $x + 340, $y + 30, 80, 18)
@@ -523,22 +530,6 @@ Func CreateAttackCSVSettingsGUI()
 					_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Inp_AttackCSVSettings_HeroDelay_Info", "Delay in seconds for hero ability (TRAIN value)."))
 					GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
 			Next
-			GUICtrlCreateLabel("Redline preset", $iAutoX, $iAutoY + 160, 90, 18)
-			Local $iPresetW = $iAutoGroupW - 120
-			If $iPresetW < 160 Then $iPresetW = 160
-			$g_hCmbCSVRedlinePreset = GUICtrlCreateCombo("", $iAutoX + 100, $iAutoY + 158, $iPresetW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-				GUICtrlSetData(-1, "ImgLoc Raw Redline|ImgLoc Redline Drop Points|Original Redline|External Edges", "ImgLoc Raw Redline")
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_Redline_Info", "Updates REDLN preset in CSV settings."))
-				GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-			GUICtrlCreateLabel("Dropline preset", $iAutoX, $iAutoY + 185, 90, 18)
-			$g_hCmbCSVDroplinePreset = GUICtrlCreateCombo("", $iAutoX + 100, $iAutoY + 183, $iPresetW, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-				GUICtrlSetData(-1, "Drop line fix outer corner|Drop line fist Redline point|Full Drop line fix outer corner|Full Drop line fist Redline point|No Drop line", "Drop line fix outer corner")
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_Dropline_Info", "Updates DRPLN preset in CSV settings."))
-				GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-			GUICtrlCreateLabel("CC request text", $iAutoX, $iAutoY + 210, 100, 18)
-			$g_hTxtCSVCCRequest = GUICtrlCreateInput("", $iAutoX + 100, $iAutoY + 208, $iPresetW, 18)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Txt_AttackCSVSettings_CCReq_Info", "Updates CCREQ in CSV settings."))
-				GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 5: Preview ----
