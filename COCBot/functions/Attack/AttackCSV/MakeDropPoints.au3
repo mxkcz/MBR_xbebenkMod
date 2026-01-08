@@ -588,8 +588,11 @@ Func _CSVPrioMergeHighWeightTargets(ByRef $aTargets, $aAllTargets, $iMinWeight)
 	For $i = 0 To UBound($aAllTargets) - 1
 		If Int($aAllTargets[$i][4]) <= $iMinWeight Then ContinueLoop
 		If _CSVPrioTargetExists($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][2], $aAllTargets[$i][3]) Then ContinueLoop
+		Local $aPoint[2]
+		$aPoint[0] = $aAllTargets[$i][2]
+		$aPoint[1] = $aAllTargets[$i][3]
 		_CSVPrioAddTarget($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][1], _
-				[$aAllTargets[$i][2], $aAllTargets[$i][3]], $aAllTargets[$i][4], $aAllTargets[$i][5])
+				$aPoint, $aAllTargets[$i][4], $aAllTargets[$i][5])
 	Next
 EndFunc   ;==>_CSVPrioMergeHighWeightTargets
 
@@ -599,8 +602,11 @@ Func _CSVPrioMergeEnumTargets(ByRef $aTargets, $aAllTargets, $iEnum)
 	For $i = 0 To UBound($aAllTargets) - 1
 		If $aAllTargets[$i][0] <> $iEnum Then ContinueLoop
 		If _CSVPrioTargetExists($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][2], $aAllTargets[$i][3]) Then ContinueLoop
+		Local $aPoint[2]
+		$aPoint[0] = $aAllTargets[$i][2]
+		$aPoint[1] = $aAllTargets[$i][3]
 		_CSVPrioAddTarget($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][1], _
-				[$aAllTargets[$i][2], $aAllTargets[$i][3]], $aAllTargets[$i][4], $aAllTargets[$i][5])
+				$aPoint, $aAllTargets[$i][4], $aAllTargets[$i][5])
 	Next
 EndFunc   ;==>_CSVPrioMergeEnumTargets
 
