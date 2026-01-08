@@ -12,6 +12,50 @@
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; ===============================================================================================================================
+; CSV parse cache for attack scripts (shared across ParseAttackCSV*).
+Global $g_sCSVCacheName = ""
+Global $g_sCSVCachePath = ""
+Global $g_sCSVCacheMTime = ""
+Global $g_aCSVCacheLines[0]
+Global $g_aCSVCacheTokens[0]
+
+; Side-effect: io (reads CSV file), impure-deterministic (updates in-memory cache)
+Func _CSVGetCachedLinesAndTokens($sFilename, ByRef $aLines, ByRef $aTokens)
+	Local $sPath = $g_sCSVAttacksPath & "\" & $sFilename & ".csv"
+	If Not FileExists($sPath) Then Return SetError(1, 0, 0)
+
+	Local Const $kFileTimeModified = 1
+	Local Const $kFileTimeString = 1
+	Local $sMTime = FileGetTime($sPath, $kFileTimeModified, $kFileTimeString)
+	If @error Then $sMTime = ""
+
+	If $g_sCSVCachePath = $sPath And $g_sCSVCacheName = $sFilename And $g_sCSVCacheMTime = $sMTime Then
+		If IsArray($g_aCSVCacheLines) And IsArray($g_aCSVCacheTokens) Then
+			$aLines = $g_aCSVCacheLines
+			$aTokens = $g_aCSVCacheTokens
+			Return 1
+		EndIf
+	EndIf
+
+	Local $aReadLines = FileReadToArray($sPath)
+	If @error Then Return SetError(2, 0, 0)
+
+	Local $aReadTokens[UBound($aReadLines)]
+	For $i = 0 To UBound($aReadLines) - 1
+		$aReadTokens[$i] = StringSplit($aReadLines[$i], "|")
+	Next
+
+	$g_sCSVCacheName = $sFilename
+	$g_sCSVCachePath = $sPath
+	$g_sCSVCacheMTime = $sMTime
+	$g_aCSVCacheLines = $aReadLines
+	$g_aCSVCacheTokens = $aReadTokens
+
+	$aLines = $g_aCSVCacheLines
+	$aTokens = $g_aCSVCacheTokens
+	Return 1
+EndFunc   ;==>_CSVGetCachedLinesAndTokens
+
 Func ParseAttackCSV_Read_SIDE_variables()
 
 	$g_bCSVLocateMine = False
@@ -53,15 +97,12 @@ Func ParseAttackCSV_Read_SIDE_variables()
 	Local $value1, $value2, $value3, $value4, $value5, $value6, $value7, $value8, $value9, $value10, $value11, $value12, $value13, $value14
 	Local $bForceSideExist = False
 
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		Local $aLines = FileReadToArray($g_sCSVAttacksPath & "\" & $filename & ".csv")
-		If @error Then
-			SetLog("Attack CSV script not found: " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
-			Return
-		EndIf
+	Local $aLines, $aTokens
+	If _CSVGetCachedLinesAndTokens($filename, $aLines, $aTokens) Then
 		For $iLine = 0 To UBound($aLines) - 1
 			$line = $aLines[$iLine]
-			$acommand = StringSplit($line, "|")
+			$acommand = $aTokens[$iLine]
+			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
 			If $acommand[0] >= 8 Then
 				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
 
@@ -185,7 +226,13 @@ Func ParseAttackCSV_Read_SIDE_variables()
 		Next
 		If $bPrioMakeFound Then _CSVEnablePrioLocateFromWeights()
 	Else
-		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
+		Switch @error
+			Case 2
+				SetLog("Attack CSV script not found: " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
+			Case Else
+				SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
+		EndSwitch
+		Return
 	EndIf
 EndFunc   ;==>ParseAttackCSV_Read_SIDE_variables
 

@@ -38,8 +38,8 @@ Func ParseAttackCSV($debug = False)
 
 	Local $f, $line, $acommand, $command
 	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = ""
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		Local $aLines = FileReadToArray($g_sCSVAttacksPath & "\" & $filename & ".csv")
+	Local $aLines, $aTokens
+	If _CSVGetCachedLinesAndTokens($filename, $aLines, $aTokens) Then
 
 		; Read in lines of text until the EOF is reached
 		For $iLine = 0 To UBound($aLines) - 1
@@ -51,7 +51,8 @@ Func ParseAttackCSV($debug = False)
 			If @error = -1 Then ExitLoop
 			If $debug = True Then SetLog("parse line:<<" & $line & ">>")
 			debugAttackCSV("[" & $iLine + 1 & "] line content: " & $line)
-			$acommand = StringSplit($line, "|")
+			$acommand = $aTokens[$iLine]
+			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
 			If $acommand[0] >= 8 Then
 				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
 				If $command = "" Then
@@ -833,8 +834,8 @@ Func ParseAttackCSV_MainSide($debug = False)
 
 	Local $line, $acommand, $command
 	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = "", $value10 = "", $value11 = "", $value12 = "", $value13 = "", $value14 = ""
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		Local $aLines = FileReadToArray($g_sCSVAttacksPath & "\" & $filename & ".csv")
+	Local $aLines, $aTokens
+	If _CSVGetCachedLinesAndTokens($filename, $aLines, $aTokens) Then
 
 		; Read in lines of text until the EOF is reached
 		For $iLine = 0 To UBound($aLines) - 1
@@ -843,7 +844,8 @@ Func ParseAttackCSV_MainSide($debug = False)
 			If @error = -1 Then ExitLoop
 			If $debug = True Then SetLog("parse line:<<" & $line & ">>")
 			debugAttackCSV("line content: " & $line)
-			$acommand = StringSplit($line, "|")
+			$acommand = $aTokens[$iLine]
+			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
 			If $acommand[0] >= 8 Then
 				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
 				If $command <> "SIDE" And $command <> "SIDEB" Then ContinueLoop ; Only deal with SIDE and SIDEB commands
