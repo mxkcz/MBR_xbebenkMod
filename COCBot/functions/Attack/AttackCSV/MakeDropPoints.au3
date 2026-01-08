@@ -362,15 +362,34 @@ Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 	EndIf
 
 	Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
-	If @error Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
-		Local $aFallbackTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
-		If IsArray($aFallbackTargets) And UBound($aFallbackTargets) > 0 Then
+	Local $iTargetsErr = @error
+	Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+	If @error Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+
+	Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
+	If @error Then $aAllTargets = 0
+
+	If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+		If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
 			SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
-			$aTargets = $aFallbackTargets
+			$aTargets = $aAllTargets
 		Else
 			SetError(7, 0, "")
 			Return -1
+		EndIf
+	Else
+		Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
+		Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
+		If $iMaxAllWeight > $iMaxSideWeight Then
+			_CSVPrioMergeHighWeightTargets($aTargets, $aAllTargets, $iMaxSideWeight)
+			_CSVPrioSortTargets($aTargets)
+		EndIf
+		If _CSVPrioIsWeaponizedTownHall() Then
+			_CSVPrioMergeEnumTargets($aTargets, $aAllTargets, $eBldgTownHall)
+			_CSVPrioSortTargets($aTargets)
 		EndIf
 	EndIf
 
@@ -433,6 +452,26 @@ Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, $bIgnoreSide = False)
 			EndIf
 		EndIf
 	Next
+
+	Local $iTHWeight = _CSVPrioGetTownHallWeight()
+	If $iTHWeight > 0 And _CSVPrioIsWeaponizedTownHall() Then
+		Local $aTHLoc = _ObjGetValue($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION")
+		If Not @error And IsArray($aTHLoc) Then
+			If UBound($aTHLoc, 1) > 1 And IsArray($aTHLoc[1]) Then
+				For $t = 0 To UBound($aTHLoc) - 1
+					Local $aPoint = $aTHLoc[$t]
+					If Not IsArray($aPoint) Then ContinueLoop
+					If Not $bIgnoreSide And Not IsPointOnSide($aPoint, $sSideCheck) Then ContinueLoop
+					_CSVPrioAddTarget($aTargets, $eBldgTownHall, "TOWNHALL", $aPoint, $iTHWeight, GetPixelDistance($aPoint, $aSideMid))
+				Next
+			Else
+				Local $aPoint = $aTHLoc[0]
+				If IsArray($aPoint) And ($bIgnoreSide Or IsPointOnSide($aPoint, $sSideCheck)) Then
+					_CSVPrioAddTarget($aTargets, $eBldgTownHall, "TOWNHALL", $aPoint, $iTHWeight, GetPixelDistance($aPoint, $aSideMid))
+				EndIf
+			EndIf
+		EndIf
+	EndIf
 
 	Return $aTargets
 EndFunc   ;==>_CSVPrioBuildTargetsForSide
@@ -511,7 +550,9 @@ EndFunc   ;==>_CSVPrioCopyPoint
 Func _CSVPrioSortTargets(ByRef $aTargets)
 	For $i = 0 To UBound($aTargets) - 2
 		For $j = $i + 1 To UBound($aTargets) - 1
-			If $aTargets[$j][4] > $aTargets[$i][4] Or ($aTargets[$j][4] = $aTargets[$i][4] And $aTargets[$j][5] < $aTargets[$i][5]) Then
+			Local $iWeightJ = Int($aTargets[$j][4])
+			Local $iWeightI = Int($aTargets[$i][4])
+			If $iWeightJ > $iWeightI Or ($iWeightJ = $iWeightI And $aTargets[$j][5] < $aTargets[$i][5]) Then
 				_CSVPrioSwapTargets($aTargets, $i, $j)
 			EndIf
 		Next
@@ -529,6 +570,66 @@ Func _CSVPrioSwapTargets(ByRef $aTargets, $i, $j)
 		$aTargets[$j][$c] = $aTemp[$c]
 	Next
 EndFunc   ;==>_CSVPrioSwapTargets
+
+; Side-effect: pure
+Func _CSVPrioGetMaxWeight($aTargets)
+	If Not IsArray($aTargets) Or UBound($aTargets) = 0 Then Return 0
+	Local $iMax = 0
+	For $i = 0 To UBound($aTargets) - 1
+		Local $iWeight = Int($aTargets[$i][4])
+		If $iWeight > $iMax Then $iMax = $iWeight
+	Next
+	Return $iMax
+EndFunc   ;==>_CSVPrioGetMaxWeight
+
+; Side-effect: pure
+Func _CSVPrioMergeHighWeightTargets(ByRef $aTargets, $aAllTargets, $iMinWeight)
+	If Not IsArray($aAllTargets) Then Return
+	For $i = 0 To UBound($aAllTargets) - 1
+		If Int($aAllTargets[$i][4]) <= $iMinWeight Then ContinueLoop
+		If _CSVPrioTargetExists($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][2], $aAllTargets[$i][3]) Then ContinueLoop
+		_CSVPrioAddTarget($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][1], _
+				[$aAllTargets[$i][2], $aAllTargets[$i][3]], $aAllTargets[$i][4], $aAllTargets[$i][5])
+	Next
+EndFunc   ;==>_CSVPrioMergeHighWeightTargets
+
+; Side-effect: pure
+Func _CSVPrioMergeEnumTargets(ByRef $aTargets, $aAllTargets, $iEnum)
+	If Not IsArray($aAllTargets) Then Return
+	For $i = 0 To UBound($aAllTargets) - 1
+		If $aAllTargets[$i][0] <> $iEnum Then ContinueLoop
+		If _CSVPrioTargetExists($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][2], $aAllTargets[$i][3]) Then ContinueLoop
+		_CSVPrioAddTarget($aTargets, $aAllTargets[$i][0], $aAllTargets[$i][1], _
+				[$aAllTargets[$i][2], $aAllTargets[$i][3]], $aAllTargets[$i][4], $aAllTargets[$i][5])
+	Next
+EndFunc   ;==>_CSVPrioMergeEnumTargets
+
+; Side-effect: pure
+Func _CSVPrioTargetExists($aTargets, $iEnum, $iX, $iY)
+	If Not IsArray($aTargets) Then Return False
+	For $i = 0 To UBound($aTargets) - 1
+		If $aTargets[$i][0] = $iEnum And $aTargets[$i][2] = $iX And $aTargets[$i][3] = $iY Then Return True
+	Next
+	Return False
+EndFunc   ;==>_CSVPrioTargetExists
+
+; Side-effect: pure
+Func _CSVPrioIsWeaponizedTownHall()
+	If $g_iSearchTH = "-" Or $g_iSearchTH = "" Then Return False
+	If Not IsNumber($g_iSearchTH) Then Return False
+	Local $iLevel = Int($g_iSearchTH)
+	If $iLevel >= 12 And $iLevel <= 17 Then Return True
+	Return False
+EndFunc   ;==>_CSVPrioIsWeaponizedTownHall
+
+; Side-effect: pure
+Func _CSVPrioGetTownHallWeight()
+	Local $iMax = 0
+	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
+		If $g_aiCSVSideBWeights[$i] > $iMax Then $iMax = $g_aiCSVSideBWeights[$i]
+	Next
+	Return $iMax
+EndFunc   ;==>_CSVPrioGetTownHallWeight
 
 ; Side-effect: impure-deterministic (updates PRIO counter)
 Func _CSVPrioNextIndex($sSideKey)

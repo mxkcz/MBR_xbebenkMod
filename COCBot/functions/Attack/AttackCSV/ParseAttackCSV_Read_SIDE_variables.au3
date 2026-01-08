@@ -281,4 +281,16 @@ Func _CSVEnablePrioLocateFromWeights()
 	If $g_aiCSVSideBWeights[13] > 0 Then
 		$g_bCSVLocateRevengeTower = True
 	EndIf
+	If _CSVIsWeaponizedTownHall($g_iSearchTH) Then
+		$g_bCSVLocateStorageTownHall = True
+	EndIf
 EndFunc   ;==>_CSVEnablePrioLocateFromWeights
+
+; Side-effect: pure (weaponized TH check; TH11-TH17 only)
+Func _CSVIsWeaponizedTownHall($iTH)
+	If $iTH = "-" Or $iTH = "" Then Return False
+	If Not IsNumber($iTH) Then Return False
+	Local $iLevel = Int($iTH)
+	If $iLevel >= 12 And $iLevel <= 17 Then Return True
+	Return False
+EndFunc   ;==>_CSVIsWeaponizedTownHall
