@@ -230,8 +230,6 @@ Func ReadRegularConfig()
 	ReadConfig_600_29_DB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
 	ReadConfig_600_29_LB()
-	; <><><><> Attack CSV / Building Filters <><><><>
-	ReadConfig_AttackCSV()
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
 	ReadConfig_600_30()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
@@ -1178,19 +1176,6 @@ Func ReadConfig_600_29_LB()
 	IniReadS($g_aiAttackUseSiege[$LB], $g_sProfileConfigPath, "attack", "ABAtkUseSiege", 4, "int")
 	IniReadS($g_bDropEmptySiege[$LB], $g_sProfileConfigPath, "attack", "ABDropEmptySiege", False, "Bool")
 EndFunc   ;==>ReadConfig_600_29_LB
-
-; Side-effect: io (config read)
-Func ReadConfig_AttackCSV()
-	; <><><><> Attack CSV / Building Filters <><><><>
-	Local $sMask = IniRead($g_sProfileConfigPath, "attackcsv", "BuildingMask", "")
-	If $sMask = "" Then Return
-	Local $aMask = StringSplit($sMask, "|", $STR_NOCOUNT)
-	Local $iMax = UBound($g_abCSVSearchFilter)
-	If UBound($aMask) < $iMax Then $iMax = UBound($aMask)
-	For $i = 0 To $iMax - 1
-		$g_abCSVSearchFilter[$i] = ($aMask[$i] = "1")
-	Next
-EndFunc   ;==>ReadConfig_AttackCSV
 
 Func ReadConfig_600_30()
 	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>

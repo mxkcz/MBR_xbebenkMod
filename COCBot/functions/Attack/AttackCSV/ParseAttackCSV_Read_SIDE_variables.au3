@@ -38,7 +38,6 @@ Func ParseAttackCSV_Read_SIDE_variables()
 	$g_bCSVLocateRevengeTower = False
 	$g_bCSVLocateWall = False
 	; $g_bCSVLocateGemBox = False
-	Local $abLocateFromMake[$g_iCSVSearchFilterCount]
 	Local $bPrioMakeFound = False
 	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
 		$g_aiCSVSideBWeights[$i] = 0
@@ -140,60 +139,41 @@ Func ParseAttackCSV_Read_SIDE_variables()
 									$bPrioMakeFound = True
 								Case "TOWNHALL"
 									$g_bCSVLocateStorageTownHall = True
-									$abLocateFromMake[6] = True
 								Case "EAGLE"
 									$g_bCSVLocateEagle = True
-									$abLocateFromMake[7] = True
 								Case "INFERNO"
 									$g_bCSVLocateInferno = True
-									$abLocateFromMake[8] = True
 								Case "XBOW"
 									$g_bCSVLocateXBow = True
-									$abLocateFromMake[9] = True
 								Case "SCATTER"
 									$g_bCSVLocateScatter = True
-									$abLocateFromMake[14] = True
 								Case "WIZTOWER"
 									$g_bCSVLocateWizTower = True
-									$abLocateFromMake[10] = True
 								Case "MORTAR"
 									$g_bCSVLocateMortar = True
-									$abLocateFromMake[12] = True
 								Case "AIRDEFENSE"
 									$g_bCSVLocateAirDefense = True
-									$abLocateFromMake[13] = True
 								Case "SWEEPER"
 									$g_bCSVLocateSweeper = True
-									$abLocateFromMake[15] = True
 								Case "MONOLITH"
 									$g_bCSVLocateMonolith = True
-									$abLocateFromMake[16] = True
 								Case "MULTIARCHER"
 									$g_bCSVLocateMultiArcherTower = True
 									$g_bCSVLocateMultiGearTower = True
-									$abLocateFromMake[18] = True
-									$abLocateFromMake[19] = True
 								Case "MULTIGEAR"
 									$g_bCSVLocateMultiGearTower = True
-									$abLocateFromMake[19] = True
 								Case "RICOCHETCA"
 									$g_bCSVLocateRicochetCannon = True
-									$abLocateFromMake[20] = True
 								Case "FIRESPITTER"
 									$g_bCSVLocateFireSpitter = True
-									$abLocateFromMake[17] = True
 								Case "SUPERWIZTW"
 									$g_bCSVLocateSuperWizTower = True
-									$abLocateFromMake[11] = True
 								Case "REVENGETW"
 									$g_bCSVLocateRevengeTower = True
-									$abLocateFromMake[21] = True
 								Case "EX-WALL"
 									$g_bCSVLocateWall = True
-									$abLocateFromMake[22] = True
 								Case "IN-WALL"
 									$g_bCSVLocateWall = True
-									$abLocateFromMake[22] = True
 								Case Else
 									SetDebugLog("Invalid MAKE building target name: " & $value8, $COLOR_WARNING)
 									debugAttackCSV("Invalid MAKE building target name: " & $value8)
@@ -203,102 +183,55 @@ Func ParseAttackCSV_Read_SIDE_variables()
 				EndSwitch
 			EndIf
 		Next
-		If $bPrioMakeFound Then _CSVEnablePrioLocateFromWeights($abLocateFromMake)
-		ApplyCSVSearchFilter($abLocateFromMake)
+		If $bPrioMakeFound Then _CSVEnablePrioLocateFromWeights()
 	Else
 		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
 	EndIf
 EndFunc   ;==>ParseAttackCSV_Read_SIDE_variables
 
-; Side-effect: impure-deterministic (mutates CSV locate flags)
-Func ApplyCSVSearchFilter(ByRef $abLocateFromMake)
-	Local $iMax = UBound($g_abCSVSearchFilter)
-	If UBound($abLocateFromMake) < $iMax Then $iMax = UBound($abLocateFromMake)
-	If $iMax < $g_iCSVSearchFilterCount Then Return
-
-	$g_bCSVLocateMine = $g_bCSVLocateMine And ($g_abCSVSearchFilter[0] Or $abLocateFromMake[0])
-	$g_bCSVLocateElixir = $g_bCSVLocateElixir And ($g_abCSVSearchFilter[1] Or $abLocateFromMake[1])
-	$g_bCSVLocateDrill = $g_bCSVLocateDrill And ($g_abCSVSearchFilter[2] Or $abLocateFromMake[2])
-	$g_bCSVLocateStorageGold = $g_bCSVLocateStorageGold And ($g_abCSVSearchFilter[3] Or $abLocateFromMake[3])
-	$g_bCSVLocateStorageElixir = $g_bCSVLocateStorageElixir And ($g_abCSVSearchFilter[4] Or $abLocateFromMake[4])
-	$g_bCSVLocateStorageDarkElixir = $g_bCSVLocateStorageDarkElixir And ($g_abCSVSearchFilter[5] Or $abLocateFromMake[5])
-	$g_bCSVLocateStorageTownHall = $g_bCSVLocateStorageTownHall And ($g_abCSVSearchFilter[6] Or $abLocateFromMake[6])
-	$g_bCSVLocateEagle = $g_bCSVLocateEagle And ($g_abCSVSearchFilter[7] Or $abLocateFromMake[7])
-	$g_bCSVLocateInferno = $g_bCSVLocateInferno And ($g_abCSVSearchFilter[8] Or $abLocateFromMake[8])
-	$g_bCSVLocateXBow = $g_bCSVLocateXBow And ($g_abCSVSearchFilter[9] Or $abLocateFromMake[9])
-	$g_bCSVLocateWizTower = $g_bCSVLocateWizTower And ($g_abCSVSearchFilter[10] Or $abLocateFromMake[10])
-	$g_bCSVLocateSuperWizTower = $g_bCSVLocateSuperWizTower And ($g_abCSVSearchFilter[11] Or $abLocateFromMake[11])
-	$g_bCSVLocateMortar = $g_bCSVLocateMortar And ($g_abCSVSearchFilter[12] Or $abLocateFromMake[12])
-	$g_bCSVLocateAirDefense = $g_bCSVLocateAirDefense And ($g_abCSVSearchFilter[13] Or $abLocateFromMake[13])
-	$g_bCSVLocateScatter = $g_bCSVLocateScatter And ($g_abCSVSearchFilter[14] Or $abLocateFromMake[14])
-	$g_bCSVLocateSweeper = $g_bCSVLocateSweeper And ($g_abCSVSearchFilter[15] Or $abLocateFromMake[15])
-	$g_bCSVLocateMonolith = $g_bCSVLocateMonolith And ($g_abCSVSearchFilter[16] Or $abLocateFromMake[16])
-	$g_bCSVLocateFireSpitter = $g_bCSVLocateFireSpitter And ($g_abCSVSearchFilter[17] Or $abLocateFromMake[17])
-	$g_bCSVLocateMultiArcherTower = $g_bCSVLocateMultiArcherTower And ($g_abCSVSearchFilter[18] Or $abLocateFromMake[18])
-	$g_bCSVLocateMultiGearTower = $g_bCSVLocateMultiGearTower And ($g_abCSVSearchFilter[19] Or $abLocateFromMake[19])
-	$g_bCSVLocateRicochetCannon = $g_bCSVLocateRicochetCannon And ($g_abCSVSearchFilter[20] Or $abLocateFromMake[20])
-	$g_bCSVLocateRevengeTower = $g_bCSVLocateRevengeTower And ($g_abCSVSearchFilter[21] Or $abLocateFromMake[21])
-	$g_bCSVLocateWall = $g_bCSVLocateWall And ($g_abCSVSearchFilter[22] Or $abLocateFromMake[22])
-EndFunc   ;==>ApplyCSVSearchFilter
-
 ; Side-effect: impure-deterministic (mutates locate flags using PRIO weights)
-Func _CSVEnablePrioLocateFromWeights(ByRef $abLocateFromMake)
+Func _CSVEnablePrioLocateFromWeights()
 	If $g_aiCSVSideBWeights[0] > 0 Then
 		$g_bCSVLocateEagle = True
-		$abLocateFromMake[7] = True
 	EndIf
 	If $g_aiCSVSideBWeights[1] > 0 Then
 		$g_bCSVLocateInferno = True
-		$abLocateFromMake[8] = True
 	EndIf
 	If $g_aiCSVSideBWeights[2] > 0 Then
 		$g_bCSVLocateXBow = True
-		$abLocateFromMake[9] = True
 	EndIf
 	If $g_aiCSVSideBWeights[3] > 0 Then
 		$g_bCSVLocateWizTower = True
 		$g_bCSVLocateSuperWizTower = True
-		$abLocateFromMake[10] = True
-		$abLocateFromMake[11] = True
 	EndIf
 	If $g_aiCSVSideBWeights[4] > 0 Then
 		$g_bCSVLocateMortar = True
-		$abLocateFromMake[12] = True
 	EndIf
 	If $g_aiCSVSideBWeights[5] > 0 Then
 		$g_bCSVLocateAirDefense = True
-		$abLocateFromMake[13] = True
 	EndIf
 	If $g_aiCSVSideBWeights[6] > 0 Then
 		$g_bCSVLocateScatter = True
-		$abLocateFromMake[14] = True
 	EndIf
 	If $g_aiCSVSideBWeights[7] > 0 Then
 		$g_bCSVLocateSweeper = True
-		$abLocateFromMake[15] = True
 	EndIf
 	If $g_aiCSVSideBWeights[8] > 0 Then
 		$g_bCSVLocateMonolith = True
-		$abLocateFromMake[16] = True
 	EndIf
 	If $g_aiCSVSideBWeights[9] > 0 Then
 		$g_bCSVLocateFireSpitter = True
-		$abLocateFromMake[17] = True
 	EndIf
 	If $g_aiCSVSideBWeights[10] > 0 Then
 		$g_bCSVLocateMultiArcherTower = True
-		$abLocateFromMake[18] = True
 	EndIf
 	If $g_aiCSVSideBWeights[11] > 0 Then
 		$g_bCSVLocateMultiGearTower = True
-		$abLocateFromMake[19] = True
 	EndIf
 	If $g_aiCSVSideBWeights[12] > 0 Then
 		$g_bCSVLocateRicochetCannon = True
-		$abLocateFromMake[20] = True
 	EndIf
 	If $g_aiCSVSideBWeights[13] > 0 Then
 		$g_bCSVLocateRevengeTower = True
-		$abLocateFromMake[21] = True
 	EndIf
 EndFunc   ;==>_CSVEnablePrioLocateFromWeights

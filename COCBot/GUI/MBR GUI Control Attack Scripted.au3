@@ -521,7 +521,6 @@ Func OpenAttackCSVSettings()
 	ElseIf @GUI_CtrlId = $g_hBtnAttackCSVSettingsDB Then
 		$g_iAttackCSVSettingsMode = $DB
 	EndIf
-	ApplyConfig_AttackCSV("Read")
 	AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
 	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_DISABLE)
 	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_DISABLE)
@@ -533,7 +532,6 @@ Func CloseAttackCSVSettings()
 	If $g_bCSVSettingsDirty Then
 		SetLog("Attack CSV settings: close requested with unsaved edits.", $COLOR_WARNING)
 	EndIf
-	ApplyConfig_AttackCSV("Save")
 	GUISetState(@SW_HIDE, $g_hGUI_AttackCSVSettings)
 	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_ENABLE)
 	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_ENABLE)
@@ -828,78 +826,6 @@ Func CSVSideBWeightsPresetEqual()
 	Next
 	CSVSettings_MarkDirty()
 EndFunc   ;==>CSVSideBWeightsPresetEqual
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSetAll($bEnable)
-	For $i = 0 To UBound($g_ahCSVSearchToggles) - 1
-		If $g_ahCSVSearchToggles[$i] <> 0 Then
-			GUICtrlSetState($g_ahCSVSearchToggles[$i], $bEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
-		EndIf
-	Next
-EndFunc   ;==>CSVSearchSetAll
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSetRange($iStart, $iEnd, $bEnable)
-	Local $iMax = UBound($g_ahCSVSearchToggles) - 1
-	If $iStart < 0 Then $iStart = 0
-	If $iEnd > $iMax Then $iEnd = $iMax
-	For $i = $iStart To $iEnd
-		If $g_ahCSVSearchToggles[$i] <> 0 Then
-			GUICtrlSetState($g_ahCSVSearchToggles[$i], $bEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
-		EndIf
-	Next
-EndFunc   ;==>CSVSearchSetRange
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchToggle()
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchToggle
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectAll()
-	CSVSearchSetAll(True)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectAll
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectNone()
-	CSVSearchSetAll(False)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectNone
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectResources()
-	CSVSearchSetAll(False)
-	CSVSearchSetRange(0, $g_iCSVSearchResourceMaxIndex, True)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectResources
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectDefenses()
-	CSVSearchSetAll(False)
-	CSVSearchSetRange($g_iCSVSearchResourceMaxIndex + 1, UBound($g_ahCSVSearchToggles) - 1, True)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectDefenses
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectStorages()
-	CSVSearchSetAll(False)
-	; TODO: derive indices from $g_asCSVSearchNames to avoid hardcoded values.
-	; Storage indices: Gold, Elixir, Dark
-	CSVSearchSetRange(3, 5, True)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectStorages
-
-; Side-effect: io (GUI state updates)
-Func CSVSearchSelectCoreDef()
-	CSVSearchSetAll(False)
-	; TODO: derive indices from $g_asCSVSearchNames to avoid hardcoded values.
-	; Eagle/Inferno/X-Bow + Scatter + Monolith
-	CSVSearchSetRange(7, 9, True)
-	CSVSearchSetRange(14, 14, True)
-	CSVSearchSetRange(16, 16, True)
-	ApplyConfig_AttackCSV("Save")
-EndFunc   ;==>CSVSearchSelectCoreDef
 
 ; Side-effect: io (GUI state updates)
 Func CSVVectorSelect()

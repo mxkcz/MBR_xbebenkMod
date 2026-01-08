@@ -44,10 +44,6 @@ Global $g_hCmbCSVVectorId = 0, $g_hCmbCSVVectorSide = 0, $g_hChkCSVVectorTargete
 Global $g_hCmbCSVVectorVersus = 0, $g_hInpCSVRandomX = 0, $g_hInpCSVRandomY = 0
 Global $g_hInpCSVIndexMin = 0, $g_hInpCSVIndexMax = 0, $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0, $g_hInpCSVDelayPointMin = 0, $g_hInpCSVDelayPointMax = 0, $g_hInpCSVDelayDropMin = 0, $g_hInpCSVDelayDropMax = 0, $g_hInpCSVDelaySleepMin = 0, $g_hInpCSVDelaySleepMax = 0, $g_hChkCSVDropRemaining = 0, $g_hChkCSVDropIncludeHeroes = 0, $g_hChkCSVDropIncludeSpells = 0
 Global $g_hInpCSVWaitMin = 0, $g_hInpCSVWaitMax = 0, $g_hChkCSVBreakTH = 0, $g_hChkCSVBreakSiege = 0, $g_hChkCSVBreak50 = 0, $g_hChkCSVBreakAQ = 0, $g_hChkCSVBreakBK = 0, $g_hChkCSVBreakGW = 0, $g_hChkCSVBreakRC = 0, $g_hChkCSVBreakAnyHero = 0
-Global $g_asCSVSearchNames[23] = ["Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall", "Eagle", "Inferno", "X-Bow", "Wizard Tower", "Super Wizard Tower", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer Tower", "Multi Gear Tower", "Ricochet Cannon", "Revenge Tower", "Walls"]
-Global $g_ahCSVSearchToggles[23] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-Global $g_hBtnCSVSearchAll = 0, $g_hBtnCSVSearchNone = 0, $g_hBtnCSVSearchResources = 0, $g_hBtnCSVSearchDefenses = 0
-Global $g_hBtnCSVSearchStorages = 0, $g_hBtnCSVSearchCoreDef = 0
 Global $g_hBtnCSVSideZero = 0, $g_hBtnCSVSideEqual = 0, $g_hBtnCSVSideBZero = 0, $g_hBtnCSVSideBEqual = 0
 Global $g_hCmbCSVFlexTroop = 0, $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0], $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
 Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0, $g_hBtnCSVSettingsApply = 0
@@ -445,61 +441,12 @@ Func CreateAttackCSVSettingsGUI()
 	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Search", "Search && Settings"))
 		$x = $iTabLeft
 		$y = $iTabTop
-		Local $iSearchGroupW = 420
-		Local $iAutoGroupW = 320
-		Local $iSearchGroupH = 260
+		Local $iAutoGroupW = $iTabInnerW
 		Local $iAutoGroupH = 250
-		Local $iSearchGapX = 20
-		Local $bSearchWide = ($iTabInnerW >= ($iSearchGroupW + $iAutoGroupW + $iSearchGapX))
-		Local $iSearchGroupX = $iGroupLeft
-		Local $iSearchGroupY = $y - 20
-		Local $iAutoGroupX = $iSearchGroupX + $iSearchGroupW + $iSearchGapX
+		Local $iAutoGroupX = $iGroupLeft
 		Local $iAutoGroupY = $y - 20
-		If Not $bSearchWide Then
-			$iSearchGroupW = $iTabInnerW
-			$iAutoGroupW = $iTabInnerW
-			$iAutoGroupX = $iSearchGroupX
-			$iAutoGroupY = $iSearchGroupY + $iSearchGroupH + $iGroupGap
-		EndIf
-		Local $iSearchX = $iSearchGroupX + 10
-		Local $iSearchY = $iSearchGroupY + 20
 		Local $iAutoX = $iAutoGroupX + 10
 		Local $iAutoY = $iAutoGroupY + 20
-
-		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Search", "CSV building detection limits"), $iSearchGroupX, $iSearchGroupY, $iSearchGroupW, $iSearchGroupH)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Search_Info", "Unchecked buildings are skipped for SIDE/SIDEB priority detection. MAKE targets remain enabled."))
-			$g_hBtnCSVSearchAll = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchAll", "All"), $iSearchX, $iSearchY - 2, 60, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchAll_Info", "Enable all building searches."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectAll")
-			$g_hBtnCSVSearchNone = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchNone", "None"), $iSearchX + 70, $iSearchY - 2, 60, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchNone_Info", "Disable all building searches."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectNone")
-			$g_hBtnCSVSearchResources = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchResources", "Resources"), $iSearchX + 140, $iSearchY - 2, 90, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchResources_Info", "Enable resource buildings only."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectResources")
-			$g_hBtnCSVSearchDefenses = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchDefenses", "Defenses"), $iSearchX + 240, $iSearchY - 2, 90, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchDefenses_Info", "Enable defense buildings only."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectDefenses")
-			$g_hBtnCSVSearchStorages = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchStorages", "Storages"), $iSearchX, $iSearchY + 20, 90, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchStorages_Info", "Enable storage buildings only."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectStorages")
-			$g_hBtnCSVSearchCoreDef = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchCoreDef", "Core Def"), $iSearchX + 100, $iSearchY + 20, 90, 20)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_SearchCoreDef_Info", "Enable key core defenses only."))
-				GUICtrlSetOnEvent(-1, "CSVSearchSelectCoreDef")
-			Local $iSearchRowH = 21
-			Local $iSearchStartY = $iSearchY + 45
-			Local $iSearchRowCount = 8
-			For $k = 0 To UBound($g_asCSVSearchNames) - 1
-				Local $iRowSearch = Mod($k, 8), $iColSearch = Int($k / 8)
-				Local $iOffsetXSearch = $iSearchX + ($iColSearch * 140), $iOffsetYSearch = $iSearchStartY + ($iRowSearch * $iSearchRowH)
-				$g_ahCSVSearchToggles[$k] = GUICtrlCreateCheckbox($g_asCSVSearchNames[$k], $iOffsetXSearch, $iOffsetYSearch, 130, 18)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk_AttackCSVSettings_Search_Info", "Enable/disable search for this building in SIDE/SIDEB."))
-				GUICtrlSetOnEvent(-1, "CSVSearchToggle")
-			Next
-			Local $iSearchNoteY = $iSearchStartY + ($iSearchRowCount * $iSearchRowH) + 5
-			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Search_Note", "Tip: keep only the buildings you want to prioritize."), $iSearchX, $iSearchNoteY, $iSearchGroupW - 40, 18)
-			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Search_TH", "TH-aware: locked buildings are auto-skipped."), $iSearchX, $iSearchNoteY + 18, $iSearchGroupW - 40, 18)
-		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Automation", "CSV settings automation"), $iAutoGroupX, $iAutoGroupY, $iAutoGroupW, $iAutoGroupH)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Automation_Info", "Apply script settings back into GUI elements."))
