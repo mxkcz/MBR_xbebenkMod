@@ -199,18 +199,20 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 
 	Local $Vector, $Output = ""
 	Local $x, $y
-	Local $sLoc, $aLocation, $pixel[2], $BuildingEnum, $result, $array
+	Local $sLoc, $aLocation[2], $pixel[2], $BuildingEnum, $result, $array
+	Local $bPrioLocation = False
 
 	Switch $building ; translate CSV building name into building enum
-		Case "PRIO" ; TODO: instead lookup buildings from prefilled map (individually for db/lb if different csv) and also assign buildings based on distance to attack side (to avoid freezing buildings early on the opposite attack site for example); add logging if it there's duplicate buildings
+		Case "PRIO"
 			Local $sResolved = ""
-			$BuildingEnum = _CSVPrioResolveBuilding($side, $sResolved)
+			$BuildingEnum = _CSVPrioResolveBuilding($side, $sResolved, $aLocation)
 			If @error Then
 				SetLog("PRIO target: no weighted defense found on " & $side, $COLOR_WARNING)
 				SetError(@error, 0, "")
 				Return
 			EndIf
 			$building = $sResolved
+			$bPrioLocation = True
 		Case "TOWNHALL"
 			$BuildingEnum = $eBldgTownHall
 		Case "EAGLE"
@@ -253,36 +255,43 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			Return
 	EndSwitch
 
-	Local $aBuildingLoc = _ObjGetValue($g_oBldgAttackInfo, $BuildingEnum & "_LOCATION")
+	If Not $bPrioLocation Then
+		Local $aBuildingLoc = _ObjGetValue($g_oBldgAttackInfo, $BuildingEnum & "_LOCATION")
 
-	If @error Then
-		_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$BuildingEnum] & " _LOCATION", @error) ; Log errors
-		SetError(2, 0, "")
-		Return
-	EndIf
-
-	If IsArray($aBuildingLoc) Then
-		If UBound($aBuildingLoc, 1) > 1 And IsArray($aBuildingLoc[1]) Then ; cycle thru all building locations
-			For $p = 0 To UBound($aBuildingLoc) - 1
-				$array = $aBuildingLoc[$p] ; pull sub-array from inside location array
-				$result = IsPointOnSide($array, $side) ; Determine if target building on side specified
-				If @error Then ; not normal
-					Return SetError(4, 0, "")
-				EndIf
-				If $result = True Then
-					$aLocation = $aBuildingLoc[$p] ; 1st building location found is used
-					ExitLoop
-				EndIf
-			Next
-			If $aLocation = "" Then
-				SetLog($g_sBldgNames[$BuildingEnum] & " not in side:" & $side, $COLOR_ERROR)
-				Return SetError(3, 0, "")
-			EndIf
-		Else ; use only building found even if not on user chosen side?
-			$aLocation = $aBuildingLoc[0]
+		If @error Then
+			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$BuildingEnum] & " _LOCATION", @error) ; Log errors
+			SetError(2, 0, "")
+			Return
 		EndIf
-	Else
-		SetLog($g_sBldgNames[$BuildingEnum] & " _LOCATION not an array", $COLOR_ERROR)
+
+		If IsArray($aBuildingLoc) Then
+			If UBound($aBuildingLoc, 1) > 1 And IsArray($aBuildingLoc[1]) Then ; cycle thru all building locations
+				Local $bFoundLocation = False
+				For $p = 0 To UBound($aBuildingLoc) - 1
+					$array = $aBuildingLoc[$p] ; pull sub-array from inside location array
+					$result = IsPointOnSide($array, $side) ; Determine if target building on side specified
+					If @error Then ; not normal
+						Return SetError(4, 0, "")
+					EndIf
+					If $result = True Then
+						_CSVPrioCopyPoint($aLocation, $aBuildingLoc[$p]) ; 1st building location found is used
+						$bFoundLocation = True
+						ExitLoop
+					EndIf
+				Next
+				If Not $bFoundLocation Then
+					SetLog($g_sBldgNames[$BuildingEnum] & " not in side:" & $side, $COLOR_ERROR)
+					Return SetError(3, 0, "")
+				EndIf
+			Else ; use only building found even if not on user chosen side?
+				_CSVPrioCopyPoint($aLocation, $aBuildingLoc[0])
+			EndIf
+		Else
+			SetLog($g_sBldgNames[$BuildingEnum] & " _LOCATION not an array", $COLOR_ERROR)
+			Return SetError(3, 0, "")
+		EndIf
+	ElseIf Not IsArray($aLocation) Then
+		SetLog("PRIO target location not found for " & $g_sBldgNames[$BuildingEnum], $COLOR_ERROR)
 		Return SetError(3, 0, "")
 	EndIf
 
@@ -338,56 +347,192 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 
 EndFunc   ;==>MakeTargetDropPoints
 
+; Side-effect: io (clears PRIO caches)
+Func _CSVPrioResetCache()
+	If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+	If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
+EndFunc   ;==>_CSVPrioResetCache
+
 ; Side-effect: impure-deterministic (reads weight and building location data)
-Func _CSVPrioResolveBuilding($side, ByRef $sResolved)
+Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
+	Local $sSideKey = _CSVPrioGetSideKey($side)
+	If @error Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+
+	Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+	If @error Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+
+	Local $iIndex = _CSVPrioNextIndex($sSideKey)
+	If $iIndex < 0 Or $iIndex >= UBound($aTargets) Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+
+	$sResolved = $aTargets[$iIndex][1]
+	_CSVPrioAssignPoint($aLocation, $aTargets[$iIndex][2], $aTargets[$iIndex][3])
+	SetDebugLog("CSV PRIO[" & ($iIndex + 1) & "]: " & $sResolved & " @" & $aLocation[0] & "," & $aLocation[1] & " side=" & $sSideKey)
+	Return $aTargets[$iIndex][0]
+EndFunc   ;==>_CSVPrioResolveBuilding
+
+; Side-effect: impure-deterministic (reads building location data)
+Func _CSVPrioGetTargetsForSide($sSideKey)
+	If IsObj($g_oCSVPrioTargets) And $g_oCSVPrioTargets.Exists($sSideKey) Then
+		Return $g_oCSVPrioTargets.Item($sSideKey)
+	EndIf
+
+	Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+	If @error Then Return SetError(1, 0, 0)
+	Local $aTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
+	If Not IsArray($aTargets) Or UBound($aTargets) = 0 Then Return SetError(2, 0, 0)
+
+	_CSVPrioSortTargets($aTargets)
+	If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.Item($sSideKey) = $aTargets
+	Return $aTargets
+EndFunc   ;==>_CSVPrioGetTargetsForSide
+
+; Side-effect: impure-deterministic (reads building location data)
+Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
+	Local $aTargets[0][6]
+	Local $aSideMid[2]
+	If _CSVPrioGetSideMid($sSideKey, $aSideMid) = 0 Then Return $aTargets
+
 	Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
 			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
 	Local $aCandidateName[15] = ["EAGLE", "INFERNO", "XBOW", "SUPERWIZTW", "WIZTOWER", "MORTAR", "AIRDEFENSE", _
 			"SCATTER", "SWEEPER", "MONOLITH", "FIRESPITTER", "MULTIARCHER", "MULTIGEAR", "RICOCHETCA", "REVENGETW"]
 	Local $aWeightIndex[15] = [0, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-	Local $iBestWeight = 0
-	Local $iBestEnum = -1
-	Local $sBestName = ""
-
 	For $i = 0 To UBound($aCandidateEnum) - 1
 		Local $iWeightIndex = $aWeightIndex[$i]
 		If $iWeightIndex < 0 Or $iWeightIndex >= UBound($g_aiCSVSideBWeights) Then ContinueLoop
 		Local $iWeight = $g_aiCSVSideBWeights[$iWeightIndex]
 		If $iWeight <= 0 Then ContinueLoop
-		If $iBestEnum <> -1 And $iWeight < $iBestWeight Then ContinueLoop
-		If Not _CSVPrioHasBuildingOnSide($aCandidateEnum[$i], $side) Then ContinueLoop
-		If $iWeight > $iBestWeight Then
-			$iBestWeight = $iWeight
-			$iBestEnum = $aCandidateEnum[$i]
-			$sBestName = $aCandidateName[$i]
-		ElseIf $iWeight = $iBestWeight And $iBestEnum = -1 Then
-			$iBestWeight = $iWeight
-			$iBestEnum = $aCandidateEnum[$i]
-			$sBestName = $aCandidateName[$i]
+
+		Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $aCandidateEnum[$i] & "_LOCATION")
+		If @error Or Not IsArray($aLoc) Then ContinueLoop
+		If UBound($aLoc, 1) > 1 And IsArray($aLoc[1]) Then
+			For $j = 0 To UBound($aLoc) - 1
+				Local $aPoint = $aLoc[$j]
+				If Not IsArray($aPoint) Then ContinueLoop
+				If Not IsPointOnSide($aPoint, $sSideCheck) Then ContinueLoop
+				_CSVPrioAddTarget($aTargets, $aCandidateEnum[$i], $aCandidateName[$i], $aPoint, $iWeight, GetPixelDistance($aPoint, $aSideMid))
+			Next
+		Else
+			Local $aPoint = $aLoc[0]
+			If IsArray($aPoint) And IsPointOnSide($aPoint, $sSideCheck) Then
+				_CSVPrioAddTarget($aTargets, $aCandidateEnum[$i], $aCandidateName[$i], $aPoint, $iWeight, GetPixelDistance($aPoint, $aSideMid))
+			EndIf
 		EndIf
 	Next
 
-	If $iBestEnum = -1 Then
-		SetError(7, 0, "")
-		Return -1
-	EndIf
-	$sResolved = $sBestName
-	Return $iBestEnum
-EndFunc   ;==>_CSVPrioResolveBuilding
+	Return $aTargets
+EndFunc   ;==>_CSVPrioBuildTargetsForSide
 
-; Side-effect: impure-deterministic (reads building location data)
-Func _CSVPrioHasBuildingOnSide($iBuildingEnum, $side)
-	Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iBuildingEnum & "_LOCATION")
-	If @error Then Return False
-	If Not IsArray($aLoc) Then Return False
-	If UBound($aLoc, 1) > 1 And IsArray($aLoc[1]) Then
-		For $i = 0 To UBound($aLoc) - 1
-			Local $aPoint = $aLoc[$i]
-			If IsPointOnSide($aPoint, $side) Then Return True
+; Side-effect: pure
+Func _CSVPrioGetSideKey($side)
+	Local $sSide = StringUpper($side)
+	If StringInStr($sSide, "TOP-LEFT") > 0 Then Return "TOP-LEFT"
+	If StringInStr($sSide, "TOP-RIGHT") > 0 Then Return "TOP-RIGHT"
+	If StringInStr($sSide, "BOTTOM-LEFT") > 0 Then Return "BOTTOM-LEFT"
+	If StringInStr($sSide, "BOTTOM-RIGHT") > 0 Then Return "BOTTOM-RIGHT"
+	Return SetError(1, 0, "")
+EndFunc   ;==>_CSVPrioGetSideKey
+
+; Side-effect: pure
+Func _CSVPrioGetSideCheck($sSideKey)
+	Switch $sSideKey
+		Case "TOP-LEFT"
+			Return "TOP-LEFT-UP"
+		Case "TOP-RIGHT"
+			Return "TOP-RIGHT-UP"
+		Case "BOTTOM-LEFT"
+			Return "BOTTOM-LEFT-UP"
+		Case "BOTTOM-RIGHT"
+			Return "BOTTOM-RIGHT-UP"
+		Case Else
+			Return SetError(1, 0, "")
+	EndSwitch
+EndFunc   ;==>_CSVPrioGetSideCheck
+
+; Side-effect: pure
+Func _CSVPrioGetSideMid($sSideKey, ByRef $aMid)
+	Switch $sSideKey
+		Case "TOP-LEFT"
+			_CSVPrioAssignPoint($aMid, $ExternalArea[4][0], $ExternalArea[4][1])
+		Case "TOP-RIGHT"
+			_CSVPrioAssignPoint($aMid, $ExternalArea[5][0], $ExternalArea[5][1])
+		Case "BOTTOM-LEFT"
+			_CSVPrioAssignPoint($aMid, $ExternalArea[6][0], $ExternalArea[6][1])
+		Case "BOTTOM-RIGHT"
+			_CSVPrioAssignPoint($aMid, $ExternalArea[7][0], $ExternalArea[7][1])
+		Case Else
+			Return SetError(1, 0, 0)
+	EndSwitch
+	Return 1
+EndFunc   ;==>_CSVPrioGetSideMid
+
+; Side-effect: pure
+Func _CSVPrioAddTarget(ByRef $aTargets, $iEnum, $sName, $aPoint, $iWeight, $iDistance)
+	Local $iSize = UBound($aTargets)
+	ReDim $aTargets[$iSize + 1][6]
+	$aTargets[$iSize][0] = $iEnum
+	$aTargets[$iSize][1] = $sName
+	$aTargets[$iSize][2] = $aPoint[0]
+	$aTargets[$iSize][3] = $aPoint[1]
+	$aTargets[$iSize][4] = $iWeight
+	$aTargets[$iSize][5] = $iDistance
+EndFunc   ;==>_CSVPrioAddTarget
+
+; Side-effect: pure
+Func _CSVPrioAssignPoint(ByRef $aTarget, $x, $y)
+	Local $aTemp[2]
+	$aTemp[0] = $x
+	$aTemp[1] = $y
+	$aTarget = $aTemp
+	Return 1
+EndFunc   ;==>_CSVPrioAssignPoint
+
+; Side-effect: pure
+Func _CSVPrioCopyPoint(ByRef $aTarget, $aPoint)
+	If Not IsArray($aPoint) Then Return SetError(1, 0, 0)
+	Return _CSVPrioAssignPoint($aTarget, $aPoint[0], $aPoint[1])
+EndFunc   ;==>_CSVPrioCopyPoint
+
+; Side-effect: pure
+Func _CSVPrioSortTargets(ByRef $aTargets)
+	For $i = 0 To UBound($aTargets) - 2
+		For $j = $i + 1 To UBound($aTargets) - 1
+			If $aTargets[$j][4] > $aTargets[$i][4] Or ($aTargets[$j][4] = $aTargets[$i][4] And $aTargets[$j][5] < $aTargets[$i][5]) Then
+				_CSVPrioSwapTargets($aTargets, $i, $j)
+			EndIf
 		Next
-		Return False
+	Next
+EndFunc   ;==>_CSVPrioSortTargets
+
+; Side-effect: pure
+Func _CSVPrioSwapTargets(ByRef $aTargets, $i, $j)
+	Local $aTemp[6]
+	For $c = 0 To 5
+		$aTemp[$c] = $aTargets[$i][$c]
+	Next
+	For $c = 0 To 5
+		$aTargets[$i][$c] = $aTargets[$j][$c]
+		$aTargets[$j][$c] = $aTemp[$c]
+	Next
+EndFunc   ;==>_CSVPrioSwapTargets
+
+; Side-effect: impure-deterministic (updates PRIO counter)
+Func _CSVPrioNextIndex($sSideKey)
+	Local $iIndex = 0
+	If IsObj($g_oCSVPrioIndexes) And $g_oCSVPrioIndexes.Exists($sSideKey) Then
+		$iIndex = $g_oCSVPrioIndexes.Item($sSideKey)
 	EndIf
-	Return True
-EndFunc   ;==>_CSVPrioHasBuildingOnSide
+	If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.Item($sSideKey) = $iIndex + 1
+	Return $iIndex
+EndFunc   ;==>_CSVPrioNextIndex
 

@@ -21,6 +21,8 @@ Func ParseAttackCSV($debug = False)
 	Local $sides2drop[4] = [False, False, False, False]
 	Local $aVectorTargetBuilding[26]
 
+	_CSVPrioResetCache()
+
 	For $v = 0 To 25 ; Zero all 26 vectors from last atttack in case here is error MAKE'ing new vectors
 		Assign("ATTACKVECTOR_" & Chr(65 + $v), "", $ASSIGN_EXISTFAIL) ; start with character "A" = ASCII 65
 		If @error Then SetLog("Failed to erase old vector: " & Chr(65 + $v) & ", ask code monkey to fix!", $COLOR_ERROR)
