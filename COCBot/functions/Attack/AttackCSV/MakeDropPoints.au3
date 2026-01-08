@@ -363,15 +363,19 @@ Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 
 	Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
 	If @error Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-		SetError(7, 0, "")
-		Return -1
+		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+		Local $aFallbackTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
+		If IsArray($aFallbackTargets) And UBound($aFallbackTargets) > 0 Then
+			SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
+			$aTargets = $aFallbackTargets
+		Else
+			SetError(7, 0, "")
+			Return -1
+		EndIf
 	EndIf
 
 	Local $iIndex = _CSVPrioNextIndex($sSideKey)
-	If $iIndex < 0 Or $iIndex >= UBound($aTargets) Then
-		SetError(7, 0, "")
-		Return -1
-	EndIf
+	If $iIndex < 0 Or $iIndex >= UBound($aTargets) Then $iIndex = 0
 
 	$sResolved = $aTargets[$iIndex][1]
 	_CSVPrioAssignPoint($aLocation, $aTargets[$iIndex][2], $aTargets[$iIndex][3])
@@ -396,7 +400,7 @@ Func _CSVPrioGetTargetsForSide($sSideKey)
 EndFunc   ;==>_CSVPrioGetTargetsForSide
 
 ; Side-effect: impure-deterministic (reads building location data)
-Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
+Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, $bIgnoreSide = False)
 	Local $aTargets[0][6]
 	Local $aSideMid[2]
 	If _CSVPrioGetSideMid($sSideKey, $aSideMid) = 0 Then Return $aTargets
@@ -419,12 +423,12 @@ Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
 			For $j = 0 To UBound($aLoc) - 1
 				Local $aPoint = $aLoc[$j]
 				If Not IsArray($aPoint) Then ContinueLoop
-				If Not IsPointOnSide($aPoint, $sSideCheck) Then ContinueLoop
+				If Not $bIgnoreSide And Not IsPointOnSide($aPoint, $sSideCheck) Then ContinueLoop
 				_CSVPrioAddTarget($aTargets, $aCandidateEnum[$i], $aCandidateName[$i], $aPoint, $iWeight, GetPixelDistance($aPoint, $aSideMid))
 			Next
 		Else
 			Local $aPoint = $aLoc[0]
-			If IsArray($aPoint) And IsPointOnSide($aPoint, $sSideCheck) Then
+			If IsArray($aPoint) And ($bIgnoreSide Or IsPointOnSide($aPoint, $sSideCheck)) Then
 				_CSVPrioAddTarget($aTargets, $aCandidateEnum[$i], $aCandidateName[$i], $aPoint, $iWeight, GetPixelDistance($aPoint, $aSideMid))
 			EndIf
 		EndIf
