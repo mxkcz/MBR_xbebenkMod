@@ -403,6 +403,57 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 
 EndFunc   ;==>GetLocationBuilding
 
+; Side-effect: io (logs summary from cached find times)
+Func CSV_LogPrepSummary($iTop = 3)
+	If Not IsObj($g_oBldgAttackInfo) Then Return
+	If $iTop < 1 Then $iTop = 1
+
+	Local $aItems[0][2]
+	Local $colKeys = $g_oBldgAttackInfo.Keys
+	For $strKey In $colKeys
+		If StringRight($strKey, 9) <> "_FINDTIME" Then ContinueLoop
+		Local $iTime = Number($g_oBldgAttackInfo.Item($strKey))
+		If $iTime <= 0 Then ContinueLoop
+
+		Local $sPrefix = StringTrimRight($strKey, 9)
+		Local $iEnum = Int($sPrefix)
+		Local $sName = $sPrefix
+		If $iEnum >= 0 And $iEnum < UBound($g_sBldgNames) Then $sName = $g_sBldgNames[$iEnum]
+
+		Local $iSize = UBound($aItems)
+		ReDim $aItems[$iSize + 1][2]
+		$aItems[$iSize][0] = $iTime
+		$aItems[$iSize][1] = $sName
+	Next
+
+	If UBound($aItems) = 0 Then Return
+
+	For $i = 0 To UBound($aItems) - 2
+		Local $iMax = $i
+		For $j = $i + 1 To UBound($aItems) - 1
+			If $aItems[$j][0] > $aItems[$iMax][0] Then $iMax = $j
+		Next
+		If $iMax <> $i Then
+			Local $tTime = $aItems[$i][0], $tName = $aItems[$i][1]
+			$aItems[$i][0] = $aItems[$iMax][0]
+			$aItems[$i][1] = $aItems[$iMax][1]
+			$aItems[$iMax][0] = $tTime
+			$aItems[$iMax][1] = $tName
+		EndIf
+	Next
+
+	Local $iLimit = $iTop
+	If $iLimit > UBound($aItems) Then $iLimit = UBound($aItems)
+
+	Local $sSummary = "CSV prep slowest: "
+	For $i = 0 To $iLimit - 1
+		If $i > 0 Then $sSummary &= ", "
+		$sSummary &= $aItems[$i][1] & "=" & Round($aItems[$i][0], 2) & "s"
+	Next
+
+	SetLog($sSummary, $COLOR_INFO)
+EndFunc   ;==>CSV_LogPrepSummary
+
 Func DebugImageGetLocation($sVector, $sType, $iBuildingENUM = "")
 	SetLog("DebugImageGetLocation() Start:")
 	SetLog("$sVector: " & $sVector)

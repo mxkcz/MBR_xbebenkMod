@@ -1044,6 +1044,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	; Log total CSV prep time
 	SetLog(">> Total time: " & Round(__timerdiff($hTimerTOTAL) / 1000, 2) & " seconds", $COLOR_INFO)
+	CSV_LogPrepSummary(3)
 
 	; 14 - DEBUGIMAGE ------------------------------------------------------------------------
 	If $g_bDebugMakeIMGCSV Then AttackCSVDEBUGIMAGE() ;make IMG debug

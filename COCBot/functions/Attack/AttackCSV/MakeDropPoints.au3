@@ -639,7 +639,9 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 			If $iBudgetTH < 0 Then $iBudgetTH = 0
 		EndIf
 
-		Local $aPlan[0][6]
+		Local $iPlanCols = UBound($aTargets, 2)
+		If $iPlanCols < 1 Then ContinueLoop
+		Local $aPlan[0][$iPlanCols]
 		For $i = 0 To UBound($aTargets) - 1
 			Local $iEnum = $aTargets[$i][0]
 			If $iEnum = $eBldgTownHall Then
@@ -670,9 +672,18 @@ EndFunc   ;==>AttackCSV_PreparePrioPlan
 ; Side-effect: pure (builds plan list)
 Func _CSVPrioPlanAdd(ByRef $aPlan, ByRef $aSource, $iRow)
 	If Not IsArray($aSource) Or $iRow < 0 Or $iRow >= UBound($aSource) Then Return
+	Local $iSrcCols = UBound($aSource, 2)
+	If $iSrcCols < 1 Then Return
+	Local $iPlanCols = UBound($aPlan, 2)
+	If $iPlanCols <> $iSrcCols Then
+		SetDebugLog("CSV PRIO plan column mismatch, adjusting to " & $iSrcCols, $COLOR_WARNING)
+		Local $iPlanRows = UBound($aPlan)
+		ReDim $aPlan[$iPlanRows][$iSrcCols]
+		$iPlanCols = $iSrcCols
+	EndIf
 	Local $iSize = UBound($aPlan)
-	ReDim $aPlan[$iSize + 1][6]
-	For $c = 0 To 5
+	ReDim $aPlan[$iSize + 1][$iPlanCols]
+	For $c = 0 To $iPlanCols - 1
 		$aPlan[$iSize][$c] = $aSource[$iRow][$c]
 	Next
 EndFunc   ;==>_CSVPrioPlanAdd
