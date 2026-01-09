@@ -169,6 +169,23 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	Return GetListPixel($Output)
 EndFunc   ;==>MakeDropPoints
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_ScanMakeUsage
+; Description ...: Pre-scan CSV MAKE commands to determine which sides require droplines and if all MAKEs are targeted.
+; Syntax ........: AttackCSV_ScanMakeUsage($sFilename, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
+; Parameters ....: $sFilename        - CSV script name without extension.
+;                  $aSidesUsed       - [in/out] Array [TL, TR, BL, BR] of used sides (Boolean).
+;                  $bAllMakeTargeted - [in/out] True if all MAKE commands are targeted (no dropline needed).
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
 ; Side-effect: io (reads CSV file), impure-deterministic (depends on current script/side mapping)
 Func AttackCSV_ScanMakeUsage($sFilename, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
 	Local $aSideFlags[4] = [False, False, False, False] ; TL, TR, BL, BR

@@ -170,6 +170,21 @@ Func _EnsureDropLineArray(ByRef $aLine, ByRef $aStartEnd, $sLabel = "")
 	SetDebugLog("DropLine fallback " & $sLabel & " using start/end: " & $sStartEnd, $COLOR_WARNING)
 EndFunc   ;==>_EnsureDropLineArray
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVBuildDropLines
+; Description ...: Build dropline and slice arrays for CSV drop vectors based on used sides.
+; Syntax ........: _CSVBuildDropLines(ByRef $aSidesUsed, $bAllMakeTargeted)
+; Parameters ....: $aSidesUsed      - [in] Array [TL, TR, BL, BR] of used sides (Boolean).
+;                  $bAllMakeTargeted - [in] True when all MAKE commands are targeted and droplines can be skipped.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
 ; Side-effect: impure-deterministic (builds dropline/slice arrays from redline data)
 Func _CSVBuildDropLines(ByRef $aSidesUsed, $bAllMakeTargeted)
 	Local $aEmpty[0]

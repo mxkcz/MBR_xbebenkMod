@@ -52,6 +52,7 @@ MAKE  |C          |FRONT-LEFT |10         |-11        |INT-EXT    |0          |0
 MAKE  |D          |FRONT-RIGHT|10         |-11        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |E          |FRONT-LEFT |10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |F          |FRONT-RIGHT|10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
+MAKE  |K          |LEFT-FRONT |1          |1          |IGNORE     |0          |0          |SWEEPER    |           |           |           |           |           |           |
 MAKE  |G          |LEFT-FRONT |1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
 MAKE  |I          |RIGHT-FRONT|1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
 MAKE  |J          |FRONT-RIGHT|1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
@@ -88,7 +89,7 @@ DROP  |E          |3          |1          |RSpell     |0          |0          |1
 DROP  |F          |2          |1          |RSpell     |0          |0          |250-300    |           |           |           |           |           |           |           |
 DROP  |G          |1          |1          |FSpell     |0          |0          |1000-2000  |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |Warden     |150-250    |10-50      |500-850    |           |           |           |           |           |           |           |
-DROP  |I          |1          |1          |FSpell     |0          |0          |2000-4000  |           |           |           |           |           |           |           |
+DROP  |K         |1          |1          |FSpell     |0          |0          |2000-4000  |           |           |           |           |           |           |           |
 DROP  |G          |1          |1          |FSpell     |0          |0          |2000-4000  |           |           |           |           |           |           |           |
 DROP  |H          |1          |1          |CHAMPION   |0          |0          |300-500    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |KING       |200-500    |80-90      |150-250    |           |           |           |           |           |           |           |
