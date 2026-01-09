@@ -46,8 +46,8 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	If $versus = "IGNORE" Then $versus = "EXT-INT" ; error proof use input if misuse targeted MAKE command
 	If Not IsArray($Vector) Or UBound($Vector) = 0 Then
 		SetLog("MakeDropPoints: empty vector for side " & $side, $COLOR_WARNING)
-		SetError(1, 0, 0)
-		Return 0
+		Local $aEmpty[0]
+		Return SetError(1, 0, $aEmpty)
 	EndIf
 	If Int($pointsQty) > 0 Then
 		Local $pointsQtyCleaned = Abs(Int($pointsQty))
@@ -163,11 +163,85 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	If StringLen($Output) > 0 Then $Output = StringLeft($Output, StringLen($Output) - 1)
 	If StringLen($Output) = 0 Then
 		SetLog("MakeDropPoints: no output generated for side " & $side & " (" & $versus & ")", $COLOR_WARNING)
-		SetError(2, 0, 0)
-		Return 0
+		Local $aEmpty[0]
+		Return SetError(2, 0, $aEmpty)
 	EndIf
 	Return GetListPixel($Output)
 EndFunc   ;==>MakeDropPoints
+
+; Side-effect: io (reads CSV file), impure-deterministic (depends on current script/side mapping)
+Func AttackCSV_ScanMakeUsage($sFilename, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
+	Local $aSideFlags[4] = [False, False, False, False] ; TL, TR, BL, BR
+	Local $bFoundMake = False
+	Local $bAllTargeted = True
+	Local $aLines, $aTokens
+
+	If Not _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then
+		$aSidesUsed = $aSideFlags
+		$bAllMakeTargeted = False
+		Return SetError(1, 0, 0)
+	EndIf
+
+	For $iLine = 0 To UBound($aLines) - 1
+		Local $acommand = $aTokens[$iLine]
+		If Not IsArray($acommand) Then $acommand = StringSplit($aLines[$iLine], "|")
+		If $acommand[0] < 8 Then ContinueLoop
+		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		If $command <> "MAKE" Then ContinueLoop
+
+		$bFoundMake = True
+		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
+		Local $value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
+		Local $bTargeted = CheckCsvValues("MAKE", 8, $value8)
+		If $bTargeted Then ContinueLoop
+
+		$bAllTargeted = False
+		If Not CheckCsvValues("MAKE", 2, $value2) Then ContinueLoop
+
+		If $value2 = "RANDOM" Then
+			$aSideFlags[0] = True
+			$aSideFlags[1] = True
+			$aSideFlags[2] = True
+			$aSideFlags[3] = True
+			ContinueLoop
+		EndIf
+
+		Local $sidex = StringReplace($value2, "-", "_")
+		Local $sResolved = Eval($sidex)
+		If $sResolved = "" Then $sResolved = $value2
+		Local $bMatched = False
+
+		If StringInStr($sResolved, "TOP-LEFT") Then
+			$aSideFlags[0] = True
+			$bMatched = True
+		EndIf
+		If StringInStr($sResolved, "TOP-RIGHT") Then
+			$aSideFlags[1] = True
+			$bMatched = True
+		EndIf
+		If StringInStr($sResolved, "BOTTOM-LEFT") Then
+			$aSideFlags[2] = True
+			$bMatched = True
+		EndIf
+		If StringInStr($sResolved, "BOTTOM-RIGHT") Then
+			$aSideFlags[3] = True
+			$bMatched = True
+		EndIf
+
+		If Not $bMatched Then
+			$aSideFlags[0] = True
+			$aSideFlags[1] = True
+			$aSideFlags[2] = True
+			$aSideFlags[3] = True
+			SetDebugLog("CSV MAKE side '" & $value2 & "' unresolved, enabling all dropline sides", $COLOR_WARNING)
+		EndIf
+	Next
+
+	If Not $bFoundMake Then $bAllTargeted = True
+	$aSidesUsed = $aSideFlags
+	$bAllMakeTargeted = $bAllTargeted
+	Return 1
+EndFunc   ;==>AttackCSV_ScanMakeUsage
 
 
 ; #FUNCTION# ====================================================================================================================
