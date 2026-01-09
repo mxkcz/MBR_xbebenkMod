@@ -1,11 +1,11 @@
 NOTE  |Author: Leandro v2 / Edit Mike v1 / Edit mxkcz
 NOTE  |CSV_VERSION|2.5
 NOTE  |
-NOTE  |Townhall TH11  TH12-13  TH14  TH15  TH16  TH17  TH18
-NOTE  |Edragon         7           7      8      8      8      8
-NOTE  |Loons            10         14     12     16     16     18     18
-NOTE  |Rage              4           4      4      4      4      4      4
-NOTE  |Freeze            3           3      3      3      3      3      3
+NOTE  |Townhall TH11  TH12-13  TH14  TH15-16  TH17-18
+NOTE  |Edragon    7       7      8      8       8
+NOTE  |Loons      10      14     12     16      18
+NOTE  |Rage       4       4      4      4       4
+NOTE  |Freeze     3       3      3      3       3
 NOTE  |CC TH11-14 Loons 1 Rage and WW
 NOTE  |CC TH15    Loons 1 Rage, 1 Freeze WW
 NOTE  |CC TH16    Loons 1 Rage, 1 Freeze WW
@@ -42,7 +42,7 @@ CCREQ |           |           |           |           |           |           | 
       |EXTR. GOLD |EXTR.ELIXIR|EXTR. DARK |DEPO. GOLD |DEPO.ELIXIR|DEPO. DARK |TOWNHALL   |FORCED SIDE|___________|___________|___________|___________|___________|___________|___________|
 SIDE  |0          |0          |0          |0          |0          |0          |8         |  |           |           |           |           |           |           |           |
       |EAGLE      |INFERNO    |XBOW       |SUPERWIZTW |MORTAR     |AIRDEFENSE |SCATTER    |SWEEPER    |MONOLITH   |FIRESPITTER|MULTIARCHER|RICOCHETCA |REVENGETW  |GEMBOX     |
-SIDEB |7          |8          |0          |0          |0          |5          |0         |0          |10         |0          |0          |0          |0          | 10 |
+SIDEB |7          |8          |0          |0          |0          |5          |0         |3          |10         |0          |0          |0          |0          | 10 |
       |                                                                                                                                                           |
       |VECTOR_____|SIDE_______|DROP_POINTS|ADDTILES___|VERSUS_____|RANDOMX_PX_|RANDOMY_PX_|BUILDING___|___________|___________|___________|___________|___________|___________|___________|
 MAKE  |A          |FRONT-LEFT |10         |0          |EXT-INT    |5          |5          |  |           |           |           |           |           |           |
@@ -86,16 +86,16 @@ DROP  |D          |4          |1          |RSpell     |0          |0          |5
 WAIT  |2000-4000  |           |           |           |           |           |           |           |           |           |           |           |           |           |
 DROP  |E          |3          |1          |RSpell     |0          |0          |150-170    |           |           |           |           |           |           |           |
 DROP  |F          |2          |1          |RSpell     |0          |0          |250-300    |           |           |           |           |           |           |           |
-DROP  |G         |1          |1          |FSpell     |0          |0          |1000-2000  |           |           |           |           |           |           |           |
-DROP  |A          |10         |1          |Warden     |150-250    |10-50      |500-650    |           |           |           |           |           |           |           |
-DROP  |I           |1          |1          |FSpell     |0          |0          |390-1300   |           |           |           |           |           |           |           |
+DROP  |G          |1          |1          |FSpell     |0          |0          |1000-2000  |           |           |           |           |           |           |           |
+DROP  |A          |10         |1          |Warden     |150-250    |10-50      |500-850    |           |           |           |           |           |           |           |
+DROP  |I          |1          |1          |FSpell     |0          |0          |2000-4000  |           |           |           |           |           |           |           |
 DROP  |G          |1          |1          |FSpell     |0          |0          |2000-4000  |           |           |           |           |           |           |           |
 DROP  |H          |1          |1          |CHAMPION   |0          |0          |300-500    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |KING       |200-500    |80-90      |150-250    |           |           |           |           |           |           |           |
 DROP  |A          |10         |1          |MinionP    |200-500    |80-90      |150-250    |           |           |           |           |           |           |           |
-DROP  |J          |1          |1          |FSpell     |0          |0          |500-1700    |           |           |           |           |           |           |           |
-DROP  |I          |1          |1          |FSpell     |0          |0          |150-3000     |           |           |           |           |           |           |           |
-DROP  |J          |1          |1          |FSpell     |0          |0          |1200-2250    |           |           |           |           |           |           |           |
+DROP  |J          |1          |1          |FSpell     |0          |0          |1500-1800  |           |           |           |           |           |           |           |
+DROP  |I          |1          |1          |FSpell     |0          |0          |2500-3500  |           |           |           |           |           |           |           |
+DROP  |J          |1          |1          |FSpell     |0          |0          |1200-2250  |           |           |           |           |           |           |           |
 WAIT  |3000-7000  |TH,SIEGE,50%,AQ,BK,GW,RC|           |           |           |           |           |           |           |           |           |           |           |           |
 DROP  |A        |9,10        |4-10       |REMAIN+HERO|90-110     |67-80      |90-110     |           |           |           |           |           |           |           |
 DROP  |J          |1          |1          |FSpell     |0          |0          |1200-2250    |           |           |           |           |           |           |           |
