@@ -36,6 +36,8 @@ Func ParseAttackCSV($debug = False)
 	EndIf
 	SetLog("execute " & $filename)
 
+	AttackCSV_PreparePrioPlan($filename)
+
 	Local $f, $line, $acommand, $command
 	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = ""
 	Local $aLines, $aTokens

@@ -1750,6 +1750,8 @@ Global $g_oCSVPrioTargets = ObjCreate("Scripting.Dictionary") ; PRIO target cach
 $g_oCSVPrioTargets.CompareMode = 1 ; use case in-sensitve compare for key values
 Global $g_oCSVPrioIndexes = ObjCreate("Scripting.Dictionary") ; PRIO target counters keyed by side
 $g_oCSVPrioIndexes.CompareMode = 1 ; use case in-sensitve compare for key values
+Global $g_oCSVPrioPlan = ObjCreate("Scripting.Dictionary") ; PRIO plan cache keyed by side
+$g_oCSVPrioPlan.CompareMode = 1 ; use case in-sensitve compare for key values
 Global $g_oBldgLevels = ObjCreate("Scripting.Dictionary")
 ; stores constant arrays with max level of each building type available per TH, using building enum as key to find data
 ; to find max level for any defense = $g_oBldgLevels.item(Building enum)[TownHall level -1]

@@ -454,46 +454,272 @@ Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 		Return -1
 	EndIf
 
-	Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+	Local $aTargets = _CSVPrioGetPlanTargets($sSideKey)
 	Local $iTargetsErr = @error
-	Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
-	If @error Then
-		SetError(7, 0, "")
-		Return -1
-	EndIf
-
-	Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
-	If @error Then $aAllTargets = 0
-
 	If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-		If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
-			SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
-			$aTargets = $aAllTargets
-		Else
+		$aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+		$iTargetsErr = @error
+		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+		If @error Then
 			SetError(7, 0, "")
 			Return -1
 		EndIf
-	Else
-		Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
-		Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
-		If $iMaxAllWeight > $iMaxSideWeight Then
-			_CSVPrioMergeHighWeightTargets($aTargets, $aAllTargets, $iMaxSideWeight)
-			_CSVPrioSortTargets($aTargets)
-		EndIf
-		If _CSVPrioIsWeaponizedTownHall() Then
-			_CSVPrioMergeEnumTargets($aTargets, $aAllTargets, $eBldgTownHall)
-			_CSVPrioSortTargets($aTargets)
+
+		Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
+		If @error Then $aAllTargets = 0
+
+		If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+			If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
+				SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
+				$aTargets = $aAllTargets
+			Else
+				SetError(7, 0, "")
+				Return -1
+			EndIf
+		Else
+			Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
+			Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
+			If $iMaxAllWeight > $iMaxSideWeight Then
+				_CSVPrioMergeHighWeightTargets($aTargets, $aAllTargets, $iMaxSideWeight)
+				_CSVPrioSortTargets($aTargets)
+			EndIf
+			If _CSVPrioIsWeaponizedTownHall() Then
+				_CSVPrioMergeEnumTargets($aTargets, $aAllTargets, $eBldgTownHall)
+				_CSVPrioSortTargets($aTargets)
+			EndIf
 		EndIf
 	EndIf
 
 	Local $iIndex = _CSVPrioNextIndex($sSideKey)
-	If $iIndex < 0 Or $iIndex >= UBound($aTargets) Then $iIndex = 0
+	If $iIndex < 0 Then $iIndex = 0
+	If UBound($aTargets) > 0 Then $iIndex = Mod($iIndex, UBound($aTargets))
 
 	$sResolved = $aTargets[$iIndex][1]
 	_CSVPrioAssignPoint($aLocation, $aTargets[$iIndex][2], $aTargets[$iIndex][3])
 	SetDebugLog("CSV PRIO[" & ($iIndex + 1) & "]: " & $sResolved & " @" & $aLocation[0] & "," & $aLocation[1] & " side=" & $sSideKey)
 	Return $aTargets[$iIndex][0]
 EndFunc   ;==>_CSVPrioResolveBuilding
+
+; Side-effect: impure-deterministic (reads planned targets)
+Func _CSVPrioGetPlanTargets($sSideKey)
+	If IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Exists($sSideKey) Then
+		Return $g_oCSVPrioPlan.Item($sSideKey)
+	EndIf
+	Return SetError(1, 0, 0)
+EndFunc   ;==>_CSVPrioGetPlanTargets
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_PreparePrioPlan
+; Description ...: Build PRIO target plans using CSV MAKE order and max building counts.
+; Syntax ........: AttackCSV_PreparePrioPlan($sFilename)
+; Parameters ....: $sFilename        - CSV script name without extension.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: io (reads CSV file), impure-deterministic (updates PRIO plan cache and counters)
+Func AttackCSV_PreparePrioPlan($sFilename)
+	If Not IsObj($g_oCSVPrioPlan) Then Return SetError(1, 0, 0)
+	$g_oCSVPrioPlan.RemoveAll()
+
+	Local $aLines, $aTokens
+	If Not _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then Return SetError(2, 0, 0)
+
+	Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
+			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
+
+	Local $aExplicitCounts[4][15]
+	Local $aExplicitTH[4]
+	Local $aPrioCount[4]
+	Local $bHasPrio = False
+
+	For $iLine = 0 To UBound($aLines) - 1
+		Local $acommand = $aTokens[$iLine]
+		If Not IsArray($acommand) Then $acommand = StringSplit($aLines[$iLine], "|")
+		If $acommand[0] < 8 Then ContinueLoop
+
+		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		If $command <> "MAKE" Then ContinueLoop
+
+		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
+		Local $value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
+
+		If Not CheckCsvValues("MAKE", 8, $value8) Then ContinueLoop
+		If Not CheckCsvValues("MAKE", 2, $value2) Then ContinueLoop
+		If $value2 = "RANDOM" Then ContinueLoop
+
+		Local $sidex = StringReplace($value2, "-", "_")
+		Local $sResolved = Eval($sidex)
+		If $sResolved = "" Then $sResolved = $value2
+		Local $sSideKey = _CSVPrioGetSideKey($sResolved)
+		If @error Then ContinueLoop
+		Local $iSideIdx = _CSVPrioSideIndex($sSideKey)
+		If $iSideIdx < 0 Then ContinueLoop
+
+		If $value8 = "PRIO" Then
+			$aPrioCount[$iSideIdx] += 1
+			$bHasPrio = True
+			ContinueLoop
+		EndIf
+
+		Local $iEnum = _CSVPrioTargetEnum($value8)
+		If $iEnum = $eBldgTownHall Then
+			$aExplicitTH[$iSideIdx] += 1
+			ContinueLoop
+		EndIf
+		If $iEnum <= 0 Then ContinueLoop
+
+		Local $iEnumIdx = _CSVPrioEnumIndex($aCandidateEnum, $iEnum)
+		If $iEnumIdx < 0 Then ContinueLoop
+		$aExplicitCounts[$iSideIdx][$iEnumIdx] += 1
+	Next
+
+	If Not $bHasPrio Then Return 1
+
+	Local $bUnknownTH = False
+	Local $iTH = _CSVNormalizeTH($g_iSearchTH, $bUnknownTH)
+
+	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+	For $s = 0 To 3
+		If $aPrioCount[$s] <= 0 Then ContinueLoop
+		Local $sSideKey = $aSideKeys[$s]
+		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+		If @error Then ContinueLoop
+
+		Local $aTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
+		If Not IsArray($aTargets) Or UBound($aTargets) = 0 Then ContinueLoop
+		_CSVPrioSortTargets($aTargets)
+
+		Local $aAvailable[15]
+		Local $iAvailTH = 0
+		For $i = 0 To UBound($aTargets) - 1
+			If $aTargets[$i][0] = $eBldgTownHall Then
+				$iAvailTH += 1
+				ContinueLoop
+			EndIf
+			Local $iEnumIdx = _CSVPrioEnumIndex($aCandidateEnum, $aTargets[$i][0])
+			If $iEnumIdx >= 0 Then $aAvailable[$iEnumIdx] += 1
+		Next
+
+		Local $aBudget[15]
+		For $i = 0 To 14
+			Local $iMaxQty = _CSVGetBldgMaxQty($aCandidateEnum[$i], $iTH)
+			Local $iBudget = ($iMaxQty < $aAvailable[$i] ? $iMaxQty : $aAvailable[$i])
+			$iBudget -= $aExplicitCounts[$s][$i]
+			If $iBudget < 0 Then $iBudget = 0
+			$aBudget[$i] = $iBudget
+		Next
+
+		Local $iBudgetTH = 0
+		If _CSVIsWeaponizedTownHall($iTH) Then
+			$iBudgetTH = ($iAvailTH > 0 ? 1 : 0)
+			$iBudgetTH -= $aExplicitTH[$s]
+			If $iBudgetTH < 0 Then $iBudgetTH = 0
+		EndIf
+
+		Local $aPlan[0][6]
+		For $i = 0 To UBound($aTargets) - 1
+			Local $iEnum = $aTargets[$i][0]
+			If $iEnum = $eBldgTownHall Then
+				If $iBudgetTH <= 0 Then ContinueLoop
+				_CSVPrioPlanAdd($aPlan, $aTargets, $i)
+				$iBudgetTH -= 1
+				ContinueLoop
+			EndIf
+			Local $iEnumIdx = _CSVPrioEnumIndex($aCandidateEnum, $iEnum)
+			If $iEnumIdx < 0 Then ContinueLoop
+			If $aBudget[$iEnumIdx] <= 0 Then ContinueLoop
+			_CSVPrioPlanAdd($aPlan, $aTargets, $i)
+			$aBudget[$iEnumIdx] -= 1
+		Next
+
+		If UBound($aPlan) = 0 Then
+			$aPlan = $aTargets
+			SetDebugLog("CSV PRIO plan empty for " & $sSideKey & ", using full target list", $COLOR_WARNING)
+		EndIf
+
+		$g_oCSVPrioPlan.Item($sSideKey) = $aPlan
+		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.Item($sSideKey) = 0
+		SetDebugLog("CSV PRIO plan built for " & $sSideKey & ": " & UBound($aPlan) & " targets", $COLOR_DEBUG)
+	Next
+	Return 1
+EndFunc   ;==>AttackCSV_PreparePrioPlan
+
+; Side-effect: pure (builds plan list)
+Func _CSVPrioPlanAdd(ByRef $aPlan, ByRef $aSource, $iRow)
+	If Not IsArray($aSource) Or $iRow < 0 Or $iRow >= UBound($aSource) Then Return
+	Local $iSize = UBound($aPlan)
+	ReDim $aPlan[$iSize + 1][6]
+	For $c = 0 To 5
+		$aPlan[$iSize][$c] = $aSource[$iRow][$c]
+	Next
+EndFunc   ;==>_CSVPrioPlanAdd
+
+; Side-effect: pure
+Func _CSVPrioSideIndex($sSideKey)
+	Switch $sSideKey
+		Case "TOP-LEFT"
+			Return 0
+		Case "TOP-RIGHT"
+			Return 1
+		Case "BOTTOM-LEFT"
+			Return 2
+		Case "BOTTOM-RIGHT"
+			Return 3
+	EndSwitch
+	Return -1
+EndFunc   ;==>_CSVPrioSideIndex
+
+; Side-effect: pure
+Func _CSVPrioEnumIndex(ByRef $aCandidateEnum, $iEnum)
+	For $i = 0 To UBound($aCandidateEnum) - 1
+		If $aCandidateEnum[$i] = $iEnum Then Return $i
+	Next
+	Return -1
+EndFunc   ;==>_CSVPrioEnumIndex
+
+; Side-effect: pure
+Func _CSVPrioTargetEnum($sTarget)
+	Switch $sTarget
+		Case "TOWNHALL"
+			Return $eBldgTownHall
+		Case "EAGLE"
+			Return $eBldgEagle
+		Case "INFERNO"
+			Return $eBldgInferno
+		Case "XBOW"
+			Return $eBldgXBow
+		Case "WIZTOWER"
+			Return $eBldgWizTower
+		Case "MORTAR"
+			Return $eBldgMortar
+		Case "AIRDEFENSE"
+			Return $eBldgAirDefense
+		Case "SWEEPER"
+			Return $eBldgSweeper
+		Case "MONOLITH"
+			Return $eBldgMonolith
+		Case "FIRESPITTER"
+			Return $eBldgFireSpitter
+		Case "MULTIARCHER"
+			Return $eBldgMultiArcherTower
+		Case "MULTIGEAR"
+			Return $eBldgMultiGearTower
+		Case "RICOCHETCA"
+			Return $eBldgRicochetCannon
+		Case "SUPERWIZTW"
+			Return $eBldgSuperWizTower
+		Case "REVENGETW"
+			Return $eBldgRevengeTower
+	EndSwitch
+	Return 0
+EndFunc   ;==>_CSVPrioTargetEnum
 
 ; Side-effect: impure-deterministic (reads building location data)
 Func _CSVPrioGetTargetsForSide($sSideKey)
