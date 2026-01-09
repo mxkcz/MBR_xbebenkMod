@@ -69,6 +69,9 @@ Func _GetRedArea($iMode = $REDLINE_IMGLOC, $iMaxAllowedPixelDistance = 25, $fMin
 		SetDebugLog("Debug: Redline chosen")
 	EndIf
 
+	Local $iRedlineCount = _StoreRedlinePoints($g_sImglocRedline)
+	If $iRedlineCount > 0 Then SetDebugLog("Redline cached: " & $iRedlineCount & " points", $COLOR_DEBUG)
+
 	$g_aiPixelTopLeft = GetPixelSide($listPixelBySide, 1)
 	$g_aiPixelBottomLeft = GetPixelSide($listPixelBySide, 2)
 	$g_aiPixelBottomRight = GetPixelSide($listPixelBySide, 3)
@@ -254,6 +257,36 @@ Func _GetRedArea($iMode = $REDLINE_IMGLOC, $iMaxAllowedPixelDistance = 25, $fMin
 
 	debugRedArea($nameFunc & " OUT ")
 EndFunc   ;==>_GetRedArea
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _StoreRedlinePoints
+; Description ...: Persist ImgLoc redline points into the building dictionary for reuse.
+; Syntax ........: _StoreRedlinePoints($sRedline)
+; Parameters ....: $sRedline           - Redline string in ImgLoc format ("x,y|x,y|...").
+; Return values .: Success: count of points cached
+;                  Failure: 0
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (updates building dictionary)
+Func _StoreRedlinePoints($sRedline)
+	If $sRedline = "" Or $sRedline = "ECD" Then Return 0
+	If Not IsString($sRedline) Then Return 0
+
+	Local $iCount = UBound(StringSplit($sRedline, "|", $STR_NOCOUNT))
+	If $iCount <= 0 Then Return 0
+
+	_ObjPutValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS", $sRedline)
+	If @error Then _ObjErrMsg("_ObjPutValue $g_oBldgAttackInfo redline", @error)
+	_ObjPutValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT", $iCount)
+	If @error Then _ObjErrMsg("_ObjPutValue $g_oBldgAttackInfo redline count", @error)
+	Return $iCount
+EndFunc   ;==>_StoreRedlinePoints
 
 Func SortRedline($redline, $StartPixel, $EndPixel, $sDelim = ",")
 	Local $aPoints = StringSplit($redline, "|", $STR_NOCOUNT)

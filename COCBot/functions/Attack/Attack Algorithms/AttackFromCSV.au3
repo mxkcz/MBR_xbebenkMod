@@ -394,20 +394,15 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_iCSVLastTroopPositionDropTroopFromINI = -1
 	If _Sleep($DELAYRESPOND) Then Return
 
-	; Pre-scan MAKE usage for dropline needs and targeted-only optimizations
+	; Pre-scan MAKE usage for targeted-only optimizations
+	Local $sMakeScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
 	Local $aMakeSidesUsed[4] = [False, False, False, False] ; TL, TR, BL, BR
 	Local $bAllMakeTargeted = False
 	Local $iCSVMaxReturnPointsOverride = Default
 	If AttackCSV_GetPreparedMakeUsage($g_iMatchMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
-		SetDebugLog("CSV MAKE sides: TL=" & $aMakeSidesUsed[0] & ", TR=" & $aMakeSidesUsed[1] & ", BL=" & $aMakeSidesUsed[2] & ", BR=" & $aMakeSidesUsed[3] & _
-				", targetedOnly=" & ($bAllMakeTargeted ? "yes" : "no"), $COLOR_DEBUG)
+		SetDebugLog("CSV MAKE pre-scan: targetedOnly=" & ($bAllMakeTargeted ? "yes" : "no"), $COLOR_DEBUG)
 	Else
-		SetDebugLog("CSV MAKE scan failed, building full droplines", $COLOR_WARNING)
-		$aMakeSidesUsed[0] = True
-		$aMakeSidesUsed[1] = True
-		$aMakeSidesUsed[2] = True
-		$aMakeSidesUsed[3] = True
-		$bAllMakeTargeted = False
+		SetDebugLog("CSV MAKE pre-scan failed", $COLOR_WARNING)
 	EndIf
 	If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
 		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
@@ -1022,6 +1017,18 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	; Calculate main attack side
 	Local $sMainSide = ParseAttackCSV_MainSide()
+	; Re-scan MAKE usage after MAIN side mapping so droplines match the resolved sides
+	If AttackCSV_ScanMakeUsage($sMakeScript, $aMakeSidesUsed, $bAllMakeTargeted) Then
+		SetDebugLog("CSV MAKE sides: TL=" & $aMakeSidesUsed[0] & ", TR=" & $aMakeSidesUsed[1] & ", BL=" & $aMakeSidesUsed[2] & ", BR=" & $aMakeSidesUsed[3] & _
+				", targetedOnly=" & ($bAllMakeTargeted ? "yes" : "no"), $COLOR_DEBUG)
+	Else
+		SetDebugLog("CSV MAKE scan failed, building full droplines", $COLOR_WARNING)
+		$aMakeSidesUsed[0] = True
+		$aMakeSidesUsed[1] = True
+		$aMakeSidesUsed[2] = True
+		$aMakeSidesUsed[3] = True
+		$bAllMakeTargeted = False
+	EndIf
 	_CSVBuildDropLines($aMakeSidesUsed, $bAllMakeTargeted)
 
 	; 13 - Wall

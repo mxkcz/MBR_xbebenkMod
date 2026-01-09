@@ -234,16 +234,17 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 
 	; Get redline data
 	If _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") = True Then
-		If _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT") > 50 Then ; if count is less 50, try again to more red line locations
-			$redLines = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
-			If @error Then _ObjErrMsg("_ObjGetValue $g_oBldgAttackInfo redline", @error) ; Log COM error prevented
-			If IsString($redLines) And $redLines <> "" And $redLines <> "ECD" Then ; error check for null red line data in dictionary
-				$bRedLineExists = True
-			Else
-				$redLines = ""
-				$bRedLineExists = False
+		$redLines = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Then _ObjErrMsg("_ObjGetValue $g_oBldgAttackInfo redline", @error) ; Log COM error prevented
+		If IsString($redLines) And $redLines <> "" And $redLines <> "ECD" Then ; error check for null red line data in dictionary
+			$bRedLineExists = True
+			Local $iRedlineCount = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT")
+			If @error Then
+				$iRedlineCount = UBound(StringSplit($redLines, "|", $STR_NOCOUNT))
+				_ObjPutValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT", $iRedlineCount)
+				If @error Then _ObjErrMsg("_ObjPutValue $g_oBldgAttackInfo redline count", @error)
 			EndIf
-		Else ; if less than 25 redline stored, then try again.
+		Else
 			$redLines = ""
 			$bRedLineExists = False
 		EndIf
@@ -285,7 +286,7 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 		Local $aValue = RetrieveImglocProperty("redline", "")
 		If $aValue <> "" Then ; redline exists
 			Local $aCoordsSplit = StringSplit($aValue, "|") ; split redlines in x,y, to get count of redline locations
-			If $aCoordsSplit[0] > 50 Then ; check that we have enough red line points or keep trying for better data
+			If $aCoordsSplit[0] > 0 Then
 				$redLines = $aValue
 				_ObjPutValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS", $redLines) ; add/update value
 				If @error Then _ObjErrMsg("_ObjPutValue $g_oBldgAttackInfo", @error)
