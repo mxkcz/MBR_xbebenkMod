@@ -35,7 +35,7 @@ Func CreateAttackSearchActiveBaseScripted()
 			GUICtrlSetOnEvent(-1, 'UpdateComboScriptNameAB') ; Run this function when the secondary GUI [X] is clicked
 		$g_hLblCSVScriptVersionAB = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Lbl_ScriptCSVVersion", "CSV: -"), $x, $y + 22, 200, 16)
 
-	$y += 25
+	$y += 40
 		$g_hLblNotesScriptAB =  GUICtrlCreateLabel("", $x, $y + 5, 200, 180)
 		$g_hCmbScriptRedlineImplAB = GUICtrlCreateCombo("", $x, $y + 195, 230, -1, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			GUICtrlSetData(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "CmbScriptRedlineImpl", "ImgLoc Raw Redline (default)|ImgLoc Redline Drop Points|Original Redline|External Edges"))
@@ -49,12 +49,6 @@ Func CreateAttackSearchActiveBaseScripted()
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "CmbScriptDropline_Info_01", "Choose the drop line edges. Default is outer corner and safer. First Redline point can improve attack."))
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
 			GUICtrlSetOnEvent(-1, "cmbScriptDroplineAB")
-
-		$g_hbtnAttNow = GUICtrlCreateButton("Attack Now", $x + 70, $y + 250, 91, 25)
-			;GUISetState(@SW_SHOW)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "btnAttNow_Info_01", "Attack now Button Which it will make CSV Makers/testers life Easy. You should be in Attack Screen"))
-			GUICtrlSetOnEvent(-1, "AttackNow")
-			GUICtrlSetState(-1, $GUI_HIDE)
 
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnEdit, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconShow-Edit_Info_01", -1))
@@ -74,10 +68,16 @@ Func CreateAttackSearchActiveBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrain, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconApply_Info_01", -1))
 			GUICtrlSetOnEvent(-1, "ApplyScriptAB")
-	$y += 190 ; place CSV settings button below dropline selector block
-		$g_hBtnAttackCSVSettingsAB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, 120, 22)
+	$y += 175 ; place CSV settings button below dropline selector block
+		Local $iCSVBtnW = 120, $iFooterBtnH = 22, $iFooterBtnGap = 10
+		$g_hBtnAttackCSVSettingsAB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, $iCSVBtnW, $iFooterBtnH)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings_Info", "Open advanced CSV helpers (side weights, vectors, drops, waits)"))
 			GUICtrlSetOnEvent(-1, "OpenAttackCSVSettings")
+		$g_hbtnAttNow = GUICtrlCreateButton("Attack Now", $x + $iCSVBtnW + $iFooterBtnGap, $y, $iCSVBtnW, $iFooterBtnH)
+			;GUISetState(@SW_SHOW)
+			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "btnAttNow_Info_01", "Attack now Button Which it will make CSV Makers/testers life Easy. You should be in Attack Screen"))
+			GUICtrlSetOnEvent(-1, "AttackNow")
+			GUICtrlSetState(-1, $GUI_HIDE)
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	;------------------------------------------------------------------------------------------

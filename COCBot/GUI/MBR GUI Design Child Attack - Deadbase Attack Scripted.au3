@@ -35,7 +35,7 @@ Func CreateAttackSearchDeadBaseScripted()
 			GUICtrlSetOnEvent(-1, 'UpdateComboScriptNameDB') ; Run this function when the secondary GUI [X] is clicked
 		$g_hLblCSVScriptVersionDB = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Lbl_ScriptCSVVersion", "CSV: -"), $x, $y + 22, 200, 16)
 
-	$y += 25
+	$y += 40
 		$g_hLblNotesScriptDB =  GUICtrlCreateLabel("", $x, $y + 5, 200, 180)
 		$g_hCmbScriptRedlineImplDB = GUICtrlCreateCombo("", $x, $y + 195, 230, -1, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			GUICtrlSetData(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "CmbScriptRedlineImpl", "ImgLoc Raw Redline (default)|ImgLoc Redline Drop Points|Original Redline|External Edges"))
@@ -67,8 +67,9 @@ Func CreateAttackSearchDeadBaseScripted()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrain, $x + 210, $y + 2, 16, 16)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "IconApply_Info_01", "Apply Settings of troop, spell, redline, dropline, and request"))
 			GUICtrlSetOnEvent(-1, "ApplyScriptDB")
-	$y += 190 ; place CSV settings button below dropline selector block
-		$g_hBtnAttackCSVSettingsDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, 120, 22)
+	$y += 175 ; place CSV settings button below dropline selector block
+		Local $iCSVBtnW = 120, $iFooterBtnH = 22
+		$g_hBtnAttackCSVSettingsDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings", "CSV Settings"), $x, $y, $iCSVBtnW, $iFooterBtnH)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack Scripted", "Btn_AttackCSVSettings_Info", "Open advanced CSV helpers (side weights, vectors, drops, waits)"))
 			GUICtrlSetOnEvent(-1, "OpenAttackCSVSettings")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)

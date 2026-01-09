@@ -67,6 +67,9 @@ Func cmbScriptNameDB()
 	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB) + 1]
 	Local $f, $result = ""
 	Local $tempvect, $line, $t
+	Local $i = 0
+	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
+	Local $bNoteHasValue = False
 	Local $sVersion = "unknown"
 
 	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
@@ -77,7 +80,26 @@ Func cmbScriptNameDB()
 			If @error = -1 Then ExitLoop
 			$tempvect = StringSplit($line, "|", 2)
 			If UBound($tempvect) >= 2 Then
-				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then $result &= $tempvect[1] & @CRLF
+				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
+					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
+					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
+					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
+					$sNoteLine = ""
+					$bNoteHasValue = False
+					For $i = 1 To UBound($tempvect) - 1
+						$sPart = StringStripWS($tempvect[$i], 3)
+						If $sPart <> "" Then
+							If $sNoteLine <> "" Then $sNoteLine &= " | "
+							$sNoteLine &= $sPart
+							$bNoteHasValue = True
+						EndIf
+					Next
+					If $bNoteHasValue Then
+						$result &= $sNoteLine & @CRLF
+					Else
+						$result &= @CRLF
+					EndIf
+				EndIf
 			EndIf
 		WEnd
 		FileClose($f)
@@ -85,7 +107,7 @@ Func cmbScriptNameDB()
 
 	EndIf
 	GUICtrlSetData($g_hLblNotesScriptDB, $result)
-	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV: " & $sVersion)
+	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV version: " & $sVersion)
 
 EndFunc   ;==>cmbScriptNameDB
 
@@ -95,6 +117,9 @@ Func cmbScriptNameAB()
 	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB) + 1]
 	Local $f, $result = ""
 	Local $tempvect, $line, $t
+	Local $i = 0
+	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
+	Local $bNoteHasValue = False
 	Local $sVersion = "unknown"
 
 	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
@@ -105,7 +130,26 @@ Func cmbScriptNameAB()
 			If @error = -1 Then ExitLoop
 			$tempvect = StringSplit($line, "|", 2)
 			If UBound($tempvect) >= 2 Then
-				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then $result &= $tempvect[1] & @CRLF
+				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
+					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
+					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
+					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
+					$sNoteLine = ""
+					$bNoteHasValue = False
+					For $i = 1 To UBound($tempvect) - 1
+						$sPart = StringStripWS($tempvect[$i], 3)
+						If $sPart <> "" Then
+							If $sNoteLine <> "" Then $sNoteLine &= " | "
+							$sNoteLine &= $sPart
+							$bNoteHasValue = True
+						EndIf
+					Next
+					If $bNoteHasValue Then
+						$result &= $sNoteLine & @CRLF
+					Else
+						$result &= @CRLF
+					EndIf
+				EndIf
 			EndIf
 		WEnd
 		FileClose($f)
