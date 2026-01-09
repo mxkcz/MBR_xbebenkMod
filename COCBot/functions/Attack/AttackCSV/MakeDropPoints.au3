@@ -531,10 +531,10 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 	Local $aLines, $aTokens
 	If Not _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then Return SetError(2, 0, 0)
 
-	Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
-			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
+	Local $aCandidateEnum, $aCandidateName, $aWeightIndex
+	If _CSVGetPrioCandidateMap($aCandidateEnum, $aCandidateName, $aWeightIndex) = 0 Then Return SetError(3, 0, 0)
 
-	Local $aExplicitCounts[4][15]
+	Local $aExplicitCounts[4][UBound($aCandidateEnum)]
 	Local $aExplicitTH[4]
 	Local $aPrioCount[4]
 	Local $bHasPrio = False
@@ -552,38 +552,53 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 
 		If Not CheckCsvValues("MAKE", 8, $value8) Then ContinueLoop
 		If Not CheckCsvValues("MAKE", 2, $value2) Then ContinueLoop
-		If $value2 = "RANDOM" Then ContinueLoop
 
-		Local $sidex = StringReplace($value2, "-", "_")
-		Local $sResolved = Eval($sidex)
-		If $sResolved = "" Then $sResolved = $value2
-		Local $sSideKey = _CSVPrioGetSideKey($sResolved)
-		If @error Then ContinueLoop
-		Local $iSideIdx = _CSVPrioSideIndex($sSideKey)
-		If $iSideIdx < 0 Then ContinueLoop
-
-		If $value8 = "PRIO" Then
-			$aPrioCount[$iSideIdx] += 1
-			$bHasPrio = True
-			ContinueLoop
+		Local $aSideIdx[1]
+		If $value2 = "RANDOM" Then
+			ReDim $aSideIdx[4]
+			$aSideIdx[0] = 0
+			$aSideIdx[1] = 1
+			$aSideIdx[2] = 2
+			$aSideIdx[3] = 3
+		Else
+			Local $sidex = StringReplace($value2, "-", "_")
+			Local $sResolved = Eval($sidex)
+			If $sResolved = "" Then $sResolved = $value2
+			Local $sSideKey = _CSVPrioGetSideKey($sResolved)
+			If @error Then ContinueLoop
+			Local $iResolvedIdx = _CSVPrioSideIndex($sSideKey)
+			If $iResolvedIdx < 0 Then ContinueLoop
+			$aSideIdx[0] = $iResolvedIdx
 		EndIf
 
-		Local $iEnum = _CSVPrioTargetEnum($value8)
-		If $iEnum = $eBldgTownHall Then
-			$aExplicitTH[$iSideIdx] += 1
-			ContinueLoop
-		EndIf
-		If $iEnum <= 0 Then ContinueLoop
+		For $iSide = 0 To UBound($aSideIdx) - 1
+			Local $iSideIdx = $aSideIdx[$iSide]
+			If $value8 = "PRIO" Then
+				$aPrioCount[$iSideIdx] += 1
+				$bHasPrio = True
+				ContinueLoop
+			EndIf
 
-		Local $iEnumIdx = _CSVPrioEnumIndex($aCandidateEnum, $iEnum)
-		If $iEnumIdx < 0 Then ContinueLoop
-		$aExplicitCounts[$iSideIdx][$iEnumIdx] += 1
+			Local $iEnum = 0
+			Local $iWeightIndex = -1
+			If Not _CSVLookupTargetEnum($value8, $iEnum, $iWeightIndex) Then ContinueLoop
+			If $iEnum = $eBldgTownHall Then
+				$aExplicitTH[$iSideIdx] += 1
+				ContinueLoop
+			EndIf
+			If $iEnum <= 0 Then ContinueLoop
+
+			Local $iEnumIdx = _CSVPrioEnumIndex($aCandidateEnum, $iEnum)
+			If $iEnumIdx < 0 Then ContinueLoop
+			$aExplicitCounts[$iSideIdx][$iEnumIdx] += 1
+		Next
 	Next
 
 	If Not $bHasPrio Then Return 1
 
 	Local $bUnknownTH = False
 	Local $iTH = _CSVNormalizeTH($g_iSearchTH, $bUnknownTH)
+	If $bUnknownTH Then SetDebugLog("CSV PRIO plan using available counts; search TH unknown", $COLOR_WARNING)
 
 	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
 	For $s = 0 To 3
@@ -596,7 +611,7 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 		If Not IsArray($aTargets) Or UBound($aTargets) = 0 Then ContinueLoop
 		_CSVPrioSortTargets($aTargets)
 
-		Local $aAvailable[15]
+		Local $aAvailable[UBound($aCandidateEnum)]
 		Local $iAvailTH = 0
 		For $i = 0 To UBound($aTargets) - 1
 			If $aTargets[$i][0] = $eBldgTownHall Then
@@ -607,9 +622,10 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 			If $iEnumIdx >= 0 Then $aAvailable[$iEnumIdx] += 1
 		Next
 
-		Local $aBudget[15]
-		For $i = 0 To 14
-			Local $iMaxQty = _CSVGetBldgMaxQty($aCandidateEnum[$i], $iTH)
+		Local $aBudget[UBound($aCandidateEnum)]
+		For $i = 0 To UBound($aCandidateEnum) - 1
+			Local $iMaxQty = $aAvailable[$i]
+			If Not $bUnknownTH Then $iMaxQty = _CSVGetBldgMaxQty($aCandidateEnum[$i], $iTH)
 			Local $iBudget = ($iMaxQty < $aAvailable[$i] ? $iMaxQty : $aAvailable[$i])
 			$iBudget -= $aExplicitCounts[$s][$i]
 			If $iBudget < 0 Then $iBudget = 0
@@ -617,7 +633,7 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 		Next
 
 		Local $iBudgetTH = 0
-		If _CSVIsWeaponizedTownHall($iTH) Then
+		If Not $bUnknownTH And _CSVIsWeaponizedTownHall($iTH) Then
 			$iBudgetTH = ($iAvailTH > 0 ? 1 : 0)
 			$iBudgetTH -= $aExplicitTH[$s]
 			If $iBudgetTH < 0 Then $iBudgetTH = 0
@@ -684,43 +700,6 @@ Func _CSVPrioEnumIndex(ByRef $aCandidateEnum, $iEnum)
 	Return -1
 EndFunc   ;==>_CSVPrioEnumIndex
 
-; Side-effect: pure
-Func _CSVPrioTargetEnum($sTarget)
-	Switch $sTarget
-		Case "TOWNHALL"
-			Return $eBldgTownHall
-		Case "EAGLE"
-			Return $eBldgEagle
-		Case "INFERNO"
-			Return $eBldgInferno
-		Case "XBOW"
-			Return $eBldgXBow
-		Case "WIZTOWER"
-			Return $eBldgWizTower
-		Case "MORTAR"
-			Return $eBldgMortar
-		Case "AIRDEFENSE"
-			Return $eBldgAirDefense
-		Case "SWEEPER"
-			Return $eBldgSweeper
-		Case "MONOLITH"
-			Return $eBldgMonolith
-		Case "FIRESPITTER"
-			Return $eBldgFireSpitter
-		Case "MULTIARCHER"
-			Return $eBldgMultiArcherTower
-		Case "MULTIGEAR"
-			Return $eBldgMultiGearTower
-		Case "RICOCHETCA"
-			Return $eBldgRicochetCannon
-		Case "SUPERWIZTW"
-			Return $eBldgSuperWizTower
-		Case "REVENGETW"
-			Return $eBldgRevengeTower
-	EndSwitch
-	Return 0
-EndFunc   ;==>_CSVPrioTargetEnum
-
 ; Side-effect: impure-deterministic (reads building location data)
 Func _CSVPrioGetTargetsForSide($sSideKey)
 	If IsObj($g_oCSVPrioTargets) And $g_oCSVPrioTargets.Exists($sSideKey) Then
@@ -743,11 +722,8 @@ Func _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, $bIgnoreSide = False)
 	Local $aSideMid[2]
 	If _CSVPrioGetSideMid($sSideKey, $aSideMid) = 0 Then Return $aTargets
 
-	Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
-			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
-	Local $aCandidateName[15] = ["EAGLE", "INFERNO", "XBOW", "SUPERWIZTW", "WIZTOWER", "MORTAR", "AIRDEFENSE", _
-			"SCATTER", "SWEEPER", "MONOLITH", "FIRESPITTER", "MULTIARCHER", "MULTIGEAR", "RICOCHETCA", "REVENGETW"]
-	Local $aWeightIndex[15] = [0, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+	Local $aCandidateEnum, $aCandidateName, $aWeightIndex
+	If _CSVGetPrioCandidateMap($aCandidateEnum, $aCandidateName, $aWeightIndex) = 0 Then Return $aTargets
 
 	For $i = 0 To UBound($aCandidateEnum) - 1
 		Local $iWeightIndex = $aWeightIndex[$i]

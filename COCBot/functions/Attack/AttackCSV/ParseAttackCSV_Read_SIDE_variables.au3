@@ -579,83 +579,96 @@ Func _CSVPrepEnablePrioLocateFromWeights(ByRef $aLocate, ByRef $aWeights)
 	If $aWeights[13] > 0 Then $aLocate[$eCSVLocateRevengeTower] = True
 EndFunc   ;==>_CSVPrepEnablePrioLocateFromWeights
 
+; Side-effect: pure
+Func _CSVGetPrioCandidateMap(ByRef $aEnums, ByRef $aNames, ByRef $aWeightIndex)
+	Local $aEnumLocal[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
+			$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
+	Local $aNameLocal[15] = ["EAGLE", "INFERNO", "XBOW", "SUPERWIZTW", "WIZTOWER", "MORTAR", "AIRDEFENSE", _
+			"SCATTER", "SWEEPER", "MONOLITH", "FIRESPITTER", "MULTIARCHER", "MULTIGEAR", "RICOCHETCA", "REVENGETW"]
+	Local $aWeightLocal[15] = [0, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+	$aEnums = $aEnumLocal
+	$aNames = $aNameLocal
+	$aWeightIndex = $aWeightLocal
+	Return 1
+EndFunc   ;==>_CSVGetPrioCandidateMap
+
+; Side-effect: pure
+Func _CSVLookupTargetEnum($sTarget, ByRef $iEnum, ByRef $iWeightIndex)
+	$iEnum = 0
+	$iWeightIndex = -1
+	If $sTarget = "TOWNHALL" Then
+		$iEnum = $eBldgTownHall
+		Return True
+	EndIf
+
+	Local $aEnums, $aNames, $aWeightIndex
+	_CSVGetPrioCandidateMap($aEnums, $aNames, $aWeightIndex)
+	For $i = 0 To UBound($aNames) - 1
+		If $aNames[$i] = $sTarget Then
+			$iEnum = $aEnums[$i]
+			$iWeightIndex = $aWeightIndex[$i]
+			Return True
+		EndIf
+	Next
+	Return False
+EndFunc   ;==>_CSVLookupTargetEnum
+
 ; Side-effect: impure-deterministic (mutates prep locate flags)
 Func _CSVPrepApplyMakeTarget(ByRef $aLocate, $sTarget, ByRef $bPrioMakeFound, ByRef $sTargetEnums)
 	Switch $sTarget
 		Case "PRIO"
 			$bPrioMakeFound = True
 			Return True
-		Case "TOWNHALL"
-			$aLocate[$eCSVLocateStorageTownHall] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgTownHall)
-			Return True
-		Case "EAGLE"
-			$aLocate[$eCSVLocateEagle] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgEagle)
-			Return True
-		Case "INFERNO"
-			$aLocate[$eCSVLocateInferno] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgInferno)
-			Return True
-		Case "XBOW"
-			$aLocate[$eCSVLocateXBow] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgXBow)
-			Return True
-		Case "SCATTER"
-			$aLocate[$eCSVLocateScatter] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgScatter)
-			Return True
-		Case "WIZTOWER"
-			$aLocate[$eCSVLocateWizTower] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgWizTower)
-			Return True
-		Case "MORTAR"
-			$aLocate[$eCSVLocateMortar] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMortar)
-			Return True
-		Case "AIRDEFENSE"
-			$aLocate[$eCSVLocateAirDefense] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgAirDefense)
-			Return True
-		Case "SWEEPER"
-			$aLocate[$eCSVLocateSweeper] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgSweeper)
-			Return True
-		Case "MONOLITH"
-			$aLocate[$eCSVLocateMonolith] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMonolith)
-			Return True
-		Case "FIRESPITTER"
-			$aLocate[$eCSVLocateFireSpitter] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgFireSpitter)
-			Return True
-		Case "MULTIARCHER"
-			$aLocate[$eCSVLocateMultiArcherTower] = True
-			$aLocate[$eCSVLocateMultiGearTower] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiArcherTower)
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiGearTower)
-			Return True
-		Case "MULTIGEAR"
-			$aLocate[$eCSVLocateMultiGearTower] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiGearTower)
-			Return True
-		Case "RICOCHETCA"
-			$aLocate[$eCSVLocateRicochetCannon] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgRicochetCannon)
-			Return True
-		Case "SUPERWIZTW"
-			$aLocate[$eCSVLocateSuperWizTower] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgSuperWizTower)
-			Return True
-		Case "REVENGETW"
-			$aLocate[$eCSVLocateRevengeTower] = True
-			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgRevengeTower)
-			Return True
 		Case "EX-WALL", "IN-WALL"
 			$aLocate[$eCSVLocateWall] = True
 			Return True
 	EndSwitch
-	Return False
+
+	Local $iEnum = 0
+	Local $iWeightIndex = -1
+	If Not _CSVLookupTargetEnum($sTarget, $iEnum, $iWeightIndex) Then Return False
+
+	Switch $iEnum
+		Case $eBldgTownHall
+			$aLocate[$eCSVLocateStorageTownHall] = True
+		Case $eBldgEagle
+			$aLocate[$eCSVLocateEagle] = True
+		Case $eBldgInferno
+			$aLocate[$eCSVLocateInferno] = True
+		Case $eBldgXBow
+			$aLocate[$eCSVLocateXBow] = True
+		Case $eBldgScatter
+			$aLocate[$eCSVLocateScatter] = True
+		Case $eBldgWizTower
+			$aLocate[$eCSVLocateWizTower] = True
+		Case $eBldgMortar
+			$aLocate[$eCSVLocateMortar] = True
+		Case $eBldgAirDefense
+			$aLocate[$eCSVLocateAirDefense] = True
+		Case $eBldgSweeper
+			$aLocate[$eCSVLocateSweeper] = True
+		Case $eBldgMonolith
+			$aLocate[$eCSVLocateMonolith] = True
+		Case $eBldgFireSpitter
+			$aLocate[$eCSVLocateFireSpitter] = True
+		Case $eBldgMultiArcherTower
+			$aLocate[$eCSVLocateMultiArcherTower] = True
+			$aLocate[$eCSVLocateMultiGearTower] = True
+		Case $eBldgMultiGearTower
+			$aLocate[$eCSVLocateMultiGearTower] = True
+		Case $eBldgRicochetCannon
+			$aLocate[$eCSVLocateRicochetCannon] = True
+		Case $eBldgSuperWizTower
+			$aLocate[$eCSVLocateSuperWizTower] = True
+		Case $eBldgRevengeTower
+			$aLocate[$eCSVLocateRevengeTower] = True
+		Case Else
+			Return False
+	EndSwitch
+
+	_CSVPrepAddTargetEnum($sTargetEnums, $iEnum)
+	If $sTarget = "MULTIARCHER" Then _CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiGearTower)
+	Return True
 EndFunc   ;==>_CSVPrepApplyMakeTarget
 
 ; Side-effect: impure-deterministic (updates enum list)
