@@ -91,6 +91,10 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	; reset page errors
 	InitAndroidPageError()
 
+	; CSV prep before search to reduce post-match overhead
+	If $g_abAttackTypeEnable[$DB] And $g_aiAttackAlgorithm[$DB] = 1 Then PrepareAttackCSV($DB)
+	If $g_abAttackTypeEnable[$LB] And $g_aiAttackAlgorithm[$LB] = 1 Then PrepareAttackCSV($LB)
+
 	While 1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;### Main Search Loop ###;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 		; cleanup some vars used by imgloc just in Case. usend in TH and DeadBase ( imgloc functions)

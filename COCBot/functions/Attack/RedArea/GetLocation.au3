@@ -164,10 +164,11 @@ EndFunc   ;==>GetLocationDarkElixirWithLevel
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: GetLocationBuilding
 ; Description ...: Finds any buildings in global enum & $g_sBldgNames list, saves property data into $g_oBldgAttackInfo dictionary.
-; Syntax ........: GetLocationBuilding($iBuildingType[, $iAttackingTH = 11[, $forceCaptureRegion = True]])
+; Syntax ........: GetLocationBuilding($iBuildingType[, $iAttackingTH = 11[, $forceCaptureRegion = True[, $iMaxReturnPointsOverride = Default]]])
 ; Parameters ....: $iBuildingType       - an integer value with enum of building to find and retrieve information about from  $g_sBldgNames list
 ;                  $iAttackingTH        - [optional] an integer value of TH being attacked. Default is 11. Lower TH level reduces # of images by setting MaxLevel
 ;                  $bforceCaptureRegion  - [optional] a boolean value. Default is True. "False" avoids repetitive capture of same base for multiple finds in row.
+;                  $iMaxReturnPointsOverride - [optional] max return points override. Default is no override.
 ; Return values .: None
 ; Author ........: MonkeyHunter (04-2017)
 ; Modified ......:
@@ -177,7 +178,7 @@ EndFunc   ;==>GetLocationDarkElixirWithLevel
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; ===============================================================================================================================
-Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForceCaptureRegion = True)
+Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForceCaptureRegion = True, $iMaxReturnPointsOverride = Default)
 
 	SetDebugLog("Begin GetLocationBuilding: " & $g_sBldgNames[$iBuildingType], $COLOR_DEBUG1)
 	Local $hTimer = __TimerInit() ; timer to track image detection time
@@ -220,6 +221,15 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 		$maxReturnPoints = $aMaxQty[$iAttackingTH - 1]
 	Else
 		SetDebugLog("MaxQty missing for building " & $g_sBldgNames[$iBuildingType] & " TH" & $iAttackingTH & ", using default", $COLOR_WARNING)
+	EndIf
+	If $iMaxReturnPointsOverride <> Default Then
+		Local $iOverride = Int($iMaxReturnPointsOverride)
+		If $iOverride > 0 Then
+			If $iOverride < $maxReturnPoints Then
+				SetDebugLog("GetLocationBuilding: maxReturnPoints capped to " & $iOverride & " for " & $g_sBldgNames[$iBuildingType], $COLOR_DEBUG)
+			EndIf
+			$maxReturnPoints = ($iOverride < $maxReturnPoints ? $iOverride : $maxReturnPoints)
+		EndIf
 	EndIf
 
 	; Get redline data

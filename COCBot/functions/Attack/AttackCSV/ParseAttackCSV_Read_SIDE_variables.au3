@@ -236,6 +236,469 @@ Func ParseAttackCSV_Read_SIDE_variables()
 	EndIf
 EndFunc   ;==>ParseAttackCSV_Read_SIDE_variables
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: PrepareAttackCSV
+; Description ...: Pre-scan CSV script to cache locate flags, weights, and MAKE usage before search.
+; Syntax ........: PrepareAttackCSV($iMode[, $bForce = False])
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $bForce            - [optional] Force refresh even if cache is valid. Default is False.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: io (reads CSV file), impure-deterministic (updates CSV prep caches)
+Func PrepareAttackCSV($iMode, $bForce = False)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+	If $g_aiAttackAlgorithm[$iMode] <> 1 Then Return SetError(2, 0, 0)
+
+	Local $sFilename = $g_sAttackScrScriptName[$iMode]
+	If $sFilename = "" Then
+		_CSVPrepResetMode($iMode)
+		Return SetError(3, 0, 0)
+	EndIf
+
+	Local $sPath = $g_sCSVAttacksPath & "\" & $sFilename & ".csv"
+	If Not FileExists($sPath) Then
+		_CSVPrepResetMode($iMode)
+		SetLog("Attack CSV script not found: " & $sPath, $COLOR_ERROR)
+		Return SetError(4, 0, 0)
+	EndIf
+
+	Local Const $kFileTimeModified = 1
+	Local Const $kFileTimeString = 1
+	Local $sMTime = FileGetTime($sPath, $kFileTimeModified, $kFileTimeString)
+	If @error Then $sMTime = ""
+
+	If Not $bForce And $g_abCSVPrepValid[$iMode] And $g_asCSVPrepName[$iMode] = $sFilename And $g_asCSVPrepMTime[$iMode] = $sMTime Then
+		Return 1
+	EndIf
+
+	Local $aLocate[$eCSVLocateCount]
+	Local $aWeights[14]
+	Local $aSidesUsed[4] = [False, False, False, False]
+	Local $bAllMakeTargeted = False
+	Local $bPrioMakeFound = False
+	Local $sTargetEnums = ""
+	Local $bForceSideExist = False
+
+	Local $aLines, $aTokens
+	If Not _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then
+		_CSVPrepResetMode($iMode)
+		SetLog("Cannot read attack file " & $sPath, $COLOR_ERROR)
+		Return SetError(5, 0, 0)
+	EndIf
+
+	For $iLine = 0 To UBound($aLines) - 1
+		Local $line = $aLines[$iLine]
+		Local $acommand = $aTokens[$iLine]
+		If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
+		If $acommand[0] < 8 Then ContinueLoop
+
+		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" Then ContinueLoop
+
+		Local $value1 = ($acommand[0] >= 2 ? StringStripWS(StringUpper($acommand[2]), $STR_STRIPTRAILING) : "")
+		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
+		Local $value3 = ($acommand[0] >= 4 ? StringStripWS(StringUpper($acommand[4]), $STR_STRIPTRAILING) : "")
+		Local $value4 = ($acommand[0] >= 5 ? StringStripWS(StringUpper($acommand[5]), $STR_STRIPTRAILING) : "")
+		Local $value5 = ($acommand[0] >= 6 ? StringStripWS(StringUpper($acommand[6]), $STR_STRIPTRAILING) : "")
+		Local $value6 = ($acommand[0] >= 7 ? StringStripWS(StringUpper($acommand[7]), $STR_STRIPTRAILING) : "")
+		Local $value7 = ($acommand[0] >= 8 ? StringStripWS(StringUpper($acommand[8]), $STR_STRIPTRAILING) : "")
+		Local $value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
+		Local $value9 = ($acommand[0] >= 10 ? StringStripWS(StringUpper($acommand[10]), $STR_STRIPTRAILING) : "")
+		Local $value10 = ($acommand[0] >= 11 ? StringStripWS(StringUpper($acommand[11]), $STR_STRIPTRAILING) : "")
+		Local $value11 = ($acommand[0] >= 12 ? StringStripWS(StringUpper($acommand[12]), $STR_STRIPTRAILING) : "")
+		Local $value12 = ($acommand[0] >= 13 ? StringStripWS(StringUpper($acommand[13]), $STR_STRIPTRAILING) : "")
+		Local $value13 = ($acommand[0] >= 14 ? StringStripWS(StringUpper($acommand[14]), $STR_STRIPTRAILING) : "")
+		Local $value14 = ($acommand[0] >= 15 ? StringStripWS(StringUpper($acommand[15]), $STR_STRIPTRAILING) : "")
+
+		If $command = "SIDE" And (StringUpper($value8) = "TOP-LEFT" Or StringUpper($value8) = "TOP-RIGHT" Or StringUpper($value8) = "BOTTOM-LEFT" Or StringUpper($value8) = "BOTTOM-RIGHT") Then
+			$bForceSideExist = True ; keep original values
+		EndIf
+
+		Switch $command
+			Case "SIDE"
+				If $bForceSideExist = False Then
+					If Int($value1) > 0 Then $aLocate[$eCSVLocateMine] = True
+					If Int($value2) > 0 Then $aLocate[$eCSVLocateElixir] = True
+					If Int($value3) > 0 Then $aLocate[$eCSVLocateDrill] = True
+					If Int($value4) > 0 Then $aLocate[$eCSVLocateStorageGold] = True
+					If Int($value5) > 0 Then $aLocate[$eCSVLocateStorageElixir] = True
+					If Int($value6) > 0 Then $aLocate[$eCSVLocateStorageDarkElixir] = True
+					If Int($value7) > 0 Then $aLocate[$eCSVLocateStorageTownHall] = True
+				EndIf
+			Case "SIDEB"
+				If $bForceSideExist = False Then
+					If Int($value1) > 0 Then $aLocate[$eCSVLocateEagle] = True
+					If Int($value2) > 0 Then $aLocate[$eCSVLocateInferno] = True
+					If Int($value3) > 0 Then $aLocate[$eCSVLocateXBow] = True
+					If Int($value4) > 0 Then
+						$aLocate[$eCSVLocateWizTower] = True
+						$aLocate[$eCSVLocateSuperWizTower] = True
+					EndIf
+					If Int($value5) > 0 Then $aLocate[$eCSVLocateMortar] = True
+					If Int($value6) > 0 Then $aLocate[$eCSVLocateAirDefense] = True
+						If Int($value7) > 0 Then $aLocate[$eCSVLocateScatter] = True
+						If Int($value8) > 0 Then $aLocate[$eCSVLocateSweeper] = True
+						If Int($value9) > 0 Then $aLocate[$eCSVLocateMonolith] = True
+						If Int($value10) > 0 Then $aLocate[$eCSVLocateFireSpitter] = True
+						If Int($value11) > 0 Then $aLocate[$eCSVLocateMultiArcherTower] = True
+						If Int($value12) > 0 Then $aLocate[$eCSVLocateRicochetCannon] = True
+						If Int($value13) > 0 Then $aLocate[$eCSVLocateRevengeTower] = True
+				EndIf
+				$aWeights[0] = Int($value1)
+				$aWeights[1] = Int($value2)
+				$aWeights[2] = Int($value3)
+				$aWeights[3] = Int($value4)
+				$aWeights[4] = Int($value5)
+				$aWeights[5] = Int($value6)
+				$aWeights[6] = Int($value7)
+				$aWeights[7] = Int($value8)
+				$aWeights[8] = Int($value9)
+				$aWeights[9] = Int($value10)
+				$aWeights[10] = Int($value11)
+				$aWeights[11] = Int($value12)
+				$aWeights[12] = Int($value13)
+				$aWeights[13] = Int($value14)
+			Case "MAKE"
+				If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then
+					If Not _CSVPrepApplyMakeTarget($aLocate, $value8, $bPrioMakeFound, $sTargetEnums) Then
+						SetDebugLog("Invalid MAKE building target name: " & $value8, $COLOR_WARNING)
+					EndIf
+				EndIf
+		EndSwitch
+	Next
+
+	If $bPrioMakeFound Then _CSVPrepEnablePrioLocateFromWeights($aLocate, $aWeights)
+
+	If Not AttackCSV_ScanMakeUsage($sFilename, $aSidesUsed, $bAllMakeTargeted) Then
+		$aSidesUsed[0] = False
+		$aSidesUsed[1] = False
+		$aSidesUsed[2] = False
+		$aSidesUsed[3] = False
+		$bAllMakeTargeted = False
+	EndIf
+
+	For $i = 0 To $eCSVLocateCount - 1
+		$g_abCSVPrepLocate[$iMode][$i] = $aLocate[$i]
+	Next
+	For $i = 0 To 13
+		$g_aiCSVPrepSideBWeights[$iMode][$i] = $aWeights[$i]
+	Next
+	For $i = 0 To 3
+		$g_abCSVPrepMakeSidesUsed[$iMode][$i] = $aSidesUsed[$i]
+	Next
+	$g_abCSVPrepAllMakeTargeted[$iMode] = $bAllMakeTargeted
+	$g_abCSVPrepHasPrioMake[$iMode] = $bPrioMakeFound
+	$g_abCSVPrepValid[$iMode] = True
+	$g_asCSVPrepTargetEnums[$iMode] = $sTargetEnums
+	$g_asCSVPrepName[$iMode] = $sFilename
+	$g_asCSVPrepMTime[$iMode] = $sMTime
+
+	SetDebugLog("CSV prep cached for " & $sFilename & " (mode " & $iMode & ")", $COLOR_DEBUG)
+	Return 1
+EndFunc   ;==>PrepareAttackCSV
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_ApplyPrepared
+; Description ...: Apply prepared CSV locate flags and weights for the current match.
+; Syntax ........: AttackCSV_ApplyPrepared($iMode, $iTH)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iTH               - Townhall level (may be "-").
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates locate flags and weights)
+Func AttackCSV_ApplyPrepared($iMode, $iTH)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+	If Not PrepareAttackCSV($iMode) Then
+		ParseAttackCSV_Read_SIDE_variables()
+		PrepareCSVBuildingsTH($iTH)
+		Return SetError(2, 0, 0)
+	EndIf
+
+	$g_bCSVLocateMine = $g_abCSVPrepLocate[$iMode][$eCSVLocateMine]
+	$g_bCSVLocateElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateElixir]
+	$g_bCSVLocateDrill = $g_abCSVPrepLocate[$iMode][$eCSVLocateDrill]
+	$g_bCSVLocateStorageGold = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageGold]
+	$g_bCSVLocateStorageElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageElixir]
+	$g_bCSVLocateStorageDarkElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageDarkElixir]
+	$g_bCSVLocateStorageTownHall = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageTownHall]
+	$g_bCSVLocateEagle = $g_abCSVPrepLocate[$iMode][$eCSVLocateEagle]
+	$g_bCSVLocateScatter = $g_abCSVPrepLocate[$iMode][$eCSVLocateScatter]
+	$g_bCSVLocateInferno = $g_abCSVPrepLocate[$iMode][$eCSVLocateInferno]
+	$g_bCSVLocateXBow = $g_abCSVPrepLocate[$iMode][$eCSVLocateXBow]
+	$g_bCSVLocateWizTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateWizTower]
+	$g_bCSVLocateMortar = $g_abCSVPrepLocate[$iMode][$eCSVLocateMortar]
+	$g_bCSVLocateAirDefense = $g_abCSVPrepLocate[$iMode][$eCSVLocateAirDefense]
+	$g_bCSVLocateSweeper = $g_abCSVPrepLocate[$iMode][$eCSVLocateSweeper]
+	$g_bCSVLocateMonolith = $g_abCSVPrepLocate[$iMode][$eCSVLocateMonolith]
+	$g_bCSVLocateFireSpitter = $g_abCSVPrepLocate[$iMode][$eCSVLocateFireSpitter]
+	$g_bCSVLocateMultiArcherTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateMultiArcherTower]
+	$g_bCSVLocateMultiGearTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateMultiGearTower]
+	$g_bCSVLocateRicochetCannon = $g_abCSVPrepLocate[$iMode][$eCSVLocateRicochetCannon]
+	$g_bCSVLocateSuperWizTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateSuperWizTower]
+	$g_bCSVLocateRevengeTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateRevengeTower]
+	$g_bCSVLocateWall = $g_abCSVPrepLocate[$iMode][$eCSVLocateWall]
+
+	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
+		$g_aiCSVSideBWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
+	Next
+
+	If $g_abCSVPrepHasPrioMake[$iMode] Then _CSVEnablePrioLocateFromWeights()
+	PrepareCSVBuildingsTH($iTH)
+	Return 1
+EndFunc   ;==>AttackCSV_ApplyPrepared
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_GetPreparedMakeUsage
+; Description ...: Retrieve cached MAKE side usage and targeted-only state for a mode.
+; Syntax ........: AttackCSV_GetPreparedMakeUsage($iMode, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $aSidesUsed        - [out] Array [TL, TR, BL, BR] of used sides (Boolean).
+;                  $bAllMakeTargeted  - [out] True if all MAKE commands are targeted.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (reads prep cache)
+Func AttackCSV_GetPreparedMakeUsage($iMode, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+	If Not PrepareAttackCSV($iMode) Then Return SetError(2, 0, 0)
+
+	Local $aLocal[4] = [False, False, False, False]
+	For $i = 0 To 3
+		$aLocal[$i] = $g_abCSVPrepMakeSidesUsed[$iMode][$i]
+	Next
+	$aSidesUsed = $aLocal
+	$bAllMakeTargeted = $g_abCSVPrepAllMakeTargeted[$iMode]
+	Return 1
+EndFunc   ;==>AttackCSV_GetPreparedMakeUsage
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_GetTargetMaxReturnPoints
+; Description ...: Compute max return points for targeted-only MAKE using defense counts and PRIO weights.
+; Syntax ........: AttackCSV_GetTargetMaxReturnPoints($iMode, $iTH, $iCap)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iTH               - Townhall level (may be "-").
+;                  $iCap              - Max cap (0 disables).
+; Return values .: Success: integer max return points
+;                  Failure: Default on no override or @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (reads prep cache and building counts)
+Func AttackCSV_GetTargetMaxReturnPoints($iMode, $iTH, $iCap)
+	If $iCap <= 0 Then Return Default
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, Default)
+	If Not PrepareAttackCSV($iMode) Then Return SetError(2, 0, Default)
+
+	Local $bUnknownTH = False
+	Local $iTHLocal = _CSVNormalizeTH($iTH, $bUnknownTH)
+	Local $iMax = 0
+
+	If $g_abCSVPrepHasPrioMake[$iMode] Then
+		Local $aCandidateEnum[15] = [$eBldgEagle, $eBldgInferno, $eBldgXBow, $eBldgSuperWizTower, $eBldgWizTower, $eBldgMortar, $eBldgAirDefense, _
+				$eBldgScatter, $eBldgSweeper, $eBldgMonolith, $eBldgFireSpitter, $eBldgMultiArcherTower, $eBldgMultiGearTower, $eBldgRicochetCannon, $eBldgRevengeTower]
+		Local $aWeightIndex[15] = [0, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+		For $i = 0 To UBound($aCandidateEnum) - 1
+			Local $iWeightIndex = $aWeightIndex[$i]
+			If $iWeightIndex < 0 Or $iWeightIndex >= 14 Then ContinueLoop
+			If $g_aiCSVPrepSideBWeights[$iMode][$iWeightIndex] <= 0 Then ContinueLoop
+			Local $iQty = _CSVGetBldgMaxQty($aCandidateEnum[$i], $iTHLocal)
+			If $iQty > $iMax Then $iMax = $iQty
+		Next
+
+		If _CSVIsWeaponizedTownHall($iTHLocal) Then
+			Local $iTHWeight = 0
+			For $w = 0 To 13
+				If $g_aiCSVPrepSideBWeights[$iMode][$w] > $iTHWeight Then $iTHWeight = $g_aiCSVPrepSideBWeights[$iMode][$w]
+			Next
+			If $iTHWeight > 0 And $iMax < 1 Then $iMax = 1
+		EndIf
+	EndIf
+
+	If $g_asCSVPrepTargetEnums[$iMode] <> "" Then
+		Local $aEnums = StringSplit($g_asCSVPrepTargetEnums[$iMode], "|", $STR_NOCOUNT)
+		For $i = 0 To UBound($aEnums) - 1
+			Local $iEnum = Int($aEnums[$i])
+			If $iEnum <= 0 Then ContinueLoop
+			Local $iQty = _CSVGetBldgMaxQty($iEnum, $iTHLocal)
+			If $iQty > $iMax Then $iMax = $iQty
+		Next
+	EndIf
+
+	If $iMax <= 0 Then Return Default
+	If $iMax > Int($iCap) Then $iMax = Int($iCap)
+	Return $iMax
+EndFunc   ;==>AttackCSV_GetTargetMaxReturnPoints
+
+; Side-effect: impure-deterministic (mutates prep locate flags)
+Func _CSVPrepEnablePrioLocateFromWeights(ByRef $aLocate, ByRef $aWeights)
+	If $aWeights[0] > 0 Then $aLocate[$eCSVLocateEagle] = True
+	If $aWeights[1] > 0 Then $aLocate[$eCSVLocateInferno] = True
+	If $aWeights[2] > 0 Then $aLocate[$eCSVLocateXBow] = True
+	If $aWeights[3] > 0 Then
+		$aLocate[$eCSVLocateWizTower] = True
+		$aLocate[$eCSVLocateSuperWizTower] = True
+	EndIf
+	If $aWeights[4] > 0 Then $aLocate[$eCSVLocateMortar] = True
+	If $aWeights[5] > 0 Then $aLocate[$eCSVLocateAirDefense] = True
+	If $aWeights[6] > 0 Then $aLocate[$eCSVLocateScatter] = True
+	If $aWeights[7] > 0 Then $aLocate[$eCSVLocateSweeper] = True
+	If $aWeights[8] > 0 Then $aLocate[$eCSVLocateMonolith] = True
+	If $aWeights[9] > 0 Then $aLocate[$eCSVLocateFireSpitter] = True
+	If $aWeights[10] > 0 Then $aLocate[$eCSVLocateMultiArcherTower] = True
+	If $aWeights[11] > 0 Then $aLocate[$eCSVLocateMultiGearTower] = True
+	If $aWeights[12] > 0 Then $aLocate[$eCSVLocateRicochetCannon] = True
+	If $aWeights[13] > 0 Then $aLocate[$eCSVLocateRevengeTower] = True
+EndFunc   ;==>_CSVPrepEnablePrioLocateFromWeights
+
+; Side-effect: impure-deterministic (mutates prep locate flags)
+Func _CSVPrepApplyMakeTarget(ByRef $aLocate, $sTarget, ByRef $bPrioMakeFound, ByRef $sTargetEnums)
+	Switch $sTarget
+		Case "PRIO"
+			$bPrioMakeFound = True
+			Return True
+		Case "TOWNHALL"
+			$aLocate[$eCSVLocateStorageTownHall] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgTownHall)
+			Return True
+		Case "EAGLE"
+			$aLocate[$eCSVLocateEagle] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgEagle)
+			Return True
+		Case "INFERNO"
+			$aLocate[$eCSVLocateInferno] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgInferno)
+			Return True
+		Case "XBOW"
+			$aLocate[$eCSVLocateXBow] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgXBow)
+			Return True
+		Case "SCATTER"
+			$aLocate[$eCSVLocateScatter] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgScatter)
+			Return True
+		Case "WIZTOWER"
+			$aLocate[$eCSVLocateWizTower] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgWizTower)
+			Return True
+		Case "MORTAR"
+			$aLocate[$eCSVLocateMortar] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMortar)
+			Return True
+		Case "AIRDEFENSE"
+			$aLocate[$eCSVLocateAirDefense] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgAirDefense)
+			Return True
+		Case "SWEEPER"
+			$aLocate[$eCSVLocateSweeper] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgSweeper)
+			Return True
+		Case "MONOLITH"
+			$aLocate[$eCSVLocateMonolith] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMonolith)
+			Return True
+		Case "FIRESPITTER"
+			$aLocate[$eCSVLocateFireSpitter] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgFireSpitter)
+			Return True
+		Case "MULTIARCHER"
+			$aLocate[$eCSVLocateMultiArcherTower] = True
+			$aLocate[$eCSVLocateMultiGearTower] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiArcherTower)
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiGearTower)
+			Return True
+		Case "MULTIGEAR"
+			$aLocate[$eCSVLocateMultiGearTower] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgMultiGearTower)
+			Return True
+		Case "RICOCHETCA"
+			$aLocate[$eCSVLocateRicochetCannon] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgRicochetCannon)
+			Return True
+		Case "SUPERWIZTW"
+			$aLocate[$eCSVLocateSuperWizTower] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgSuperWizTower)
+			Return True
+		Case "REVENGETW"
+			$aLocate[$eCSVLocateRevengeTower] = True
+			_CSVPrepAddTargetEnum($sTargetEnums, $eBldgRevengeTower)
+			Return True
+		Case "EX-WALL", "IN-WALL"
+			$aLocate[$eCSVLocateWall] = True
+			Return True
+	EndSwitch
+	Return False
+EndFunc   ;==>_CSVPrepApplyMakeTarget
+
+; Side-effect: impure-deterministic (updates enum list)
+Func _CSVPrepAddTargetEnum(ByRef $sTargetEnums, $iEnum)
+	If $iEnum <= 0 Then Return
+	Local $sNeedle = "|" & $iEnum & "|"
+	Local $sHay = "|" & $sTargetEnums & "|"
+	If StringInStr($sHay, $sNeedle) > 0 Then Return
+	If $sTargetEnums = "" Then
+		$sTargetEnums = $iEnum
+	Else
+		$sTargetEnums &= "|" & $iEnum
+	EndIf
+EndFunc   ;==>_CSVPrepAddTargetEnum
+
+; Side-effect: impure-deterministic (clears prep cache for mode)
+Func _CSVPrepResetMode($iMode)
+	For $i = 0 To $eCSVLocateCount - 1
+		$g_abCSVPrepLocate[$iMode][$i] = False
+	Next
+	For $i = 0 To 13
+		$g_aiCSVPrepSideBWeights[$iMode][$i] = 0
+	Next
+	For $i = 0 To 3
+		$g_abCSVPrepMakeSidesUsed[$iMode][$i] = False
+	Next
+	$g_abCSVPrepAllMakeTargeted[$iMode] = False
+	$g_abCSVPrepHasPrioMake[$iMode] = False
+	$g_abCSVPrepValid[$iMode] = False
+	$g_asCSVPrepTargetEnums[$iMode] = ""
+	$g_asCSVPrepName[$iMode] = ""
+	$g_asCSVPrepMTime[$iMode] = ""
+EndFunc   ;==>_CSVPrepResetMode
+
+; Side-effect: pure (reads max building counts)
+Func _CSVGetBldgMaxQty($iBuildingType, $iTH)
+	If $iTH < 1 Then Return 0
+	Local $aMaxQty = _ObjGetValue($g_oBldgMaxQty, $iBuildingType)
+	If @error Then Return 0
+	If Not IsArray($aMaxQty) Or UBound($aMaxQty) < $iTH Then Return 0
+	Return $aMaxQty[$iTH - 1]
+EndFunc   ;==>_CSVGetBldgMaxQty
+
 ; Side-effect: impure-deterministic (mutates locate flags using PRIO weights)
 Func _CSVEnablePrioLocateFromWeights()
 	If $g_aiCSVSideBWeights[0] > 0 Then
