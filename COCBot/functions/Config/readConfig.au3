@@ -648,7 +648,7 @@ Func ReadConfig_600_12()
 	IniReadS($g_abChkDonateQueueOnly[1], $g_sProfileConfigPath, "donate", "chkDonateQueueOnly[1]", True, "Bool")
 	For $i = 0 To $eTroopCount - 1
 		Local $sIniName = ""
-		If $i >= $eTroopBarbarian And $i <= $eTroopHeadhunter Then
+		If $i >= $eTroopBarbarian And $i <= $eTroopFurnace Then
 			$sIniName = StringReplace($g_asTroopNamesPlural[$i], " ", "")
 		EndIf
 
@@ -679,11 +679,16 @@ Func ReadConfig_600_12()
 	$g_asTxtDonateTroop[$eTroopSuperMiner] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperMiners", "sminer|smine"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopElectroDragon] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateElectroDragons", "electro dragon|electrodrag|edrag"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopYeti] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateYetis", "Yeti|Yetis"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopSuperYeti] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperYetis", "SYeti|SYetis"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopDragonRider] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateDragonRiders", "Dragon Rider|Dragon Riders"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopElectroTitan] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateElectroTitans", "ETitan|Titan"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopRootRider] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateRootRiders", "root riders|root rider|rootr"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopThrower] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateThrowers", "thrower|throwers"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopMeteorGolem] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateMeteorGolems", "mgolem|meteor"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopMinion] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateMinions", "minions|minion"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopSuperMinion] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperMinions", "Super minions|Super minion"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopHogRider] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateHogRiders", "hogriders|hogs|hog"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopSuperHogRider] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperHogRiders", "super hog riders|super hog rider|shogs|shog"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopValkyrie] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateValkyries", "valkyries|valkyrie|valk"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopSuperValkyrie] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperValkyries", "Super valkyries|Super valkyrie|Super valk"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopGolem] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateGolems", "golem"), "|", @CRLF)
@@ -695,6 +700,9 @@ Func ReadConfig_600_12()
 	$g_asTxtDonateTroop[$eTroopSuperBowler] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSuperBowlers", "Super Bowler|SBowl"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopIceGolem] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateIceGolems", "ice golem|ice golems"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopHeadhunter] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateHeadhunters", "headhunter|hunt"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopAppWard] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateApprenticeWardens", "apprentice warden|app warden|appward"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopDruid] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateDruids", "druid|druids"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopFurnace] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateFurnaces", "furnace|furnaces"), "|", @CRLF)
 
 	For $i = 0 To $eSpellCount - 1
 		Local $sIniName = $g_asSpellNames[$i] & "Spells"
@@ -714,6 +722,10 @@ Func ReadConfig_600_12()
 	$g_asTxtDonateSpell[$eSpellHaste] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateHasteSpells", "haste"), "|", @CRLF)
 	$g_asTxtDonateSpell[$eSpellSkeleton] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateSkeletonSpells", "skeleton"), "|", @CRLF)
 	$g_asTxtDonateSpell[$eSpellBat] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateBatSpells", "bat"), "|", @CRLF)
+	$g_asTxtDonateSpell[$eSpellRevive] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateReviveSpells", "revive|rev|rv"), "|", @CRLF)
+	$g_asTxtDonateSpell[$eSpellTotem] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateTotemSpells", "totem|tspell"), "|", @CRLF)
+	$g_asTxtDonateSpell[$eSpellOverGrowth] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateOverGrowthSpells", "overgrowth|og"), "|", @CRLF)
+	$g_asTxtDonateSpell[$eSpellIceBlock] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateIceBlockSpells", "iceblock|ib"), "|", @CRLF)
 
 	For $i = $eSiegeWallWrecker to $eSiegeMachineCount - 1
 		Local $index = $eTroopCount
@@ -728,6 +740,7 @@ Func ReadConfig_600_12()
 	$g_asTxtDonateTroop[$eTroopCount + $eSiegeLogLauncher] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateLogL", "Log Launcher"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopCount + $eSiegeFlameFlinger] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateFlameF", "Flame Flinger"), "|", @CRLF)
 	$g_asTxtDonateTroop[$eTroopCount + $eSiegeBattleDrill] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateBattleD", "Battle Drill"), "|", @CRLF)
+	$g_asTxtDonateTroop[$eTroopCount + $eSiegeTroopLauncher] = StringReplace(IniRead($g_sProfileConfigPath, "donate", "txtDonateTroopL", "Troop Launcher"), "|", @CRLF)
 
 	$g_bChkExtraAlphabets = (IniRead($g_sProfileConfigPath, "donate", "chkExtraAlphabets", "0") = "1")
 	$g_bChkExtraChinese = (IniRead($g_sProfileConfigPath, "donate", "chkExtraChinese", "0") = "1")

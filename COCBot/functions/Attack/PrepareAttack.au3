@@ -95,7 +95,7 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 							; Select castle, siege machine and warden mode
 							If $pMatchMode = $DB Or $pMatchMode = $LB Then
 								Switch $avAttackBar[$j][0]
-									Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD
+									Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL
 										Local $tmpSiege = $avAttackBar[$j][0]
 										If $g_aiAttackUseSiege[$pMatchMode] <= $eSiegeMachineCount + 1 Then
 											SelectCastleOrSiege($avAttackBar[$j][0], Number($avAttackBar[$j][5]), $g_aiAttackUseSiege[$pMatchMode])
@@ -158,7 +158,7 @@ EndFunc   ;==>PrepareAttack
 Func SelectCastleOrSiege(ByRef $iTroopIndex, $iX, $iCmbSiege)
 
 	;Local $hStarttime = _Timer_Init()
-	Local $aSiegeTypes[9] = [$eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, "Any"]
+	Local $aSiegeTypes[10] = [$eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, "Any"]
 
 	Local $ToUse = $aSiegeTypes[$iCmbSiege]
 	Local $bNeedSwitch = False, $bAnySiege = False, $NeedHigherLevel = False
@@ -172,7 +172,7 @@ Func SelectCastleOrSiege(ByRef $iTroopIndex, $iX, $iCmbSiege)
 				SetLog(GetTroopName($iTroopIndex) & " level " & $g_iSiegeLevel & " detected. Looking for higher level or Donated Siege.")
 			EndIf
 
-		Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD ; NOT the same as current castle/siege
+		Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL ; NOT the same as current castle/siege
 			$bNeedSwitch = True
 			$NeedHigherLevel = True
 			SetLog(GetTroopName($iTroopIndex) & ($ToUse <> $eCastle ? " level " & $g_iSiegeLevel & " detected. Try looking for " : " detected. Switching to ") & GetTroopName($ToUse))
@@ -233,7 +233,7 @@ Func SelectCastleOrSiege(ByRef $iTroopIndex, $iX, $iCmbSiege)
 						Local $iSiegeIndex
 						For $i = 0 To UBound($aSearchResult) - 1
 							$iSiegeIndex = $aSearchResult[$i][5]
-							If $iSiegeIndex >= $eWallW And $iSiegeIndex <= $eBattleD Then
+							If $iSiegeIndex >= $eWallW And $iSiegeIndex <= $eTroopL Then
 								Local $SiegeLevel = $aSearchResult[$i][3]
 								Local $OwnSiege = $aSearchResult[$i][4]
 								Local $SiegeName = $aSearchResult[$i][0]
@@ -276,7 +276,7 @@ Func SelectCastleOrSiege(ByRef $iTroopIndex, $iX, $iCmbSiege)
 							For $i = 0 To UBound($aSearchResult) - 1
 								Local $iSiegeIndex = $aSearchResult[$i][5]
 								SetDebugLog(GetTroopName($iSiegeIndex))
-								If $iSiegeIndex >= $eWallW And $iSiegeIndex <= $eBattleD Then
+								If $iSiegeIndex >= $eWallW And $iSiegeIndex <= $eTroopL Then
 									Local $OwnSiege = $aSearchResult[$i][4]
 									Local $SiegeLevel = $aSearchResult[$i][3]
 									SetDebugLog($i & ". Name: " & $aSearchResult[$i][0] & ", OwnSiege: " & $OwnSiege & ", Level: " & $SiegeLevel & ", Coords: " & $aSearchResult[$i][1] & "," & $aSearchResult[$i][2])
@@ -422,7 +422,7 @@ Func IsUnitUsed($iMatchMode, $iTroopIndex)
 	;				If (BitAND($g_aiAttackUseHeroes[$iMatchMode], $eHeroWarden) = $eHeroWarden) Then Return True
 	;			Case $eChampion
 	;				If (BitAND($g_aiAttackUseHeroes[$iMatchMode], $eHeroChampion) = $eHeroChampion) Then Return True
-	;			Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD
+	;			Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL
 	;				If $g_abAttackDropCC[$iMatchMode] Then Return True
 	;			;Case $eLSpell
 	;			;	If $g_abAttackUseLightSpell[$iMatchMode] Or $g_bSmartZapEnable Then Return True

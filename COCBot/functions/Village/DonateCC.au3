@@ -944,7 +944,7 @@ Func getArmyRequest($DonateButton = -1)
 				$g_aiDonSpellQuant[$i][0] = $iArmyIndex
 				$g_aiDonSpellQuant[$i][1] = (Number($sQuant) > 0 ? $sQuant : 1)
 			; Sieges
-			ElseIf $iArmyIndex >= $eWallW And $iArmyIndex <= $eBattleD Then
+			ElseIf $iArmyIndex >= $eWallW And $iArmyIndex <= $eTroopL Then
 				$sClanText &= ", " & $g_asSiegeMachineNames[$iArmyIndex - $eWallW]
 				$sDebugText &= ", " & $g_asSiegeMachineNames[$iArmyIndex - $eWallW] & ":" & (Number($sQuant) > 0 ? $sQuant : 1)
 			ElseIf $iArmyIndex = -1 Then
