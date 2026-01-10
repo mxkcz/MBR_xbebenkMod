@@ -277,6 +277,7 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 	Local $res = DllCallMyBot("SearchMultipleTilesBetweenLevels", "handle", $g_hHBitmap2, "str", $directory, "str", $fullCocAreas, "Int", $maxReturnPoints, "str", $redLines, "Int", $minLevel, "Int", $maxLevel)
 	If @error Then _logErrorDLLCall($g_sLibMyBotPath, @error)
 	If checkImglocError($res, "SearchMultipleTilesBetweenLevels", $directory) = True Then ; check for bad values returned from DLL
+		_CSVRecordFindTime($iBuildingType, $hTimer)
 		SetError(2, 1, 1) ; set return = 1 when no building found
 		Return
 	EndIf
@@ -395,13 +396,24 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 	EndIf
 	SetLog("Total " & $g_sBldgNames[$iBuildingType] & " Buildings: " & $TotalBuildings)
 
-	Local $iTime = __TimerDiff($hTimer) * 0.001 ; Image search time saved to dictionary in seconds
-	_ObjAdd($g_oBldgAttackInfo, $iBuildingType & "_FINDTIME", $iTime)
-	If @error Then _ObjErrMsg("_ObjAdd" & $g_sBldgNames[$iBuildingType] & " _FINDTIME", @error) ; Log errors
+	Local $iTime = _CSVRecordFindTime($iBuildingType, $hTimer)
 
 	If $g_bDebugBuildingPos Then SetLog("  - Location(s) found in: " & Round($iTime, 2) & " seconds ", $COLOR_DEBUG)
 
 EndFunc   ;==>GetLocationBuilding
+
+; Side-effect: io (stores image search duration)
+Func _CSVRecordFindTime($iBuildingType, $hTimer)
+	If Not IsObj($g_oBldgAttackInfo) Then Return 0
+	Local $iTime = __TimerDiff($hTimer) * 0.001
+	If _ObjSearch($g_oBldgAttackInfo, $iBuildingType & "_FINDTIME") Then
+		_ObjPutValue($g_oBldgAttackInfo, $iBuildingType & "_FINDTIME", $iTime)
+	Else
+		_ObjAdd($g_oBldgAttackInfo, $iBuildingType & "_FINDTIME", $iTime)
+	EndIf
+	If @error Then _ObjErrMsg("_ObjAdd" & $g_sBldgNames[$iBuildingType] & " _FINDTIME", @error)
+	Return $iTime
+EndFunc   ;==>_CSVRecordFindTime
 
 ; Side-effect: io (logs summary from cached find times)
 Func CSV_LogPrepSummary($iTop = 3)
