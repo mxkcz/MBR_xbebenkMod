@@ -666,7 +666,7 @@ Func AttackSmartFarm($Nside, $SIDESNAMES)
 	$g_aiDeployHeroesPosition[0] = -1
 	$g_aiDeployHeroesPosition[1] = -1
 
-	LaunchTroopSmartFarm($listInfoDeploy, $g_iClanCastleSlot, $g_iKingSlot, $g_iQueenSlot, $g_iWardenSlot, $g_iChampionSlot, $g_iMinionPSlot, $SIDESNAMES)
+	LaunchTroopSmartFarm($listInfoDeploy, $g_iClanCastleSlot, $g_iKingSlot, $g_iQueenSlot, $g_iWardenSlot, $g_iChampionSlot, $g_iPrinceSlot, $SIDESNAMES)
 	
 	If Not $g_bRunState Then Return
 	If IsProblemAffect() Then Return

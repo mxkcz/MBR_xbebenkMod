@@ -606,7 +606,7 @@ Global Enum $eBarb, $eSBarb, $eArch, $eSArch, $eGiant, $eSGiant, $eGobl, $eSGobl
 			$eRBall, $eWiza, $eSWiza, $eHeal, $eDrag, $eSDrag, $ePekk, $eBabyD, $eInfernoD, $eMine, $eSMine, _
 			$eEDrag, $eYeti, $eSYeti, $eRDrag, $eETitan, $eRootR, $eThrow, $eMGolem, $eMini, $eSMini, $eHogs, $eSHogs, $eValk, $eSValk, $eGole, _
 			$eWitc, $eSWitc, $eLava, $eIceH, $eBowl, $eSBowl, $eIceG, $eHunt, $eAppWard, $eDruid, $eFurn, $eGSkel, $eRGhost, _
-			$ePWiza, $eIWiza, $eKing, $eQueen, $eWarden, $eChampion, $eMinionP, $eCastle, $eLSpell, $eHSpell, $eRSpell, _
+			$ePWiza, $eIWiza, $eKing, $eQueen, $eWarden, $eChampion, $ePrince, $eCastle, $eLSpell, $eHSpell, $eRSpell, _
 			$eJSpell, $eFSpell, $eCSpell, $eISpell, $eReSpell, $eRvSpell, $eTSpell, $eIBSpell, $ePSpell, $eESpell, $eHaSpell, $eSkSpell, $eBtSpell, $eOgSpell, _
 			$eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, $eArmyCount
 
@@ -704,12 +704,12 @@ Global Const $g_aiSiegeMachineSpace[$eSiegeMachineCount] = [1, 1, 1, 1, 1, 1, 1,
 Global Const $g_aiSiegeMachineDonateXP[$eSiegeMachineCount] = [30, 30, 30, 30, 30, 30, 30, 30]
 
 ; Hero Bitmaped Values
-Global Enum $eHeroNone = 0, $eHeroKing = 1, $eHeroQueen = 2, $eHeroWarden = 4, $eHeroChampion = 8, $eHeroMinionP = 16
+Global Enum $eHeroNone = 0, $eHeroKing = 1, $eHeroQueen = 2, $eHeroWarden = 4, $eHeroChampion = 8, $eHeroPrince = 16
 
 ; Hero standard values
 Global Enum $eHeroBarbarianKing, $eHeroArcherQueen, $eHeroGrandWarden, $eHeroRoyalChampion, $eHeroMinionPrince, $eHeroCount
 Global Const $g_asHeroNames[$eHeroCount] = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion", "Minion Prince"]
-Global Const $g_asHeroShortNames[$eHeroCount] = ["King", "Queen", "Warden", "Champion", "MinionP"]
+Global Const $g_asHeroShortNames[$eHeroCount] = ["King", "Queen", "Warden", "Champion", "Prince"]
 Global $g_aiHeroBoost[$eHeroCount] = ["1970/01/01 00:00:00", "1970/01/01 00:00:00", "1970/01/01 00:00:00", "1970/01/01 00:00:00"] ; Use Epoch as standard values :)
 
 ; Leagues MainVillage
@@ -807,7 +807,7 @@ Func GetTroopName(Const $iIndex, $iQuantity = 1)
 		Return $iQuantity > 1 ? $g_asTroopNamesPlural[$iIndex] : $g_asTroopNames[$iIndex]
 	ElseIf $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then
 		Return $iQuantity > 1 ? $g_asSpellNames[$iIndex - $eLSpell] & " Spells" : $g_asSpellNames[$iIndex - $eLSpell] & " Spell"
-	ElseIf $iIndex >= $eKing And $iIndex <= $eMinionP Then
+	ElseIf $iIndex >= $eKing And $iIndex <= $ePrince Then
 		Return $g_asHeroNames[$iIndex - $eKing]
 	ElseIf $iIndex >= $eWallW And $iIndex <= $eTroopL Then
 		Return $g_asSiegeMachineNames[$iIndex - $eWallW]
@@ -1218,8 +1218,8 @@ Global $g_bSearchAttackNowEnable = False, $g_iSearchAttackNowDelay = 0, $g_bSear
 Global $g_asHeroHealTime[$eHeroCount] = ["", "", "", "", ""]
 
 ; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
-Global $g_iActivateQueen = 0, $g_iActivateKing = 0, $g_iActivateWarden = 0, $g_iActivateChampion = 0, $g_iActivateMinionP = 0
-Global $g_iDelayActivateQueen = 9000, $g_iDelayActivateKing = 9000, $g_iDelayActivateWarden = 10000, $g_iDelayActivateChampion = 9000, $g_iDelayActivateMinionP = 9000
+Global $g_iActivateQueen = 0, $g_iActivateKing = 0, $g_iActivateWarden = 0, $g_iActivateChampion = 0, $g_iActivatePrince = 0
+Global $g_iDelayActivateQueen = 9000, $g_iDelayActivateKing = 9000, $g_iDelayActivateWarden = 10000, $g_iDelayActivateChampion = 9000, $g_iDelayActivatePrince = 9000
 Global $g_aHeroesTimerActivation[$eHeroCount] = [0, 0, 0, 0, 0] ; $eHeroBarbarianKing | $eHeroArcherQueen | $eHeroGrandWarden | $eHeroRoyalChampion
 Global $g_bAttackPlannerEnable = False, $g_bAttackPlannerCloseCoC = False, $g_bAttackPlannerCloseAll = False, $g_bAttackPlannerSuspendComputer = False, $g_bAttackPlannerRandomEnable = False, _
 		$g_iAttackPlannerRandomTime = 0, $g_iAttackPlannerRandomTime = 0, $g_bAttackPlannerDayLimit = False, $g_iAttackPlannerDayMin = 12, $g_iAttackPlannerDayMax = 15
@@ -1554,7 +1554,7 @@ Global Const $g_aiUseBarcherMinion[28] = [$eBarb, $eSBarb, $eArch, $eSArch, $eMi
 Global Const $g_aaiTroopsToBeUsed[11] = [$g_aiUseAllTroops, $g_aiUseBarracks, $g_aiUseBarbs, $g_aiUseArchs, $g_aiUseBarcher, $g_aiUseBarbGob, $g_aiUseArchGob, $g_aiUseBarcherGiant, $g_aiUseBarcherGobGiant, $g_aiUseBarcherHog, $g_aiUseBarcherMinion]
 Global $g_avAttackTroops[$eDropOrderCount][6] ;11 Slots of troops -  Name, Amount, x-coord (+ 11 extended slots Slot11+)
 Global $g_bFullArmy = False ;Check for full army or not
-Global $g_iKingSlot = -1, $g_iQueenSlot = -1, $g_iWardenSlot = -1, $g_iChampionSlot = -1, $g_iMinionPSlot = -1, $g_iClanCastleSlot = -1
+Global $g_iKingSlot = -1, $g_iQueenSlot = -1, $g_iWardenSlot = -1, $g_iChampionSlot = -1, $g_iPrinceSlot = -1, $g_iClanCastleSlot = -1
 Global $g_iTotalAttackSlot = 10, $g_bDraggedAttackBar = False ; Slot11+
 Global $g_iSiegeLevel = 1
 
@@ -1568,8 +1568,8 @@ Global $g_bCheckKingPower = False ; Check for King activate power
 Global $g_bCheckQueenPower = False ; Check for Queen activate power
 Global $g_bCheckWardenPower = False ; Check for Warden activate power
 Global $g_bCheckChampionPower = False ; Check for Champion activate power
-Global $g_bCheckMinionPPower = False ; Check for Champion activate power
-Global $g_bDropQueen, $g_bDropKing, $g_bDropWarden, $g_bDropChampion, $g_bDropMinionP
+Global $g_bCheckPrincePower = False ; Check for Champion activate power
+Global $g_bDropQueen, $g_bDropKing, $g_bDropWarden, $g_bDropChampion, $g_bDropPrince
 
 ; Attack - Troops
 Global $g_aiSlotInArmy[$eTroopCount] = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]

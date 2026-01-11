@@ -16,7 +16,7 @@
 
 Global $g_aiPrepDon[6] = [0, 0, 0, 0, 0, 0]
 Global $g_iTotalDonateTroopCapacity, $g_iTotalDonateSpellCapacity, $g_iTotalDonateSiegeMachineCapacity
-Global $g_iDonTroopsLimit = 8, $iDonSpellsLimit = 1, $g_iDonTroopsAv = 0, $g_iDonSpellsAv = 0
+Global $g_iDonTroopsLimit = 55, $iDonSpellsLimit = 4, $g_iDonTroopsAv = 0, $g_iDonSpellsAv = 0
 Global $g_iDonTroopsQuantityAv = 0, $g_iDonTroopsQuantity = 0, $g_iDonSpellsQuantityAv = 0, $g_iDonSpellsQuantity = 0
 Global $g_bSkipDonTroops = False, $g_bSkipDonSpells = False, $g_bSkipDonSiege = False, $g_bNewSystemToDonate = False
 Global $g_bDonateAllRespectBlk = False ; is turned on off durning donate all section, must be false all other times

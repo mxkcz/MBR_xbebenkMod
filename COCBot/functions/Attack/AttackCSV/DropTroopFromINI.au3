@@ -229,11 +229,11 @@ Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $i
 							Else
 								dropHeroes($pixel[0], $pixel[1], -1, -1, -1, $troopPosition) ; was $g_iChampionSlot, Slot11+
 							EndIf
-						Case $eMinionP
+						Case $ePrince
 							If $bDebug Then
 								SetLog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ",-1, -1, -1," & $troopPosition & ") ")
 							Else
-								dropHeroes($pixel[0], $pixel[1], -1, -1, -1, $troopPosition) ; was $g_iMinionPSlot, Slot11+
+								dropHeroes($pixel[0], $pixel[1], -1, -1, -1, $troopPosition) ; was $g_iPrinceSlot, Slot11+
 							EndIf
 						Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF
 							If $bDebug Then
