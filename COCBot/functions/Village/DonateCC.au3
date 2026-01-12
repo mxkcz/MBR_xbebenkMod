@@ -267,7 +267,7 @@ Func DonateCC($bTest = False, $bSwitch = False, $bClanChatOpened = False)
 							If $g_abChkDonateTroop[$iTroopIndex] Then
 								If CheckDonateTroop($iTroopIndex, $g_asTxtDonateTroop[$iTroopIndex], $ClanString, $g_bNewSystemToDonate) Then
 									Local $iQuant = -1, $Quant = 0
-									$iQuant = _ArraySearch($g_aiDonTroopQuant, $iTroopIndex, 0, 0, 0, 0, 1, 0)
+									$iQuant = _ArraySearch($g_aiDonTroopQuant, $iTroopIndex, 0, 0, 0, 0, 0, 0)
 									If $iQuant <> -1 Then $Quant = $g_aiDonTroopQuant[$iQuant][1]
 									DonateTroopType($iTroopIndex, $aiDonateButton, $Quant)
 									If _Sleep(500) Then Return
@@ -288,7 +288,7 @@ Func DonateCC($bTest = False, $bSwitch = False, $bClanChatOpened = False)
 						If $g_abChkDonateTroop[$index] Then
 							If CheckDonateSiege($SiegeIndex, $g_asTxtDonateTroop[$index], $ClanString, $g_bNewSystemToDonate) Then
 								Local $iQuant = -1, $Quant = 0
-								$iQuant = _ArraySearch($g_aiDonTroopQuant, $SiegeIndex, 0, 0, 0, 0, 1, 0)
+								$iQuant = _ArraySearch($g_aiDonTroopQuant, $SiegeIndex, 0, 0, 0, 0, 0, 0)
 								If $iQuant <> -1 Then $Quant = $g_aiDonTroopQuant[$iQuant][1]
 								DonateSiegeType($SiegeIndex, $aiDonateButton)
 								If _Sleep(500) Then Return
@@ -308,7 +308,7 @@ Func DonateCC($bTest = False, $bSwitch = False, $bClanChatOpened = False)
 						If $g_abChkDonateSpell[$iSpellIndex] Then
 							If CheckDonateSpell($iSpellIndex, $g_asTxtDonateSpell[$iSpellIndex], $ClanString, $g_bNewSystemToDonate) Then
 								Local $iQuant = -1, $Quant = 0
-								$iQuant = _ArraySearch($g_aiDonSpellQuant, $iSpellIndex, 0, 0, 0, 0, 1, 0)
+								$iQuant = _ArraySearch($g_aiDonSpellQuant, $iSpellIndex, 0, 0, 0, 0, 0, 0)
 								If $iQuant <> -1 Then $Quant = $g_aiDonSpellQuant[$iQuant][1]
 								DonateSpellType($iSpellIndex, $aiDonateButton, $Quant)
 							EndIf
@@ -483,7 +483,7 @@ Func DonateSpellType($iSpellIndex, $aiDonateButton, $Quant = 0)
 	If $g_bDebugSetLog Then SetLog("donate : " & $g_asSpellNames[$iSpellIndex], $COLOR_ERROR)
 	If $g_bDebugSetLog Then SetLog("coordinate : " & _ArrayToString($aSLot), $COLOR_ERROR)
 	ClickP($aSlot, $Quant, 200, "Donate " & $g_asSpellNames[$iSpellIndex])
-	$g_aiDonateSpells[$iSpellIndex] += 1
+	$g_aiDonateSpells[$iSpellIndex] += $Quant
 	$g_aiDonateStatsSpells[$iSpellIndex][0] += $Quant
 	SetLog("Donating " & $Quant & " " & $g_asSpellNames[$iSpellIndex] & " Spell.", $COLOR_SUCCESS)
 	$g_bDonated = True
@@ -941,7 +941,7 @@ Func getArmyRequest($DonateButton = -1)
 			ElseIf $iArmyIndex >= $eLSpell And $iArmyIndex <= $eOgSpell Then
 				$sClanText &= ", " & $g_asSpellNames[$iArmyIndex - $eLSpell]
 			    $sDebugText &= ", " & $g_asSpellNames[$iArmyIndex - $eLSpell] & ":" & (Number($sQuant) > 0 ? $sQuant : 1)
-				$g_aiDonSpellQuant[$i][0] = $iArmyIndex
+				$g_aiDonSpellQuant[$i][0] = $iArmyIndex - $eLSpell
 				$g_aiDonSpellQuant[$i][1] = (Number($sQuant) > 0 ? $sQuant : 1)
 			; Sieges
 			ElseIf $iArmyIndex >= $eWallW And $iArmyIndex <= $eTroopL Then

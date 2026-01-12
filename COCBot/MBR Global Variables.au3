@@ -805,7 +805,7 @@ EndFunc   ;==>TroopIndexLookup
 Func GetTroopName(Const $iIndex, $iQuantity = 1)
 	If $iIndex >= $eBarb And $iIndex <= $eIWiza Then
 		Return $iQuantity > 1 ? $g_asTroopNamesPlural[$iIndex] : $g_asTroopNames[$iIndex]
-	ElseIf $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then
+	ElseIf $iIndex >= $eLSpell And $iIndex <= $eIBSpell Then
 		Return $iQuantity > 1 ? $g_asSpellNames[$iIndex - $eLSpell] & " Spells" : $g_asSpellNames[$iIndex - $eLSpell] & " Spell"
 	ElseIf $iIndex >= $eKing And $iIndex <= $ePrince Then
 		Return $g_asHeroNames[$iIndex - $eKing]
