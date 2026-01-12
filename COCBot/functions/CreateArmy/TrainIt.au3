@@ -65,7 +65,7 @@ Func GetImageToUse(Const $iIndex)
 		EndIf
 	EndIf
 
-	If $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then
+	If $iIndex >= $eLSpell And $iIndex <= $eIBSpell Then
 		Local $sFilter = String($g_asSpellShortNames[$iIndex - $eLSpell]) & "*"
 		Local $asImageToUse = _FileListToArray($g_sImgTrainSpells, $sFilter, $FLTA_FILES, True)
 		If Not @error Then
@@ -137,7 +137,7 @@ Func GetFullName(Const $iIndex, Const $aTrainPos)
 		Return GetFullNameSlot($aTrainPos, $sTroopType)
 	EndIf
 
-	If $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then
+	If $iIndex >= $eLSpell And $iIndex <= $eIBSpell Then
 		Return GetFullNameSlot($aTrainPos, "Spell")
 	EndIf
 

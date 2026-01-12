@@ -697,7 +697,7 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	If $bIncludeHeroes And $iTroopIndex >= $eKing And $iTroopIndex <= $ePrince Then
 		Return $g_asHeroShortNames[$iTroopIndex - $eKing]
 	EndIf
-	If $bIncludeSpells And $iTroopIndex >= $eLSpell And $iTroopIndex <= $eOgSpell Then
+	If $bIncludeSpells And $iTroopIndex >= $eLSpell And $iTroopIndex <= $eIBSpell Then
 		Return $g_asSpellShortNames[$iTroopIndex - $eLSpell]
 	EndIf
 	Return ""

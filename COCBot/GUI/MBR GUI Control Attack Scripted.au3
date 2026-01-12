@@ -632,6 +632,20 @@ Func AttackCSVSettings_ReloadFromCSV()
 	AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
 EndFunc   ;==>AttackCSVSettings_ReloadFromCSV
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_AttackNowDB
+; Description ...: Run a manual DB test attack using the selected CSV script with updated CSV precalc.
+; Syntax ........: AttackCSVSettings_AttackNowDB()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; Side-effect: automation (triggers attack flow using DB scripted settings)
 Func AttackCSVSettings_AttackNowDB()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
@@ -653,8 +667,11 @@ Func AttackCSVSettings_AttackNowDB()
 	$g_sAttackScrScriptName[$DB] = $sScript
 	$g_iMatchMode = $DB
 	$g_bRunState = True
+	If Not PrepareAttackCSV($g_iMatchMode, True) Then
+		SetDebugLog("CSV settings DB test: precalc failed, continuing with live scan", $COLOR_WARNING)
+	EndIf
 	PrepareAttack($g_iMatchMode)
-	Attack()
+	Algorithm_AttackCSV()
 	$g_aiCurrentSiegeMachines = $tempSieges
 	$g_bRunState = $tempbRunState
 EndFunc   ;==>AttackCSVSettings_AttackNowDB

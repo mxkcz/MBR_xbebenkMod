@@ -932,13 +932,13 @@ Func getArmyRequest($DonateButton = -1)
 			Local $sQuant = getOcrAndCapture("coc-singlereq", $axCoord[$iPos], $aiDonateCoords[1] - 88, 18, 15, True)
 			$iArmyIndex = TroopIndexLookup($aQuick[$i][0])
 			; Troops
-			If $iArmyIndex >= $eBarb And $iArmyIndex <= $eAppWard Then
+			If $iArmyIndex >= $eBarb And $iArmyIndex <= $eFurn Then
 				$sClanText &= ", " & $g_asTroopNames[$iArmyIndex]
 				$sDebugText &= ", " & $g_asTroopNames[$iArmyIndex] & ":" & (Number($sQuant) > 0 ? $sQuant : 1)
 				$g_aiDonTroopQuant[$i][0] = $iArmyIndex
 				$g_aiDonTroopQuant[$i][1] = (Number($sQuant) > 0 ? $sQuant : 1)
 			; Spells
-			ElseIf $iArmyIndex >= $eLSpell And $iArmyIndex <= $eOgSpell Then
+			ElseIf $iArmyIndex >= $eLSpell And $iArmyIndex <= $eIBSpell Then
 				$sClanText &= ", " & $g_asSpellNames[$iArmyIndex - $eLSpell]
 			    $sDebugText &= ", " & $g_asSpellNames[$iArmyIndex - $eLSpell] & ":" & (Number($sQuant) > 0 ? $sQuant : 1)
 				$g_aiDonSpellQuant[$i][0] = $iArmyIndex - $eLSpell

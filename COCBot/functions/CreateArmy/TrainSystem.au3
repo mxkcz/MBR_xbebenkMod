@@ -473,7 +473,7 @@ Func DragIfNeeded($Troop)
 	Local $iIndex = TroopIndexLookup($Troop, "DragIfNeeded")
 	Local $bDragLeft = False, $bDragRight = False
 
-	If $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then Return True ;skip drag on spell
+	If $iIndex >= $eLSpell And $iIndex <= $eIBSpell Then Return True ;skip drag on spell
 	If QuickMIS("BFI", $g_sImgTrainTroops & $Troop & "*", 70, 350, 780, 500) Then Return True ; Troop image found in current page (no need to drag)
 
 	If _PixelSearch(776, 354, 777, 355, Hex(0xD3D3CB, 6), 10, True, "DragIfNeeded") Then
@@ -548,7 +548,7 @@ EndFunc   ;==>IsElixirTroop
 
 Func IsDarkTroop($Troop)
 	Local $iIndex = TroopIndexLookup($Troop, "IsDarkTroop")
-	If $iIndex >= $eMini And $iIndex <= $eAppWard Then Return True
+	If $iIndex >= $eMini And $iIndex <= $eFurn Then Return True
 	Return False
 EndFunc   ;==>IsDarkTroop
 
@@ -560,13 +560,13 @@ EndFunc   ;==>IsElixirSpell
 
 Func IsDarkSpell($Spell)
 	Local $iIndex = TroopIndexLookup($Spell, "IsDarkSpell")
-	If $iIndex >= $ePSpell And $iIndex <= $eOgSpell Then Return True
+	If $iIndex >= $ePSpell And $iIndex <= $eIBSpell Then Return True
 	Return False
 EndFunc   ;==>IsDarkSpell
 
 Func IsSpellToBrew($sName)
 	Local $iIndex = TroopIndexLookup($sName, "IsSpellToBrew")
-	If $iIndex >= $eLSpell And $iIndex <= $eOgSpell Then Return True
+	If $iIndex >= $eLSpell And $iIndex <= $eIBSpell Then Return True
 	Return False
 EndFunc   ;==>IsSpellToBrew
 
@@ -790,7 +790,7 @@ Func GetSlotNumber($bSpells = False)
 
 			; Set Order of Spells display in Army Tab
 			Local Const $SpellsOrders = [$eLSpell, $eHSpell, $eRSpell, _
-			$eJSpell, $eFSpell, $eCSpell, $eISpell, $eReSpell, $ePSpell, $eESpell, $eHaSpell, $eSkSpell, $eBtSpell, $eOgSpell]
+			$eJSpell, $eFSpell, $eCSpell, $eISpell, $eReSpell, $ePSpell, $eESpell, $eHaSpell, $eSkSpell, $eBtSpell, $eIBSpell]
 
 			Local $allCurSpells[UBound($SpellsOrders)]
 
