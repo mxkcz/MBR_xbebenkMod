@@ -648,7 +648,7 @@ Global Const $g_asTroopNamesPlural[$eTroopCount] = [ _
 Global Const $g_asTroopShortNames[$eTroopCount] = [ _
 		"Barb", "SBarb", "Arch", "SArch", "Giant", "SGiant", "Gobl", "SGobl", "Wall", "SWall", "Ball", _
 		"RBall", "Wiza", "SWiza", "Heal", "Drag", "SDrag", "Pekk", "BabyD", "InfernoD", "Mine", "SMine", _
-		"EDrag", "Yeti", "SYeti", "RDrag", "ETitan", "RootR", "Throw", "MGolem", "Mini", "SMini", "Hogs", _
+		"EDrag", "Yeti", "SYeti", "RDrag", "ETitan", "RootR", "Throw", "MGol", "Mini", "SMini", "Hogs", _
 		"SHogs", "Valk", "SValk", "Gole", _
 		"Witc", "SWitc", "Lava", "IceH", "Bowl", "SBowl", "IceG", "Hunt", "AppWard", "Druid", "Furn", _
 		"GSkel", "RGhost", "PWiza", "IWiza"]
@@ -1367,7 +1367,7 @@ Global $g_avStarLabTroops[12][6]
 
 ; [0] Name, [1] Icon [2] ShortName
 Func TranslateTroopNames()
-	Dim $g_avLabTroops[54][3] = [ _
+	Dim $g_avLabTroops[59][3] = [ _
 			[GetTranslatedFileIni("MBR Global GUI Design", "Any", "Any"), $eIcnBlank], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtBarbarians", "Barbarians"), $eIcnBarbarian, "Barb"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtArchers", "Archers"), $eIcnArcher, "Arch"], _
@@ -1386,6 +1386,8 @@ Func TranslateTroopNames()
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtDragonRiders", "Dragon Riders"), $eIcnDragonRider, "RDrag"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtElectroTitans", "Electro Titans"), $eIcnElectroTitan, "ETitan"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtRootRiders", "Root Riders"), $eIcnRootRider, "RootR"], _
+			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtThrowers", "Throwers"), $eIcnThrower, "Throw"], _
+			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtMeteorGolems", "Meteor Golems"), $eIcnMeteorGolem, "MGol"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtLightningSpells", "Lightning Spell"), $eIcnLightSpell, "LSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtHealingSpells", "Healing Spell"), $eIcnHealSpell, "HSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtRageSpells", "Rage Spell"), $eIcnRageSpell, "RSpell"], _
@@ -1394,13 +1396,15 @@ Func TranslateTroopNames()
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtCloneSpells", "Clone Spell"), $eIcnCloneSpell, "CSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtInvisibilitySpells", "Invisibility Spell"), $eIcnInvisibilitySpell, "ISpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtRecallSpells", "Recall Spell"), $eIcnRecallSpell, "ReSpell"], _
+			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtReviveSpells", "Revive Spell"), $eIcnReviveSpell, "RvSpell"], _
+			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtTotemSpells", "Totem Spell"), $eIcnReviveSpell, "TSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtPoisonSpells", "Poison Spell"), $eIcnPoisonSpell, "PSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtEarthQuakeSpells", "EarthQuake Spell"), $eIcnEarthQuakeSpell, "ESpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtHasteSpells", "Haste Spell"), $eIcnHasteSpell, "HaSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtSkeletonSpells", "Skeleton Spell"), $eIcnSkeletonSpell, "SkSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtBatSpells", "Bat Spell"), $eIcnBatSpell, "BtSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtOverGrowthSpells", "OverGrowth Spell"), $eIcnOverGrowthSpell, "OgSpell"], _
-			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtOverGrowthSpells", "IceBlock Spell"), $eIcnOverGrowthSpell, "IBSpell"], _
+			[GetTranslatedFileIni("MBR Global GUI Design Names Spells", "TxtIceBlockSpells", "IceBlock Spell"), $eIcnOverGrowthSpell, "IBSpell"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtMinions", "Minions"), $eIcnMinion, "Mini"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtHogRiders", "Hog Riders"), $eIcnHogRider, "Hogs"], _
 			[GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtValkyries", "Valkyries"), $eIcnValkyrie, "Valk"], _
@@ -1656,6 +1660,7 @@ Global $g_abCSVPrepValid[$g_iModeCount]
 Global $g_asCSVPrepTargetEnums[$g_iModeCount]
 Global $g_asCSVPrepName[$g_iModeCount]
 Global $g_asCSVPrepMTime[$g_iModeCount]
+Global $g_sCSVPrioRedlineKey = ""
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F
 Global $ATTACKVECTOR_G, $ATTACKVECTOR_H, $ATTACKVECTOR_I, $ATTACKVECTOR_J, $ATTACKVECTOR_K, $ATTACKVECTOR_L

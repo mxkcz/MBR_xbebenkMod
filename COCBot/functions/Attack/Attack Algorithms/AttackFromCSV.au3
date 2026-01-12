@@ -390,7 +390,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Local $aResult
 
 	;00 read attack file SIDE row and valorize variables
-	AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
+	Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
 	$g_iCSVLastTroopPositionDropTroopFromINI = -1
 	If _Sleep($DELAYRESPOND) Then Return
 
@@ -411,6 +411,22 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		EndIf
 	EndIf
 
+	Local $bAnyLocate = False
+	If $bPrepOk And $g_abCSVPrepValid[$g_iMatchMode] Then
+		For $i = 0 To $eCSVLocateCount - 1
+			If $g_abCSVPrepLocate[$g_iMatchMode][$i] Then
+				$bAnyLocate = True
+				ExitLoop
+			EndIf
+		Next
+	Else
+		$bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
+				$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
+				$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
+				$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
+				$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
+	EndIf
+
 	;01 - TROOPS ------------------------------------------------------------------------------------------------------------------------------------------
 	debugAttackCSV("Troops to be used (purged from troops) ")
 	For $i = 0 To UBound($g_avAttackTroops) - 1 ; identify the position of this kind of troop
@@ -424,16 +440,21 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	SetDebugLog("Redline mode: " & $g_aiAttackScrRedlineRoutine[$g_iMatchMode])
 	SetDebugLog("Dropline mode: " & $g_aiAttackScrDroplineEdge[$g_iMatchMode])
 
-	_CaptureRegion2() ; ensure full screen is captured (not ideal for debugging as clean image was already saved, but...)
-	If $captureredarea Then _GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
-	If _Sleep($DELAYRESPOND) Then Return
+	Local $bSkipRedArea = (Not $bAnyLocate) And $bAllMakeTargeted
+	If $bSkipRedArea Then
+		SetDebugLog("CSV redline skipped: no locate flags and targeted-only MAKE", $COLOR_DEBUG)
+	Else
+		_CaptureRegion2() ; ensure full screen is captured (not ideal for debugging as clean image was already saved, but...)
+		If $captureredarea Then _GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
+		If _Sleep($DELAYRESPOND) Then Return
 
-	Local $htimerREDAREA = Round(__timerdiff($hTimer) / 1000, 2)
-	debugAttackCSV("Calculated  (in " & $htimerREDAREA & " seconds) :")
-	debugAttackCSV("	[" & (IsArray($g_aiPixelTopLeft) ? UBound($g_aiPixelTopLeft) : 0) & "] pixels TopLeft")
-	debugAttackCSV("	[" & (IsArray($g_aiPixelTopRight) ? UBound($g_aiPixelTopRight) : 0) & "] pixels TopRight")
-	debugAttackCSV("	[" & (IsArray($g_aiPixelBottomLeft) ? UBound($g_aiPixelBottomLeft) : 0) & "] pixels BottomLeft")
-	debugAttackCSV("	[" & (IsArray($g_aiPixelBottomRight) ? UBound($g_aiPixelBottomRight) : 0) & "] pixels BottomRight")
+		Local $htimerREDAREA = Round(__timerdiff($hTimer) / 1000, 2)
+		debugAttackCSV("Calculated  (in " & $htimerREDAREA & " seconds) :")
+		debugAttackCSV("	[" & (IsArray($g_aiPixelTopLeft) ? UBound($g_aiPixelTopLeft) : 0) & "] pixels TopLeft")
+		debugAttackCSV("	[" & (IsArray($g_aiPixelTopRight) ? UBound($g_aiPixelTopRight) : 0) & "] pixels TopRight")
+		debugAttackCSV("	[" & (IsArray($g_aiPixelBottomLeft) ? UBound($g_aiPixelBottomLeft) : 0) & "] pixels BottomLeft")
+		debugAttackCSV("	[" & (IsArray($g_aiPixelBottomRight) ? UBound($g_aiPixelBottomRight) : 0) & "] pixels BottomRight")
+	EndIf
 
 	; Drop line build moved to post-MAIN side so we can skip unused sides.
 
@@ -671,6 +692,9 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Else
 		SetLog("> Dark Elixir Storage detection not needed, skip", $COLOR_INFO)
 	EndIf
+
+	; Pre-fetch defense building locations in a single batch pass
+	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride)
 
 	; 06 - EAGLE ARTILLERY ------------------------------------------------------------------------
 
@@ -1070,6 +1094,76 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	CheckHeroesHealth()
 EndFunc   ;==>Algorithm_AttackCSV
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_BatchLocateBuildings
+; Description ...: Pre-fetch building locations for CSV logic in a single batch pass.
+; Syntax ........: AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride)
+; Parameters ....: $iMaxReturnPointsOverride - Max return points override passed to GetLocationBuilding.
+; Return values .: Success: 1
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride)
+	Local $aBatch[0]
+	Local $bUseWizForSuper = ($g_bCSVLocateSuperWizTower And $g_bCSVUseWizTowerForSuperWiz)
+
+	If $g_bCSVLocateEagle And ($g_iSearchTH = "-" Or $g_iSearchTH > 10) Then _CSVBatchAddUnique($aBatch, $eBldgEagle)
+	If $g_bCSVLocateScatter And ($g_iSearchTH = "-" Or $g_iSearchTH > 10) Then _CSVBatchAddUnique($aBatch, $eBldgScatter)
+	If $g_bCSVLocateInferno And ($g_iSearchTH = "-" Or $g_iSearchTH > 9) Then _CSVBatchAddUnique($aBatch, $eBldgInferno)
+	If $g_bCSVLocateXBow And ($g_iSearchTH = "-" Or $g_iSearchTH > 8) Then _CSVBatchAddUnique($aBatch, $eBldgXBow)
+	If $g_bCSVLocateWizTower Or $bUseWizForSuper Then _CSVBatchAddUnique($aBatch, $eBldgWizTower)
+	If $g_bCSVLocateSuperWizTower And Not $bUseWizForSuper Then _CSVBatchAddUnique($aBatch, $eBldgSuperWizTower)
+	If $g_bCSVLocateMortar Then _CSVBatchAddUnique($aBatch, $eBldgMortar)
+	If $g_bCSVLocateAirDefense Then _CSVBatchAddUnique($aBatch, $eBldgAirDefense)
+	If $g_bCSVLocateSweeper Then _CSVBatchAddUnique($aBatch, $eBldgSweeper)
+	If $g_bCSVLocateMonolith Then _CSVBatchAddUnique($aBatch, $eBldgMonolith)
+	If $g_bCSVLocateFireSpitter Then _CSVBatchAddUnique($aBatch, $eBldgFireSpitter)
+	If $g_bCSVLocateMultiArcherTower Then _CSVBatchAddUnique($aBatch, $eBldgMultiArcherTower)
+	If $g_bCSVLocateMultiGearTower Then _CSVBatchAddUnique($aBatch, $eBldgMultiGearTower)
+	If $g_bCSVLocateRicochetCannon Then _CSVBatchAddUnique($aBatch, $eBldgRicochetCannon)
+	If $g_bCSVLocateRevengeTower Then _CSVBatchAddUnique($aBatch, $eBldgRevengeTower)
+
+	If UBound($aBatch) = 0 Then Return 1
+
+	For $i = 0 To UBound($aBatch) - 1
+		Local $iEnum = $aBatch[$i]
+		If Not _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
+			Local $aResult = GetLocationBuilding($iEnum, $g_iSearchTH, False, $iMaxReturnPointsOverride)
+			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$iEnum], $COLOR_ERROR)
+		EndIf
+	Next
+	Return 1
+EndFunc   ;==>AttackCSV_BatchLocateBuildings
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVBatchAddUnique
+; Description ...: Add an enum value to a batch list if it is not already present.
+; Syntax ........: _CSVBatchAddUnique(ByRef $aBatch, $iEnum)
+; Parameters ....: $aBatch            - [in/out] array of enums
+;                  $iEnum             - enum to add
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVBatchAddUnique(ByRef $aBatch, $iEnum)
+	For $i = 0 To UBound($aBatch) - 1
+		If $aBatch[$i] = $iEnum Then Return
+	Next
+	Local $iSize = UBound($aBatch)
+	ReDim $aBatch[$iSize + 1]
+	$aBatch[$iSize] = $iEnum
+EndFunc   ;==>_CSVBatchAddUnique
 
 Func FindWallCSV(ByRef $aCSVExternalWall, ByRef $aCSVInternalWall)
 	SetLog("Searching for wall location")

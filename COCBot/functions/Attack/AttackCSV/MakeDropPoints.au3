@@ -440,16 +440,113 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 
 EndFunc   ;==>MakeTargetDropPoints
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioGetRedlineKey
+; Description ...: Read current redline string to invalidate PRIO caches between villages.
+; Syntax ........: _CSVPrioGetRedlineKey()
+; Parameters ....: None
+; Return values .: Success: redline string (may be empty)
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVPrioGetRedlineKey()
+	Local $sKey = ""
+	If IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sKey = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Then $sKey = ""
+	EndIf
+	If $sKey = "" And $g_sImglocRedline <> "" Then $sKey = $g_sImglocRedline
+	Return $sKey
+EndFunc   ;==>_CSVPrioGetRedlineKey
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioSyncRedlineCache
+; Description ...: Invalidate PRIO caches when redline changes.
+; Syntax ........: _CSVPrioSyncRedlineCache()
+; Parameters ....: None
+; Return values .: Success: 1 when redline key available
+;                  Failure: 0 when redline key missing
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVPrioSyncRedlineCache()
+	Local $sKey = _CSVPrioGetRedlineKey()
+	If $sKey = "" Then
+		If $g_sCSVPrioRedlineKey <> "" Then SetDebugLog("CSV PRIO cache cleared: redline unavailable", $COLOR_WARNING)
+		$g_sCSVPrioRedlineKey = ""
+		If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+		If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
+		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
+		Return 0
+	EndIf
+
+	If $g_sCSVPrioRedlineKey <> $sKey Then
+		$g_sCSVPrioRedlineKey = $sKey
+		If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+		If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
+		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
+		SetDebugLog("CSV PRIO cache reset: redline changed", $COLOR_DEBUG)
+	EndIf
+	Return 1
+EndFunc   ;==>_CSVPrioSyncRedlineCache
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioResetCache
+; Description ...: Reset PRIO plan/index caches while preserving target lists when redline is unchanged.
+; Syntax ........: _CSVPrioResetCache()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; Side-effect: io (clears PRIO caches)
 Func _CSVPrioResetCache()
-	If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+	_CSVPrioSyncRedlineCache()
+	If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
 	If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
 EndFunc   ;==>_CSVPrioResetCache
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioResolveBuilding
+; Description ...: Resolve the next PRIO target for a side using cached targets and plan.
+; Syntax ........: _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
+; Parameters ....: $side       - side string (e.g. TOP-LEFT-UP).
+;                  $sResolved  - [out] resolved building name.
+;                  $aLocation  - [out] resolved target point array.
+; Return values .: Success: enum value of resolved building.
+;                  Failure: -1 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; Side-effect: impure-deterministic (reads weight and building location data)
 Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 	Local $sSideKey = _CSVPrioGetSideKey($side)
 	If @error Then
+		SetError(7, 0, "")
+		Return -1
+	EndIf
+
+	If _CSVPrioSyncRedlineCache() = 0 Then
 		SetError(7, 0, "")
 		Return -1
 	EndIf
@@ -612,12 +709,8 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 	For $s = 0 To 3
 		If $aPrioCount[$s] <= 0 Then ContinueLoop
 		Local $sSideKey = $aSideKeys[$s]
-		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
-		If @error Then ContinueLoop
-
-		Local $aTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck)
-		If Not IsArray($aTargets) Or UBound($aTargets) = 0 Then ContinueLoop
-		_CSVPrioSortTargets($aTargets)
+		Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+		If @error Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then ContinueLoop
 
 		Local $aAvailable[UBound($aCandidateEnum)]
 		Local $iAvailTH = 0
@@ -730,8 +823,24 @@ Func _CSVPrioEnumIndex(ByRef $aCandidateEnum, $iEnum)
 	Return -1
 EndFunc   ;==>_CSVPrioEnumIndex
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioGetTargetsForSide
+; Description ...: Build or retrieve cached PRIO targets for a side.
+; Syntax ........: _CSVPrioGetTargetsForSide($sSideKey)
+; Parameters ....: $sSideKey   - side key (TOP-LEFT, TOP-RIGHT, BOTTOM-LEFT, BOTTOM-RIGHT).
+; Return values .: Success: target list array
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; Side-effect: impure-deterministic (reads building location data)
 Func _CSVPrioGetTargetsForSide($sSideKey)
+	If _CSVPrioSyncRedlineCache() = 0 Then Return SetError(3, 0, 0)
 	If IsObj($g_oCSVPrioTargets) And $g_oCSVPrioTargets.Exists($sSideKey) Then
 		Return $g_oCSVPrioTargets.Item($sSideKey)
 	EndIf
