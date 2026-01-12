@@ -53,9 +53,9 @@ MAKE  |D          |FRONT-RIGHT|10         |-11        |INT-EXT    |0          |0
 MAKE  |E          |FRONT-LEFT |10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |F          |FRONT-RIGHT|10         |-17        |INT-EXT    |0          |0          |           |           |           |           |           |           |           |
 MAKE  |K          |LEFT-FRONT |1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
-MAKE  |G          |LEFT-FRONT |1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
 MAKE  |I          |RIGHT-FRONT|1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
-MAKE  |J          |FRONT-RIGHT|1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
+MAKE  |G          |LEFT-BACK |1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
+MAKE  |J          |BACK-RIGHT|1          |1          |IGNORE     |0          |0          |PRIO    |           |           |           |           |           |           |
 MAKE  |P          |FRONT-RIGHT|10         |0          |EXT-INT    |5          |5          |           |           |           |           |           |           |           |
 
 
