@@ -152,11 +152,17 @@ Func ParseAttackCSV($debug = False)
 											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $sAddTiles, $value8)
 											If @error Then
 												$bFallback = True
-												SetDebugLog("CSV PRIO: no weighted defense found, falling back to ADDTILES " & $sAddTiles, $COLOR_DEBUG)
+												SetDebugLog("CSV PRIO: target unavailable, falling back to ADDTILES " & $sAddTiles, $COLOR_DEBUG)
 												$tmpArray = MakeDropPoints(Eval($sidex), $value3, $sAddTiles, $sVersus, $value6, $value7)
 											EndIf
 										Else
 											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $value4, $value8)
+											Local $iTargetErr = @error
+											If $iTargetErr Then
+												$bFallback = True
+												SetDebugLog("CSV target: " & $value8 & " unavailable on " & Eval($sidex) & " (err " & $iTargetErr & "), falling back to ADDTILES " & $value4, $COLOR_DEBUG)
+												$tmpArray = MakeDropPoints(Eval($sidex), $value3, $value4, $sVersus, $value6, $value7)
+											EndIf
 										EndIf
 										If @error Or Not IsArray($tmpArray) Or UBound($tmpArray) = 0 Then
 											$sErrorText = ($bFallback ? "MakeDropPoints, err:" : "MakeTargetDropPoints, err:") & (@error ? @error : "empty vector")

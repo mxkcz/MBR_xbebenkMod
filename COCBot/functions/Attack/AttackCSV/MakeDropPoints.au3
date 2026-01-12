@@ -298,7 +298,7 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			Local $sResolved = ""
 			$BuildingEnum = _CSVPrioResolveBuilding($side, $sResolved, $aLocation)
 			If @error Then
-				SetLog("PRIO target: no weighted defense found on " & $side, $COLOR_WARNING)
+				SetLog("PRIO target unavailable on " & $side & " (err " & @error & ")", $COLOR_WARNING)
 				SetError(@error, 0, "")
 				Return
 			EndIf
@@ -456,36 +456,44 @@ Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 
 	Local $aTargets = _CSVPrioGetPlanTargets($sSideKey)
 	Local $iTargetsErr = @error
-	If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-		$aTargets = _CSVPrioGetTargetsForSide($sSideKey)
-		$iTargetsErr = @error
-		Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
-		If @error Then
+	Local $bPlanExists = (IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Exists($sSideKey))
+	If $bPlanExists Then
+		If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
 			SetError(7, 0, "")
 			Return -1
 		EndIf
-
-		Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
-		If @error Then $aAllTargets = 0
-
+	Else
 		If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-			If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
-				SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
-				$aTargets = $aAllTargets
-			Else
+			$aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+			$iTargetsErr = @error
+			Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
+			If @error Then
 				SetError(7, 0, "")
 				Return -1
 			EndIf
-		Else
-			Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
-			Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
-			If $iMaxAllWeight > $iMaxSideWeight Then
-				_CSVPrioMergeHighWeightTargets($aTargets, $aAllTargets, $iMaxSideWeight)
-				_CSVPrioSortTargets($aTargets)
-			EndIf
-			If _CSVPrioIsWeaponizedTownHall() Then
-				_CSVPrioMergeEnumTargets($aTargets, $aAllTargets, $eBldgTownHall)
-				_CSVPrioSortTargets($aTargets)
+
+			Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
+			If @error Then $aAllTargets = 0
+
+			If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+				If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
+					SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
+					$aTargets = $aAllTargets
+				Else
+					SetError(7, 0, "")
+					Return -1
+				EndIf
+			Else
+				Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
+				Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
+				If $iMaxAllWeight > $iMaxSideWeight Then
+					_CSVPrioMergeHighWeightTargets($aTargets, $aAllTargets, $iMaxSideWeight)
+					_CSVPrioSortTargets($aTargets)
+				EndIf
+				If _CSVPrioIsWeaponizedTownHall() Then
+					_CSVPrioMergeEnumTargets($aTargets, $aAllTargets, $eBldgTownHall)
+					_CSVPrioSortTargets($aTargets)
+				EndIf
 			EndIf
 		EndIf
 	EndIf
@@ -622,21 +630,28 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 			If $iEnumIdx >= 0 Then $aAvailable[$iEnumIdx] += 1
 		Next
 
+		Local $iManualTotal = 0
 		Local $aBudget[UBound($aCandidateEnum)]
 		For $i = 0 To UBound($aCandidateEnum) - 1
 			Local $iMaxQty = $aAvailable[$i]
 			If Not $bUnknownTH Then $iMaxQty = _CSVGetBldgMaxQty($aCandidateEnum[$i], $iTH)
-			Local $iBudget = ($iMaxQty < $aAvailable[$i] ? $iMaxQty : $aAvailable[$i])
-			$iBudget -= $aExplicitCounts[$s][$i]
+			Local $iCapQty = ($iMaxQty < $aAvailable[$i] ? $iMaxQty : $aAvailable[$i])
+			Local $iManualCap = $aExplicitCounts[$s][$i]
+			If $iManualCap > $iCapQty Then $iManualCap = $iCapQty
+			Local $iBudget = $iCapQty - $iManualCap
 			If $iBudget < 0 Then $iBudget = 0
 			$aBudget[$i] = $iBudget
+			$iManualTotal += $iManualCap
 		Next
 
 		Local $iBudgetTH = 0
 		If Not $bUnknownTH And _CSVIsWeaponizedTownHall($iTH) Then
-			$iBudgetTH = ($iAvailTH > 0 ? 1 : 0)
-			$iBudgetTH -= $aExplicitTH[$s]
+			Local $iCapTH = ($iAvailTH > 0 ? 1 : 0)
+			Local $iManualTHCap = $aExplicitTH[$s]
+			If $iManualTHCap > $iCapTH Then $iManualTHCap = $iCapTH
+			$iBudgetTH = $iCapTH - $iManualTHCap
 			If $iBudgetTH < 0 Then $iBudgetTH = 0
+			$iManualTotal += $iManualTHCap
 		EndIf
 
 		Local $iPlanCols = UBound($aTargets, 2)
@@ -658,8 +673,12 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 		Next
 
 		If UBound($aPlan) = 0 Then
-			$aPlan = $aTargets
-			SetDebugLog("CSV PRIO plan empty for " & $sSideKey & ", using full target list", $COLOR_WARNING)
+			If $iManualTotal > 0 Then
+				SetDebugLog("CSV PRIO plan empty for " & $sSideKey & " after manual targets, leaving PRIO empty", $COLOR_WARNING)
+			Else
+				$aPlan = $aTargets
+				SetDebugLog("CSV PRIO plan empty for " & $sSideKey & ", using full target list", $COLOR_WARNING)
+			EndIf
 		EndIf
 
 		$g_oCSVPrioPlan.Item($sSideKey) = $aPlan
