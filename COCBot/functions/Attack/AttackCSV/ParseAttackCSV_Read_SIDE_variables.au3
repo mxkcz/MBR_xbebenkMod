@@ -558,6 +558,34 @@ Func AttackCSV_GetTargetMaxReturnPoints($iMode, $iTH, $iCap)
 	Return $iMax
 EndFunc   ;==>AttackCSV_GetTargetMaxReturnPoints
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSV_LogTiming
+; Description ...: Log CSV timing markers relative to the search window timer when debug is enabled.
+; Syntax ........: CSV_LogTiming($sLabel[, $sDetail = ""])
+; Parameters ....: $sLabel             - short label for the timing mark.
+;                  $sDetail            - [optional] extra detail text.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func CSV_LogTiming($sLabel, $sDetail = "")
+	If Not ($g_bDebugSetlog Or $g_bDebugAttackCSV) Then Return
+	Local $sTime = @HOUR & ":" & @MIN & ":" & @SEC
+	Local $sElapsed = ""
+	If IsDeclared("g_hAttackTimer") And $g_hAttackTimer <> 0 Then
+		$sElapsed = " t+" & Round(__TimerDiff($g_hAttackTimer) / 1000, 2) & "s"
+	EndIf
+	Local $sMsg = "CSV timing: " & $sLabel
+	If $sDetail <> "" Then $sMsg &= " [" & $sDetail & "]"
+	If $sElapsed <> "" Then $sMsg &= " (" & $sTime & $sElapsed & ")"
+	SetDebugLog($sMsg, $COLOR_DEBUG)
+EndFunc   ;==>CSV_LogTiming
+
 ; Side-effect: impure-deterministic (mutates prep locate flags)
 Func _CSVPrepEnablePrioLocateFromWeights(ByRef $aLocate, ByRef $aWeights)
 	If $aWeights[0] > 0 Then $aLocate[$eCSVLocateEagle] = True

@@ -444,11 +444,13 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	If $bSkipRedArea Then
 		SetDebugLog("CSV redline skipped: no locate flags and targeted-only MAKE", $COLOR_DEBUG)
 	Else
+		CSV_LogTiming("capture", "Algorithm_AttackCSV redline")
 		_CaptureRegion2() ; ensure full screen is captured (not ideal for debugging as clean image was already saved, but...)
 		If $captureredarea Then _GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
 		If _Sleep($DELAYRESPOND) Then Return
 
 		Local $htimerREDAREA = Round(__timerdiff($hTimer) / 1000, 2)
+		CSV_LogTiming("redline done", "Algorithm_AttackCSV")
 		debugAttackCSV("Calculated  (in " & $htimerREDAREA & " seconds) :")
 		debugAttackCSV("	[" & (IsArray($g_aiPixelTopLeft) ? UBound($g_aiPixelTopLeft) : 0) & "] pixels TopLeft")
 		debugAttackCSV("	[" & (IsArray($g_aiPixelTopRight) ? UBound($g_aiPixelTopRight) : 0) & "] pixels TopRight")
@@ -1096,10 +1098,88 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 EndFunc   ;==>Algorithm_AttackCSV
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_PrecacheBuildingsFromSearch
+; Description ...: Pre-cache CSV building locations once redline is available during search.
+; Syntax ........: AttackCSV_PrecacheBuildingsFromSearch($iMode[, $bForceRescan = False])
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $bForceRescan      - [optional] Force rescan of cached locations. Default is False.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+	If $g_aiAttackAlgorithm[$iMode] <> 1 Then Return SetError(2, 0, 0)
+	If Not PrepareAttackCSV($iMode) Then Return SetError(3, 0, 0)
+
+	Local $sRedline = ""
+	If $g_sImglocRedline <> "" Then
+		$sRedline = $g_sImglocRedline
+	ElseIf _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+	EndIf
+	If $sRedline = "" Then
+		CSV_LogTiming("precache skipped", "redline missing")
+		Return SetError(4, 0, 0)
+	EndIf
+
+	If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		_ObjAdd($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS", $sRedline)
+		Local $aSplit = StringSplit($sRedline, "|", $STR_NOCOUNT)
+		If UBound($aSplit) > 0 Then _ObjAdd($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT", UBound($aSplit))
+	EndIf
+
+	AttackCSV_ApplyPrepared($iMode, $g_iSearchTH)
+
+	Local $aMakeSidesUsed[4] = [False, False, False, False]
+	Local $bAllMakeTargeted = False
+	Local $iCSVMaxReturnPointsOverride = Default
+	If AttackCSV_GetPreparedMakeUsage($iMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
+		If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
+			$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($iMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+		EndIf
+	EndIf
+
+	Local $bAnyLocate = False
+	For $i = 0 To $eCSVLocateCount - 1
+		If $g_abCSVPrepLocate[$iMode][$i] Then
+			$bAnyLocate = True
+			ExitLoop
+		EndIf
+	Next
+	If Not $bAnyLocate Then
+		CSV_LogTiming("precache skipped", "no locate flags")
+		Return 1
+	EndIf
+
+	CSV_LogTiming("capture", "precache search")
+	_CaptureRegion2()
+	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, $bForceRescan)
+
+	If $g_abCSVPrepHasPrioMake[$iMode] Then
+		Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+		For $s = 0 To 3
+			_CSVPrioGetTargetsForSide($aSideKeys[$s])
+		Next
+		CSV_LogTiming("prio pools cached", "mode=" & $g_asModeText[$iMode])
+	EndIf
+
+	CSV_LogTiming("precache done", "mode=" & $g_asModeText[$iMode])
+	Return 1
+EndFunc   ;==>AttackCSV_PrecacheBuildingsFromSearch
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_BatchLocateBuildings
 ; Description ...: Pre-fetch building locations for CSV logic in a single batch pass.
-; Syntax ........: AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride)
+; Syntax ........: AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride[, $bForceRescan = False])
 ; Parameters ....: $iMaxReturnPointsOverride - Max return points override passed to GetLocationBuilding.
+;                  $bForceRescan             - [optional] Force rescan even if cached. Default is False.
 ; Return values .: Success: 1
 ; Author ........: mxkcz
 ; Modified ......:
@@ -1109,7 +1189,7 @@ EndFunc   ;==>Algorithm_AttackCSV
 ; Link ..........:
 ; Example .......:
 ; ===============================================================================================================================
-Func AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride)
+Func AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride, $bForceRescan = False)
 	Local $aBatch[0]
 	Local $bUseWizForSuper = ($g_bCSVLocateSuperWizTower And $g_bCSVUseWizTowerForSuperWiz)
 
@@ -1131,15 +1211,49 @@ Func AttackCSV_BatchLocateBuildings($iMaxReturnPointsOverride)
 
 	If UBound($aBatch) = 0 Then Return 1
 
+	If $bForceRescan Then
+		If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+		If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
+		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
+	EndIf
+
+	CSV_LogTiming("locate batch start", "count=" & UBound($aBatch))
 	For $i = 0 To UBound($aBatch) - 1
 		Local $iEnum = $aBatch[$i]
-		If Not _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
+		If $bForceRescan Then _CSVBatchClearBuildingCache($iEnum)
+		If $bForceRescan Or Not _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
 			Local $aResult = GetLocationBuilding($iEnum, $g_iSearchTH, False, $iMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$iEnum], $COLOR_ERROR)
 		EndIf
 	Next
+	CSV_LogTiming("locate batch done", "count=" & UBound($aBatch))
 	Return 1
 EndFunc   ;==>AttackCSV_BatchLocateBuildings
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVBatchClearBuildingCache
+; Description ...: Remove cached building keys so the next locate call can repopulate them.
+; Syntax ........: _CSVBatchClearBuildingCache($iEnum)
+; Parameters ....: $iEnum              - building enum to clear.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVBatchClearBuildingCache($iEnum)
+	If Not IsObj($g_oBldgAttackInfo) Then Return
+	Local $sPrefix = $iEnum & "_"
+	Local $aKeys = $g_oBldgAttackInfo.Keys
+	For $sKey In $aKeys
+		If StringLeft($sKey, StringLen($sPrefix)) = $sPrefix Then
+			$g_oBldgAttackInfo.Remove($sKey)
+		EndIf
+	Next
+EndFunc   ;==>_CSVBatchClearBuildingCache
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVBatchAddUnique

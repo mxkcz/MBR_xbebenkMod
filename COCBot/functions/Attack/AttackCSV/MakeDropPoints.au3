@@ -632,6 +632,7 @@ EndFunc   ;==>_CSVPrioGetPlanTargets
 Func AttackCSV_PreparePrioPlan($sFilename)
 	If Not IsObj($g_oCSVPrioPlan) Then Return SetError(1, 0, 0)
 	$g_oCSVPrioPlan.RemoveAll()
+	CSV_LogTiming("prio plan start", "script=" & $sFilename)
 
 	Local $aLines, $aTokens
 	If Not _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then Return SetError(2, 0, 0)
@@ -699,7 +700,10 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 		Next
 	Next
 
-	If Not $bHasPrio Then Return 1
+	If Not $bHasPrio Then
+		CSV_LogTiming("prio plan skipped", "no PRIO")
+		Return 1
+	EndIf
 
 	Local $bUnknownTH = False
 	Local $iTH = _CSVNormalizeTH($g_iSearchTH, $bUnknownTH)
@@ -778,6 +782,7 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.Item($sSideKey) = 0
 		SetDebugLog("CSV PRIO plan built for " & $sSideKey & ": " & UBound($aPlan) & " targets", $COLOR_DEBUG)
 	Next
+	CSV_LogTiming("prio plan done", "script=" & $sFilename & " plans=" & $g_oCSVPrioPlan.Count)
 	Return 1
 EndFunc   ;==>AttackCSV_PreparePrioPlan
 

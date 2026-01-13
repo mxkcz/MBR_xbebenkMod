@@ -38,6 +38,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	Local $logwrited = False
 	Local $iSkipped = 0
 	Local $bReturnToPickupHero = False
+	Local $bLoggedRedline = False
 	Local $abHeroUse[$eHeroCount] = [False, False, False, False]
 	For $i = 0 To $eHeroCount - 1
 		$abHeroUse[$i] = ($g_abSearchSearchesEnable[$DB] ? IsUnitUsed($DB, $eKing + $i) : False) _
@@ -115,6 +116,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		; ----------------- READ ENEMY VILLAGE RESOURCES  -----------------------------------
 		WaitForClouds() ; Wait for clouds to disappear
 		AttackRemainingTime(True) ; Timer for knowing when attack starts, in 30 Sec. attack automatically starts and lasts for 3 Minutes
+		CSV_LogTiming("search window start", "VillageSearch")
 		If $g_bRestart Then Return ; exit func
 		$g_bCloudsActive = False
 		GetResources(False) ;Reads Resource Values
@@ -145,6 +147,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		Next
 		
 		If $g_bRestart Then Return
+		CSV_LogTiming("capture", "VillageSearch pre-TH")
 		_CaptureRegion2()
 		; ----------------- FIND TARGET TOWNHALL -------------------------------------------
 		; $g_iSearchTH name of level of townhall (return "-" if no th found)
@@ -157,6 +160,18 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		ElseIf $g_abAttackTypeEnable[$TB] = 1 And ($g_iSearchCount >= $g_iAtkTBEnableCount) Then
 			; Check the TH for BullyMode
 			$THString = FindTownhall(True, False)
+		EndIf
+		If Not $bLoggedRedline Then
+			Local $sRedline = ""
+			If $g_sImglocRedline <> "" Then
+				$sRedline = $g_sImglocRedline
+			ElseIf _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+				$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+			EndIf
+			If $sRedline <> "" Then
+				CSV_LogTiming("redline available", "VillageSearch after TH")
+				$bLoggedRedline = True
+			EndIf
 		EndIf
 
 		For $i = 0 To $g_iModeCount - 2
@@ -228,6 +243,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 					ResumeAndroid()
 					If _Sleep(3000) Then Return ; wait 5 Seconds to give heroes time to "walk away"
 					ForceCaptureRegion()
+					CSV_LogTiming("capture", "VillageSearch weakbase retry")
 					_CaptureRegion2()
 					SuspendAndroid()
 				EndIf
@@ -266,18 +282,21 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			SetLog("      " & "Dead Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
 			$g_iMatchMode = $DB
+			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
 		ElseIf $match[$LB] And Not $dbBase Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Live Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
 			$g_iMatchMode = $LB
+			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
 		ElseIf $match[$LB] And $g_bCollectorFilterDisable Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Live Base Found!*", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
 			$g_iMatchMode = $LB
+			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
 		ElseIf $g_abAttackTypeEnable[$TB] = 1 And ($g_iSearchCount >= $g_iAtkTBEnableCount) Then ; TH bully doesn't need the resources conditions
 			If $g_iSearchTHLResult = 1 Then
@@ -285,6 +304,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 				SetLog("      " & "Not a match, but TH Bully Level Found! ", $COLOR_SUCCESS, "Lucida Console", 7.5)
 				$logwrited = True
 				$g_iMatchMode = $g_iAtkTBMode
+				AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 				ExitLoop
 			EndIf
 		EndIf

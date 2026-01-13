@@ -181,6 +181,7 @@ EndFunc   ;==>GetLocationDarkElixirWithLevel
 Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForceCaptureRegion = True, $iMaxReturnPointsOverride = Default)
 
 	SetDebugLog("Begin GetLocationBuilding: " & $g_sBldgNames[$iBuildingType], $COLOR_DEBUG1)
+	CSV_LogTiming("locate start", $g_sBldgNames[$iBuildingType])
 	Local $hTimer = __TimerInit() ; timer to track image detection time
 
 	; Variables
@@ -397,6 +398,7 @@ Func GetLocationBuilding($iBuildingType, $iAttackingTH = $g_iMaxTHLevel, $bForce
 	SetLog("Total " & $g_sBldgNames[$iBuildingType] & " Buildings: " & $TotalBuildings)
 
 	Local $iTime = _CSVRecordFindTime($iBuildingType, $hTimer)
+	CSV_LogTiming("locate done", $g_sBldgNames[$iBuildingType] & " count=" & $TotalBuildings)
 
 	If $g_bDebugBuildingPos Then SetLog("  - Location(s) found in: " & Round($iTime, 2) & " seconds ", $COLOR_DEBUG)
 
