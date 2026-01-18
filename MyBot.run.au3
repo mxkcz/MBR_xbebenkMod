@@ -768,9 +768,6 @@ Func runBot() ;Bot that runs everything in order
 				$g_bRestart = False
 			EndIf
 			If _Sleep($DELAYRUNBOT3) Then Return
-			;  OCR read current Village Trophies when OOS restart maybe due PB or Else DropTrophy skips one attack cycle after OOS
-			$g_aiCurrentLoot[$eLootTrophy] = Number(getTrophyMainScreen($aTrophies[0], $aTrophies[1]))
-			SetDebugLog("Runbot Trophy Count: " & $g_aiCurrentLoot[$eLootTrophy], $COLOR_DEBUG)
 			If Not $g_bIsSearchLimit Then AttackMain() ;If Search Limit hit, do main loop.
 			SetDebugLog("ARCH: Not case on SearchLimit or CheckDonateOften",$COLOR_DEBUG)
 			If Not $g_bRunState Then Return
@@ -808,12 +805,6 @@ Func _Idle() ;Sequence that runs until Full Army
 		If $g_bRestart Then ExitLoop
 		AddIdleTime()
 
-		If $g_iCommandStop = -1 Then
-			DropTrophy()
-			If Not $g_bRunState Then Return
-			If $g_bRestart Then ExitLoop
-			If _Sleep($DELAYIDLE1) Then ExitLoop
-		EndIf
 		If _Sleep($DELAYIDLE1) Then Return
 		If $g_bRestart Then ExitLoop
 
@@ -837,18 +828,18 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 	EndIf
 
 	If IsSearchAttackEnabled() Then
-		If (IsSearchModeActive($DB) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
-			If $g_bDropTrophyEnable And Number($g_aiCurrentLoot[$eLootTrophy]) > Number($g_iDropTrophyMax) Then ;If current trophy above max trophy, try drop first
-				If Not $bFirstStart Then
-					DropTrophy()
-					If Not $g_bRunState Then Return
-					$g_bIsClientSyncError = False ; reset OOS flag to prevent looping.
-					If _Sleep($DELAYATTACKMAIN1) Then Return
-					Return ; return to runbot, refill armycamps
-				Else
-					SetLog("Drop Trophy Enabled, but skipped on FirstStart", $COLOR_DEBUG)
-				EndIf
+		Local $bWaitForClanCastle = ($g_abAttackTypeEnable[$DB] And $g_abSearchCastleWaitEnable[$DB]) Or _
+				($g_abAttackTypeEnable[$LB] And $g_abSearchCastleWaitEnable[$LB])
+		If $bWaitForClanCastle Then
+			Local $bFullClanCastle = IsFullClanCastle(True, True)
+			If Not $g_bRunState Then Return
+			If Not $bFullClanCastle Then
+				SetLog("Waiting for Clan Castle troops before attacking", $COLOR_ACTION)
+				Return
 			EndIf
+		EndIf
+
+		If (IsSearchModeActive($DB) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
 			If Not $g_bRunState Then Return
 			;If $g_bUpdateSharedPrefs And $g_bChkSharedPrefs Then PullSharedPrefs()
 			PrepareSearch()
@@ -869,7 +860,7 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			Return True
 		Else
 			SetLog("None of search condition match:", $COLOR_WARNING)
-			SetLog("Search, Trophy or Army Camp % are out of range in search setting", $COLOR_WARNING)
+			SetLog("Search or Army Camp % are out of range in search setting", $COLOR_WARNING)
 			$g_bIsSearchLimit = False
 			$g_bIsClientSyncError = False
 			If ProfileSwitchAccountEnabled() Then checkSwitchAcc()
