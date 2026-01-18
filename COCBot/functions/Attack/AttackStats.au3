@@ -55,7 +55,6 @@ Func CreaTableDB()
 				"'OppGold' TEXT NOT NULL, " & _
 				"'OppElixir' TEXT NOT NULL, " & _
 				"'OppDE' TEXT NOT NULL, " & _
-				"'OppTrophies' TEXT NOT NULL, " & _
 				"'PerDamage' TEXT NOT NULL, " & _
 				"'PerResources' TEXT NOT NULL, " & _
 				"'LootGold' TEXT NOT NULL, " & _
@@ -79,12 +78,29 @@ Func UpdateSDataBase()
 
 	If OpenSqlite() Then
 		UpdateVarStats()
-		Local $sInsereRow = "INSERT INTO " & $g_sTabletName & _
-				" (Date,Profilename,SearchCount,Attacksides,ResIN,ResOUT,ResBySide,OppThlevel,OppGold,OppElixir,OppDE,OppTrophies,PerDamage,PerResources,LootGold,LootElixir,LootDE,League,BonusGold,BonusElixir,BonusDE)" & _
-				" VALUES ('" & $g_sDate & "','" & $g_sProfilename & "','" & $g_sSearchCount & "','" & $g_sAttacksides & "','" & $g_sResourcesIN & "','" & $g_sResourcesOUT & "','" & $g_sResBySide & _
-				"','" & $g_sOppThlevel & "','" & $g_sOppGold & "','" & $g_sOppElixir & "','" & $g_sOppDE & "','" & $g_sOppTrophies & "','" & $g_sTotalDamage & "','" & $g_sPercentagesResources & _
-				"','" & $g_sLootGold & "','" & $g_sLootElixir & "','" & $g_sLootDE & "','" & $g_sLeague & _
-				"','" & $g_sBonusGold & "','" & $g_sBonusElixir & "','" & $g_sBonusDE & "');"
+		Local $bHasOppTrophies = False
+		Local $aTableInfo, $iInfoRows, $iInfoCols
+		If _SQLite_GetTable2d($g_hSQLiteDB, "PRAGMA table_info(" & $g_sTabletName & ")", $aTableInfo, $iInfoRows, $iInfoCols) = $SQLITE_OK Then
+			For $i = 1 To $iInfoRows
+				If $aTableInfo[$i][1] = "OppTrophies" Then
+					$bHasOppTrophies = True
+					ExitLoop
+				EndIf
+			Next
+		EndIf
+
+		Local $sColumns = "Date,Profilename,SearchCount,Attacksides,ResIN,ResOUT,ResBySide,OppThlevel,OppGold,OppElixir,OppDE"
+		Local $sValues = "'" & $g_sDate & "','" & $g_sProfilename & "','" & $g_sSearchCount & "','" & $g_sAttacksides & "','" & $g_sResourcesIN & "','" & $g_sResourcesOUT & "','" & $g_sResBySide & _
+				"','" & $g_sOppThlevel & "','" & $g_sOppGold & "','" & $g_sOppElixir & "','" & $g_sOppDE & "'"
+		If $bHasOppTrophies Then
+			$sColumns &= ",OppTrophies"
+			$sValues &= ",'0'"
+		EndIf
+		$sColumns &= ",PerDamage,PerResources,LootGold,LootElixir,LootDE,League,BonusGold,BonusElixir,BonusDE"
+		$sValues &= ",'" & $g_sTotalDamage & "','" & $g_sPercentagesResources & "','" & $g_sLootGold & "','" & $g_sLootElixir & "','" & $g_sLootDE & "','" & $g_sLeague & _
+				"','" & $g_sBonusGold & "','" & $g_sBonusElixir & "','" & $g_sBonusDE & "'"
+
+		Local $sInsereRow = "INSERT INTO " & $g_sTabletName & " (" & $sColumns & ") VALUES (" & $sValues & ");"
 
 
 		_SQLite_Exec($g_hSQLiteDB, $sInsereRow)
@@ -100,7 +116,6 @@ Func ExportDataBase($bLog = True)
 
 	If OpenSqlite() Then
 		Local $iColumns, $aResult, $iRows
-		Local $StrinForm[22] = ["%6s", "%20s", "%12s", "%12s", "%12s", "%7s", "%7s", "%10s", "%11s", "%8s", "%11s", "%7s", "%12s", "%10s", "%13s", "%9s", "%11s", "%7s", "%7s", "%10s", "%12s", "%8s"]
 		Local $filePath = @ScriptDir & "\SQLite_exportedData.csv"
 
 		Local $iRval = _SQLite_GetTable2d($g_hSQLiteDB, "Select * From " & $g_sTabletName, $aResult, $iRows, $iColumns)
@@ -110,7 +125,23 @@ Func ExportDataBase($bLog = True)
 		ConsoleWrite("Rows: " & $iRows & " Columns: " & $iColumns & @CRLF)
 
 		; Write the header file
-		Local $header = "Attack;Date;Profilename;SearchCount;Attacksides;ResIN;ResOUT;ResBySide;OppThlevel;OppGold;OppElixir;OppDE;OppTrophies;PerDamage;PerResources;LootGold;LootElixir;LootDE;League;BonusGold;BonusElixir;BonusDE"
+		Local $bHasOppTrophies = False
+		For $i = 0 To $iColumns - 1
+			If $aResult[0][$i] = "OppTrophies" Then
+				$bHasOppTrophies = True
+				ExitLoop
+			EndIf
+		Next
+
+		Local $header = ""
+		Local $StrinForm
+		If $bHasOppTrophies Then
+			$StrinForm = ["%6s", "%20s", "%12s", "%12s", "%12s", "%7s", "%7s", "%10s", "%11s", "%8s", "%11s", "%7s", "%12s", "%10s", "%13s", "%9s", "%11s", "%7s", "%7s", "%10s", "%12s", "%8s"]
+			$header = "Attack;Date;Profilename;SearchCount;Attacksides;ResIN;ResOUT;ResBySide;OppThlevel;OppGold;OppElixir;OppDE;OppTrophies;PerDamage;PerResources;LootGold;LootElixir;LootDE;League;BonusGold;BonusElixir;BonusDE"
+		Else
+			$StrinForm = ["%6s", "%20s", "%12s", "%12s", "%12s", "%7s", "%7s", "%10s", "%11s", "%8s", "%11s", "%7s", "%10s", "%13s", "%9s", "%11s", "%7s", "%7s", "%10s", "%12s", "%8s"]
+			$header = "Attack;Date;Profilename;SearchCount;Attacksides;ResIN;ResOUT;ResBySide;OppThlevel;OppGold;OppElixir;OppDE;PerDamage;PerResources;LootGold;LootElixir;LootDE;League;BonusGold;BonusElixir;BonusDE"
+		EndIf
 		local $aHeader = StringSplit($header , ";", $STR_NOCOUNT)
 		$header = ""
 		For $i = 0 to Ubound($header) - 1
@@ -149,7 +180,6 @@ Func UpdateVarStats()
 	; $g_sOppGold = "500000"
 	; $g_sOppElixir = "500000"
 	; $g_sOppDE = "1580"
-	; $g_sOppTrophies = "28"
 	$g_sTotalDamage = $g_sTotalDamage & "%"
 	; $g_sLootGold = "450000"
 	; $g_sLootElixir = "450000"

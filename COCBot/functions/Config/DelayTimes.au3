@@ -176,12 +176,6 @@ Global Const $DELAYBOOSTSPELLFACTORY3 = 500
 ;BoostWorkshop
 Global Const $DELAYBOOSTWORKSHOP3 = 500
 
-;BoostHeroes
-Global Const $DELAYBOOSTHEROES1 = 1000
-Global Const $DELAYBOOSTHEROES2 = 2000
-Global Const $DELAYBOOSTHEROES3 = 500
-Global Const $DELAYBOOSTHEROES4 = 600
-
 ;BotCommand
 Global Const $DELAYBOTCOMMAND1 = 500
 
@@ -210,10 +204,6 @@ Global Const $DELAYDONATECC4 = 1250
 ;DonateWindow
 Global Const $DELAYDONATEWINDOW1 = 1000
 Global Const $DELAYDONATEWINDOW2 = 100
-
-;DropTrophy
-Global Const $DELAYDROPTROPHY1 = 1000
-Global Const $DELAYDROPTROPHY4 = 250
 
 ;GetTownHallLevel
 Global Const $DELAYGETTHLEVEL1 = 1000

@@ -92,7 +92,6 @@ Func CheckSwitchAcc()
 	Local $aDonateAccount = _ArrayFindAll($g_abDonateOnly, True)
 	Local $bReachAttackLimit = ($g_aiAttackedCountSwitch[$g_iCurAccount] <= $g_aiAttackedCount - 2)
 	Local $bForceSwitch = $g_bForceSwitch
-	Local $nMinRemainTrain, $iWaitTime
 	Local $aActibePBTaccounts = _ArrayFindAll($g_abPBActive, True)
 
 	SetLog("Start Switch Account!", $COLOR_INFO)
@@ -124,8 +123,7 @@ Func CheckSwitchAcc()
 	Else
 		ClickAway()
 
-		$iWaitTime = _ArrayMax($g_aiTimeTrain, 1, 0, 2) ; Not check Siege Machine time: $g_aiTimeTrain[3]
-		If $bReachAttackLimit And $iWaitTime <= 0 Then
+		If $bReachAttackLimit Then
 			SetLog("This account has attacked twice in a row, switching to another account", $COLOR_INFO)
 			SetSwitchAccLog(" - Reach attack limit: " & $g_aiAttackedCount - $g_aiAttackedCountSwitch[$g_iCurAccount])
 			$bForceSwitch = True

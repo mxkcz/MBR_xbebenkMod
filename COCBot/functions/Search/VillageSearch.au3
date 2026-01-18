@@ -57,8 +57,6 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			$g_iAimElixir[$i] = $g_aiFilterMinElixir[$i]
 			$g_iAimGoldPlusElixir[$i] = $g_aiFilterMinGoldPlusElixir[$i]
 			$g_iAimDark[$i] = ($g_abFilterMeetDEEnable[$i] ? ($g_aiFilterMeetDEMin[$i]) : (0))
-			$g_iAimTrophy[$i] = ($g_abFilterMeetTrophyEnable[$i] ? ($g_aiFilterMeetTrophyMin[$i]) : (0))
-			$g_iAimTrophyMax[$i] = ($g_abFilterMeetTrophyEnable[$i] ? ($g_aiFilterMeetTrophyMax[$i]) : (99))
 		Next
 	EndIf
 
@@ -192,14 +190,13 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		If $g_iSearchTHLResult = -1 Then CompareTH(0) ; inside have a conditional to update $g_iSearchTHLResult
 
 		; ----------------- WRITE LOG OF ENEMY RESOURCES -----------------------------------
-		Local $GetResourcesTXT = StringFormat("%3s", $g_iSearchCount) & "> [G]:" & StringFormat("%7s", $g_iSearchGold) & " [E]:" & StringFormat("%7s", $g_iSearchElixir) & " [D]:" & StringFormat("%5s", $g_iSearchDark) & " [T]:" & StringFormat("%2s", $g_iSearchTrophy) & $THString
+		Local $GetResourcesTXT = StringFormat("%3s", $g_iSearchCount) & "> [G]:" & StringFormat("%7s", $g_iSearchGold) & " [E]:" & StringFormat("%7s", $g_iSearchElixir) & " [D]:" & StringFormat("%5s", $g_iSearchDark) & $THString
 
 		; Stats Attack
 		$g_sSearchCount = $g_iSearchCount
 		$g_sOppGold = $g_iSearchGold
 		$g_sOppElixir = $g_iSearchElixir
 		$g_sOppDE = $g_iSearchDark
-		$g_sOppTrophies = $g_iSearchTrophy
 
 		; ----------------- CHECK DEAD BASE -------------------------------------------------
 		If Not $g_bRunState Then Return
@@ -438,7 +435,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 
 	;--- write in log match found ----
 	If $g_bSearchAlertMe Then
-		TrayTip($g_sProfileCurrentName & ": " & $g_asModeText[$g_iMatchMode] & " Match Found!", "Gold: " & $g_iSearchGold & "; Elixir: " & $g_iSearchElixir & "; Dark: " & $g_iSearchDark & "; Trophy: " & $g_iSearchTrophy, "", 0)
+		TrayTip($g_sProfileCurrentName & ": " & $g_asModeText[$g_iMatchMode] & " Match Found!", "Gold: " & $g_iSearchGold & "; Elixir: " & $g_iSearchElixir & "; Dark: " & $g_iSearchDark, "", 0)
 		If FileExists(@WindowsDir & "\media\Festival\Windows Exclamation.wav") Then
 			SoundPlay(@WindowsDir & "\media\Festival\Windows Exclamation.wav", 1)
 		ElseIf FileExists(@WindowsDir & "\media\Windows Exclamation.wav") Then
@@ -476,12 +473,11 @@ Func WriteLogVillageSearch($x)
 	;[18.07.30] - Meet: Gold and Elixir
 	;[18.07.30] - Weak Base(Mortar: 5, WizTower: 5)
 
-	Local $MeetGxEtext = "", $MeetGorEtext = "", $MeetGplusEtext = "", $MeetDEtext = "", $MeetTrophytext = "", $MeetTHtext = "", $MeetTHOtext = "", $MeetWeakBasetext = "", $EnabledAftertext = ""
+	Local $MeetGxEtext = "", $MeetGorEtext = "", $MeetGplusEtext = "", $MeetDEtext = "", $MeetTHtext = "", $MeetTHOtext = "", $MeetWeakBasetext = "", $EnabledAftertext = ""
 	If $g_aiFilterMeetGE[$x] = 0 Then $MeetGxEtext = "- Meet: Gold and Elixir"
 	If $g_aiFilterMeetGE[$x] = 1 Then $MeetGorEtext = "- Meet: Gold or Elixir"
 	If $g_aiFilterMeetGE[$x] = 2 Then $MeetGplusEtext = "- Meet: Gold + Elixir"
 	If $g_abFilterMeetDEEnable[$x] Then $MeetDEtext = "- Dark"
-	If $g_abFilterMeetTrophyEnable[$x] Then $MeetTrophytext = "- Trophy"
 	If $g_abFilterMeetTH[$x] Then $MeetTHtext = "- Max TH " & $g_aiMaxTH[$x] ;$g_aiFilterMeetTHMin
 	If $g_abFilterMeetTHOutsideEnable[$x] Then $MeetTHOtext = "- TH Outside"
 	If IsWeakBaseActive($x) Then $MeetWeakBasetext = "- Weak Base"
@@ -489,14 +485,12 @@ Func WriteLogVillageSearch($x)
 		SetLogCentered(" Searching For " & $g_asModeText[$x] & " ", Default, $COLOR_INFO)
 		SetLog("Enable " & $g_asModeText[$x] & " search IF ", $COLOR_INFO)
 		If $g_abSearchSearchesEnable[$x] Then SetLog("- Numbers of searches range " & $g_aiSearchSearchesMin[$x] & " - " & $g_aiSearchSearchesMax[$x], $COLOR_INFO)
-		If $g_abSearchTropiesEnable[$x] Then SetLog("- Search tropies range " & $g_aiSearchTrophiesMin[$x] & " - " & $g_aiSearchTrophiesMax[$x], $COLOR_INFO)
 		If $g_abSearchCampsEnable[$x] Then SetLog("- Army Camps % >  " & $g_aiSearchCampsPct[$x], $COLOR_INFO)
 		SetLog("Match " & $g_asModeText[$x] & "  village IF ", $COLOR_INFO)
 		If $MeetGxEtext <> "" Then SetLog($MeetGxEtext, $COLOR_INFO)
 		If $MeetGorEtext <> "" Then SetLog($MeetGorEtext, $COLOR_INFO)
 		If $MeetGplusEtext <> "" Then SetLog($MeetGplusEtext, $COLOR_INFO)
 		If $MeetDEtext <> "" Then SetLog($MeetDEtext, $COLOR_INFO)
-		If $MeetTrophytext <> "" Then SetLog($MeetTrophytext, $COLOR_INFO)
 		If $MeetTHtext <> "" Then SetLog($MeetTHtext, $COLOR_INFO)
 		If $MeetTHOtext <> "" Then SetLog($MeetTHOtext, $COLOR_INFO)
 		If $MeetWeakBasetext <> "" Then SetLog($MeetWeakBasetext, $COLOR_INFO)
@@ -504,14 +498,13 @@ Func WriteLogVillageSearch($x)
 		SetLogCentered(" RESOURCE CONDITIONS ", "~", $COLOR_INFO)
 	EndIf
 	If Not ($g_bIsSearchLimit) Then
-		Local $txtTrophies = "", $txtTownhall = ""
-		If $g_abFilterMeetTrophyEnable[$x] Then $txtTrophies = " [T]:" & StringFormat("%2s", $g_iAimTrophy[$x]) & "-" & StringFormat("%2s", $g_iAimTrophyMax[$x])
+		Local $txtTownhall = ""
 		If $g_abFilterMeetTH[$x] Then $txtTownhall = " [TH]:" & StringFormat("%2s", $g_aiMaxTH[$x]) ;$g_aiFilterMeetTHMin
 		If $g_abFilterMeetTHOutsideEnable[$x] Then $txtTownhall &= ", Out"
 		If $g_aiFilterMeetGE[$x] = 2 Then
-			SetLog("Aim:           [G+E]:" & StringFormat("%7s", $g_iAimGoldPlusElixir[$x]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$x]) & $txtTrophies & $txtTownhall & " for: " & $g_asModeText[$x], $COLOR_SUCCESS, "Lucida Console", 7.5)
+			SetLog("Aim:           [G+E]:" & StringFormat("%7s", $g_iAimGoldPlusElixir[$x]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$x]) & $txtTownhall & " for: " & $g_asModeText[$x], $COLOR_SUCCESS, "Lucida Console", 7.5)
 		Else
-			SetLog("Aim: [G]:" & StringFormat("%7s", $g_iAimGold[$x]) & " [E]:" & StringFormat("%7s", $g_iAimElixir[$x]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$x]) & $txtTrophies & $txtTownhall & " for: " & $g_asModeText[$x], $COLOR_SUCCESS, "Lucida Console", 7.5)
+			SetLog("Aim: [G]:" & StringFormat("%7s", $g_iAimGold[$x]) & " [E]:" & StringFormat("%7s", $g_iAimElixir[$x]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$x]) & $txtTownhall & " for: " & $g_asModeText[$x], $COLOR_SUCCESS, "Lucida Console", 7.5)
 		EndIf
 	EndIf
 

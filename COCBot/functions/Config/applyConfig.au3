@@ -111,8 +111,6 @@ Func applyConfig($bRedrawAtExit = True, $TypeReadSave = "Read") ;Applies the dat
 	ApplyConfig_600_30_LB($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
 	ApplyConfig_600_31($TypeReadSave)
-	; <><><><> Attack Plan / Search & Attack / Options / Trophy Settings <><><><>
-	ApplyConfig_600_32($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
 	ApplyConfig_600_33($TypeReadSave)
 	; <><><><> Bot / Options <><><><>
@@ -279,7 +277,7 @@ Func ApplyConfig_600_6($TypeReadSave)
 			_GUICtrlComboBox_SetCurSel($g_hCmbBotCond, $g_iCmbBotCond)
 			_GUICtrlComboBox_SetCurSel($g_hCmbHoursStop, $g_iCmbHoursStop)
 			For $i = 0 To $eLootCount - 1
-				GUICtrlSetData($g_ahTxtResumeAttackLoot[$i], $g_aiResumeAttackLoot[$i])
+				If $g_ahTxtResumeAttackLoot[$i] <> 0 Then GUICtrlSetData($g_ahTxtResumeAttackLoot[$i], $g_aiResumeAttackLoot[$i])
 			Next
 			GUICtrlSetState($g_hChkCollectStarBonus, $g_bCollectStarBonus ? $GUI_CHECKED : $GUI_UNCHECKED)
 			_GUICtrlComboBox_SetCurSel($g_hCmbTimeStop, $g_iCmbTimeStop)
@@ -457,7 +455,6 @@ Func ApplyConfig_600_6($TypeReadSave)
 			GUICtrlSetState($g_hAutoUpgradeEarly, $g_bAutoUpgradeEarly ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkForceSwitchifNoCGEvent, $g_bChkForceSwitchifNoCGEvent ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkEnableCCSleep, $g_bEnableCCSleep ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkSkipDT, $g_bSkipDT ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkTournament, $g_bEnableTournament ? $GUI_CHECKED : $GUI_UNCHECKED)
 			_GUICtrlComboBox_SetCurSel($g_hCmbTournamentAttackType, $g_iTournamentAttackType)
 
@@ -467,7 +464,7 @@ Func ApplyConfig_600_6($TypeReadSave)
 			$g_iCmbBotCond = _GUICtrlComboBox_GetCurSel($g_hCmbBotCond)
 			$g_iCmbHoursStop = _GUICtrlComboBox_GetCurSel($g_hCmbHoursStop)
 			For $i = 0 To $eLootCount - 1
-				$g_aiResumeAttackLoot[$i] = GUICtrlRead($g_ahTxtResumeAttackLoot[$i])
+				If $g_ahTxtResumeAttackLoot[$i] <> 0 Then $g_aiResumeAttackLoot[$i] = GUICtrlRead($g_ahTxtResumeAttackLoot[$i])
 			Next
 			$g_bCollectStarBonus = (GUICtrlRead($g_hChkCollectStarBonus) = $GUI_CHECKED)
 			$g_iCmbTimeStop = _GUICtrlComboBox_GetCurSel($g_hCmbTimeStop)
@@ -616,7 +613,6 @@ Func ApplyConfig_600_6($TypeReadSave)
 			$g_bAutoUpgradeEarly = (GUICtrlRead($g_hAutoUpgradeEarly) = $GUI_CHECKED)
 			$g_bChkForceSwitchifNoCGEvent = (GUICtrlRead($g_hChkForceSwitchifNoCGEvent) = $GUI_CHECKED)
 			$g_bEnableCCSleep = (GUICtrlRead($g_hChkEnableCCSleep) = $GUI_CHECKED)
-			$g_bSkipDT = (GUICtrlRead($g_hChkSkipDT) = $GUI_CHECKED)
 			$g_bEnableTournament = (GUICtrlRead($g_hChkTournament) = $GUI_CHECKED)
 			$g_iTournamentAttackType = _GUICtrlComboBox_GetCurSel($g_hCmbTournamentAttackType)
 
@@ -1070,7 +1066,6 @@ Func ApplyConfig_600_18($TypeReadSave)
 			GUICtrlSetState($g_hChkNotifyAlertMaintenance, $g_bNotifyAlertMaintenance ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkNotifyAlertBAN, $g_bNotifyAlertBAN ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkNotifyBOTUpdate, $g_bNotifyAlertBOTUpdate ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkNotifyAlertSmartWaitTime, $g_bNotifyAlertSmartWaitTime ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkNotifyAlertLaboratoryIdle, $g_bNotifyAlertLaboratoryIdle ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
 			; Telegram
@@ -1094,7 +1089,6 @@ Func ApplyConfig_600_18($TypeReadSave)
 			$g_bNotifyAlertMaintenance = (GUICtrlRead($g_hChkNotifyAlertMaintenance) = $GUI_CHECKED)
 			$g_bNotifyAlertBAN = (GUICtrlRead($g_hChkNotifyAlertBAN) = $GUI_CHECKED)
 			$g_bNotifyAlertBOTUpdate = (GUICtrlRead($g_hChkNotifyBOTUpdate) = $GUI_CHECKED)
-			$g_bNotifyAlertSmartWaitTime = (GUICtrlRead($g_hChkNotifyAlertSmartWaitTime) = $GUI_CHECKED)
 			$g_bNotifyAlertLaboratoryIdle = (GUICtrlRead($g_hChkNotifyAlertLaboratoryIdle) = $GUI_CHECKED)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_18
@@ -1134,10 +1128,6 @@ Func ApplyConfig_600_22($TypeReadSave)
 			_GUICtrlComboBox_SetCurSel($g_hCmbBoostBarracks, $g_iCmbBoostBarracks)
 			_GUICtrlComboBox_SetCurSel($g_hCmbBoostSpellFactory, $g_iCmbBoostSpellFactory)
 			_GUICtrlComboBox_SetCurSel($g_hCmbBoostWorkshop, $g_iCmbBoostWorkshop)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostBarbarianKing, $g_iCmbBoostBarbarianKing)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostArcherQueen, $g_iCmbBoostArcherQueen)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostWarden, $g_iCmbBoostWarden)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostChampion, $g_iCmbBoostChampion)
 			_GUICtrlComboBox_SetCurSel($g_hCmbBoostEverything, $g_iCmbBoostEverything)
 			For $i = 0 To 23
 				GUICtrlSetState($g_hChkBoostBarracksHours[$i], $g_abBoostBarracksHours[$i] ? $GUI_CHECKED : $GUI_UNCHECKED)
@@ -1154,10 +1144,6 @@ Func ApplyConfig_600_22($TypeReadSave)
 			$g_iCmbBoostBarracks = _GUICtrlComboBox_GetCurSel($g_hCmbBoostBarracks)
 			$g_iCmbBoostSpellFactory = _GUICtrlComboBox_GetCurSel($g_hCmbBoostSpellFactory)
 			$g_iCmbBoostWorkshop = _GUICtrlComboBox_GetCurSel($g_hCmbBoostWorkshop)
-			$g_iCmbBoostBarbarianKing = _GUICtrlComboBox_GetCurSel($g_hCmbBoostBarbarianKing)
-			$g_iCmbBoostArcherQueen = _GUICtrlComboBox_GetCurSel($g_hCmbBoostArcherQueen)
-			$g_iCmbBoostWarden = _GUICtrlComboBox_GetCurSel($g_hCmbBoostWarden)
-			$g_iCmbBoostChampion = _GUICtrlComboBox_GetCurSel($g_hCmbBoostChampion)
 			$g_iCmbBoostEverything = _GUICtrlComboBox_GetCurSel($g_hCmbBoostEverything)
 			For $i = 0 To 23
 				$g_abBoostBarracksHours[$i] = (GUICtrlRead($g_hChkBoostBarracksHours[$i]) = $GUI_CHECKED)
@@ -1200,7 +1186,6 @@ Func ApplyConfig_600_28($TypeReadSave)
 			GUICtrlSetData($g_hTxtSearchReduceElixir, $g_iSearchReductionElixir)
 			GUICtrlSetData($g_hTxtSearchReduceGoldPlusElixir, $g_iSearchReductionGoldPlusElixir)
 			GUICtrlSetData($g_hTxtSearchReduceDark, $g_iSearchReductionDark)
-			GUICtrlSetData($g_hTxtSearchReduceTrophy, $g_iSearchReductionTrophy)
 			If $g_iSearchDelayMin > $g_iSearchDelayMax Then $g_iSearchDelayMax = $g_iSearchDelayMin ; check for illegal condition
 			GUICtrlSetData($g_hSldVSDelay, $g_iSearchDelayMin)
 			GUICtrlSetData($g_hLblVSDelay, $g_iSearchDelayMin)
@@ -1220,7 +1205,6 @@ Func ApplyConfig_600_28($TypeReadSave)
 			$g_iSearchReductionElixir = GUICtrlRead($g_hTxtSearchReduceElixir)
 			$g_iSearchReductionGoldPlusElixir = GUICtrlRead($g_hTxtSearchReduceGoldPlusElixir)
 			$g_iSearchReductionDark = GUICtrlRead($g_hTxtSearchReduceDark)
-			$g_iSearchReductionTrophy = GUICtrlRead($g_hTxtSearchReduceTrophy)
 			$g_iSearchDelayMin = GUICtrlRead($g_hSldVSDelay)
 			$g_iSearchDelayMax = GUICtrlRead($g_hSldMaxVSDelay)
 			$g_bSearchAttackNowEnable = (GUICtrlRead($g_hChkAttackNow) = $GUI_CHECKED)
@@ -1239,10 +1223,6 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 			GUICtrlSetState($g_hChkDBActivateSearches, $g_abSearchSearchesEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtDBSearchesMin, $g_aiSearchSearchesMin[$DB])
 			GUICtrlSetData($g_hTxtDBSearchesMax, $g_aiSearchSearchesMax[$DB])
-			GUICtrlSetState($g_hChkDBActivateTropies, $g_abSearchTropiesEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkDBActivateTropies()
-			GUICtrlSetData($g_hTxtDBTropiesMin, $g_aiSearchTrophiesMin[$DB])
-			GUICtrlSetData($g_hTxtDBTropiesMax, $g_aiSearchTrophiesMax[$DB])
 			GUICtrlSetState($g_hChkDBActivateCamps, $g_abSearchCampsEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			chkDBActivateCamps()
 			GUICtrlSetData($g_hTxtDBArmyCamps, $g_aiSearchCampsPct[$DB])
@@ -1250,17 +1230,6 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 			chkDBActivateSearches()
 			GUICtrlSetState($g_hChkDeadbase, $g_abAttackTypeEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
-			GUICtrlSetState($g_hChkDBKingWait, BitAND($g_aiSearchHeroWaitEnable[$DB], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBQueenWait, BitAND($g_aiSearchHeroWaitEnable[$DB], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBWardenWait, BitAND($g_aiSearchHeroWaitEnable[$DB], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBChampionWait, BitAND($g_aiSearchHeroWaitEnable[$DB], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBNotWaitHeroes, $g_aiSearchNotWaitHeroesEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			$g_iHeroWaitAttackNoBit[$DB][0] = GUICtrlRead($g_hChkDBKingWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][1] = GUICtrlRead($g_hChkDBQueenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][2] = GUICtrlRead($g_hChkDBWardenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][3] = GUICtrlRead($g_hChkDBChampionWait) = $GUI_CHECKED ? 1 : 0
-			GUICtrlSetState($g_hChkDBSpellsWait, $g_abSearchSpellsWaitEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkDBSpellsWait()
 			GUICtrlSetState($g_hChkDBWaitForCastle, $g_abSearchCastleWaitEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			; Search - Filters
 			_GUICtrlComboBox_SetCurSel($g_hCmbDBMeetGE, $g_aiFilterMeetGE[$DB])
@@ -1271,10 +1240,6 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 			GUICtrlSetState($g_hChkDBMeetDE, $g_abFilterMeetDEEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtDBMinDarkElixir, $g_aiFilterMeetDEMin[$DB])
 			chkDBMeetDE()
-			GUICtrlSetState($g_hChkDBMeetTrophy, $g_abFilterMeetTrophyEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDBMinTrophy, $g_aiFilterMeetTrophyMin[$DB])
-			GUICtrlSetData($g_hTxtDBMaxTrophy, $g_aiFilterMeetTrophyMax[$DB])
-			chkDBMeetTrophy()
 			GUICtrlSetState($g_hChkDBMeetTH, $g_abFilterMeetTH[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			_GUICtrlComboBox_SetCurSel($g_hCmbDBTH, $g_aiFilterMeetTHMin[$DB])
 			$g_aiMaxTH[$DB] = $g_asTHText[$g_aiFilterMeetTHMin[$DB]]
@@ -1307,18 +1272,9 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 			$g_abSearchSearchesEnable[$DB] = (GUICtrlRead($g_hChkDBActivateSearches) = $GUI_CHECKED)
 			$g_aiSearchSearchesMin[$DB] = GUICtrlRead($g_hTxtDBSearchesMin)
 			$g_aiSearchSearchesMax[$DB] = GUICtrlRead($g_hTxtDBSearchesMax)
-			$g_abSearchTropiesEnable[$DB] = (GUICtrlRead($g_hChkDBActivateTropies) = $GUI_CHECKED)
-			$g_aiSearchTrophiesMin[$DB] = GUICtrlRead($g_hTxtDBTropiesMin)
-			$g_aiSearchTrophiesMax[$DB] = GUICtrlRead($g_hTxtDBTropiesMax)
 			$g_abSearchCampsEnable[$DB] = (GUICtrlRead($g_hChkDBActivateCamps) = $GUI_CHECKED)
 			$g_aiSearchCampsPct[$DB] = Int(GUICtrlRead($g_hTxtDBArmyCamps))
-			$g_iHeroWaitAttackNoBit[$DB][0] = GUICtrlRead($g_hChkDBKingWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][1] = GUICtrlRead($g_hChkDBQueenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][2] = GUICtrlRead($g_hChkDBWardenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$DB][3] = GUICtrlRead($g_hChkDBChampionWait) = $GUI_CHECKED ? 1 : 0
-			$g_aiSearchNotWaitHeroesEnable[$DB] = GUICtrlRead($g_hChkDBNotWaitHeroes) = $GUI_CHECKED ? 1 : 0
-			chkNotWaitHeroes()
-			$g_abSearchSpellsWaitEnable[$DB] = (GUICtrlRead($g_hChkDBSpellsWait) = $GUI_CHECKED)
+			$g_abSearchSpellsWaitEnable[$DB] = False
 			$g_abSearchCastleWaitEnable[$DB] = (GUICtrlRead($g_hChkDBWaitForCastle) = $GUI_CHECKED)
 			; Search - Filters
 			$g_iDeadEagleSearch = GUICtrlRead($g_hTxtDeadEagleSearch)
@@ -1329,9 +1285,6 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 			$g_aiFilterMinGoldPlusElixir[$DB] = GUICtrlRead($g_hTxtDBMinGoldPlusElixir)
 			$g_abFilterMeetDEEnable[$DB] = (GUICtrlRead($g_hChkDBMeetDE) = $GUI_CHECKED)
 			$g_aiFilterMeetDEMin[$DB] = GUICtrlRead($g_hTxtDBMinDarkElixir)
-			$g_abFilterMeetTrophyEnable[$DB] = (GUICtrlRead($g_hChkDBMeetTrophy) = $GUI_CHECKED)
-			$g_aiFilterMeetTrophyMin[$DB] = GUICtrlRead($g_hTxtDBMinTrophy)
-			$g_aiFilterMeetTrophyMax[$DB] = GUICtrlRead($g_hTxtDBMaxTrophy)
 			$g_abFilterMeetTH[$DB] = (GUICtrlRead($g_hChkDBMeetTH) = $GUI_CHECKED)
 			$g_aiFilterMeetTHMin[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBTH)
 			$g_aiMaxTH[$DB] = $g_asTHText[$g_aiFilterMeetTHMin[$DB]]
@@ -1362,27 +1315,12 @@ Func ApplyConfig_600_28_LB($TypeReadSave)
 			GUICtrlSetState($g_hChkABActivateSearches, $g_abSearchSearchesEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtABSearchesMin, $g_aiSearchSearchesMin[$LB])
 			GUICtrlSetData($g_hTxtABSearchesMax, $g_aiSearchSearchesMax[$LB])
-			GUICtrlSetState($g_hChkABActivateTropies, $g_abSearchTropiesEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkABActivateTropies()
-			GUICtrlSetData($g_hTxtABTropiesMin, $g_aiSearchTrophiesMin[$LB])
-			GUICtrlSetData($g_hTxtABTropiesMax, $g_aiSearchTrophiesMax[$LB])
 			GUICtrlSetState($g_hChkABActivateCamps, $g_abSearchCampsEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtABArmyCamps, $g_aiSearchCampsPct[$LB])
 
 			chkABActivateSearches()
 			GUICtrlSetState($g_hChkActivebase, $g_abAttackTypeEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
-			GUICtrlSetState($g_hChkABKingWait, BitAND($g_aiSearchHeroWaitEnable[$LB], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABQueenWait, BitAND($g_aiSearchHeroWaitEnable[$LB], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABWardenWait, BitAND($g_aiSearchHeroWaitEnable[$LB], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABChampionWait, BitAND($g_aiSearchHeroWaitEnable[$LB], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABNotWaitHeroes, $g_aiSearchNotWaitHeroesEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			$g_iHeroWaitAttackNoBit[$LB][0] = GUICtrlRead($g_hChkABKingWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][1] = GUICtrlRead($g_hChkABQueenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][2] = GUICtrlRead($g_hChkABWardenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][3] = GUICtrlRead($g_hChkABChampionWait) = $GUI_CHECKED ? 1 : 0
-			GUICtrlSetState($g_hChkABSpellsWait, $g_abSearchSpellsWaitEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkABSpellsWait()
 			GUICtrlSetState($g_hChkABWaitForCastle, $g_abSearchCastleWaitEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			; Search - Filters
 			_GUICtrlComboBox_SetCurSel($g_hCmbABMeetGE, $g_aiFilterMeetGE[$LB])
@@ -1393,10 +1331,6 @@ Func ApplyConfig_600_28_LB($TypeReadSave)
 			GUICtrlSetState($g_hChkABMeetDE, $g_abFilterMeetDEEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtABMinDarkElixir, $g_aiFilterMeetDEMin[$LB])
 			chkABMeetDE()
-			GUICtrlSetState($g_hChkABMeetTrophy, $g_abFilterMeetTrophyEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABMinTrophy, $g_aiFilterMeetTrophyMin[$LB])
-			GUICtrlSetData($g_hTxtABMaxTrophy, $g_aiFilterMeetTrophyMax[$LB])
-			chkABMeetTrophy()
 			GUICtrlSetState($g_hChkABMeetTH, $g_abFilterMeetTH[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			_GUICtrlComboBox_SetCurSel($g_hCmbABTH, $g_aiFilterMeetTHMin[$LB])
 			$g_aiMaxTH[$LB] = $g_asTHText[$g_aiFilterMeetTHMin[$LB]]
@@ -1425,18 +1359,9 @@ Func ApplyConfig_600_28_LB($TypeReadSave)
 			$g_abSearchSearchesEnable[$LB] = (GUICtrlRead($g_hChkABActivateSearches) = $GUI_CHECKED)
 			$g_aiSearchSearchesMin[$LB] = GUICtrlRead($g_hTxtABSearchesMin)
 			$g_aiSearchSearchesMax[$LB] = GUICtrlRead($g_hTxtABSearchesMax)
-			$g_abSearchTropiesEnable[$LB] = (GUICtrlRead($g_hChkABActivateTropies) = $GUI_CHECKED)
-			$g_aiSearchTrophiesMin[$LB] = GUICtrlRead($g_hTxtABTropiesMin)
-			$g_aiSearchTrophiesMax[$LB] = GUICtrlRead($g_hTxtABTropiesMax)
 			$g_abSearchCampsEnable[$LB] = (GUICtrlRead($g_hChkABActivateCamps) = $GUI_CHECKED)
 			$g_aiSearchCampsPct[$LB] = Int(GUICtrlRead($g_hTxtABArmyCamps))
-			$g_iHeroWaitAttackNoBit[$LB][0] = GUICtrlRead($g_hChkABKingWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][1] = GUICtrlRead($g_hChkABQueenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][2] = GUICtrlRead($g_hChkABWardenWait) = $GUI_CHECKED ? 1 : 0
-			$g_iHeroWaitAttackNoBit[$LB][3] = GUICtrlRead($g_hChkABChampionWait) = $GUI_CHECKED ? 1 : 0
-			$g_aiSearchNotWaitHeroesEnable[$LB] = GUICtrlRead($g_hChkABNotWaitHeroes) = $GUI_CHECKED ? 1 : 0
-			ChkNotWaitHeroes()
-			$g_abSearchSpellsWaitEnable[$LB] = (GUICtrlRead($g_hChkABSpellsWait) = $GUI_CHECKED)
+			$g_abSearchSpellsWaitEnable[$LB] = False
 			$g_abSearchCastleWaitEnable[$LB] = (GUICtrlRead($g_hChkABWaitForCastle) = $GUI_CHECKED)
 			; Search - Filters
 			$g_aiFilterMeetGE[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABMeetGE)
@@ -1445,9 +1370,6 @@ Func ApplyConfig_600_28_LB($TypeReadSave)
 			$g_aiFilterMinGoldPlusElixir[$LB] = GUICtrlRead($g_hTxtABMinGoldPlusElixir)
 			$g_abFilterMeetDEEnable[$LB] = (GUICtrlRead($g_hChkABMeetDE) = $GUI_CHECKED)
 			$g_aiFilterMeetDEMin[$LB] = GUICtrlRead($g_hTxtABMinDarkElixir)
-			$g_abFilterMeetTrophyEnable[$LB] = (GUICtrlRead($g_hChkABMeetTrophy) = $GUI_CHECKED)
-			$g_aiFilterMeetTrophyMin[$LB] = GUICtrlRead($g_hTxtABMinTrophy)
-			$g_aiFilterMeetTrophyMax[$LB] = GUICtrlRead($g_hTxtABMaxTrophy)
 			$g_abFilterMeetTH[$LB] = (GUICtrlRead($g_hChkABMeetTH) = $GUI_CHECKED)
 			$g_aiFilterMeetTHMin[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABTH)
 			$g_aiMaxTH[$LB] = $g_asTHText[$g_aiFilterMeetTHMin[$LB]]
@@ -1897,32 +1819,6 @@ Func ApplyConfig_600_31($TypeReadSave)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_31
 
-Func ApplyConfig_600_32($TypeReadSave)
-	; <><><><> Attack Plan / Search & Attack / Options / Trophy Settings <><><><>
-	Switch $TypeReadSave
-		Case "Read"
-			GUICtrlSetState($g_hChkTrophyRange, $g_bDropTrophyEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtMaxTrophy, $g_iDropTrophyMax)
-			GUICtrlSetData($g_hTxtDropTrophy, $g_iDropTrophyMin)
-			GUICtrlSetState($g_hChkTrophyHeroes, $g_bDropTrophyUseHeroes ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkTrophyHeroes()
-			_GUICtrlComboBox_SetCurSel($g_hCmbTrophyHeroesPriority, $g_iDropTrophyHeroesPriority)
-			GUICtrlSetState($g_hChkTrophyAtkDead, $g_bDropTrophyAtkDead ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDropTrophyArmyMin, $g_iDropTrophyArmyMinPct)
-			chkTrophyRange()
-			TxtDropTrophy()
-			TxtMaxTrophy()
-		Case "Save"
-			$g_bDropTrophyEnable = (GUICtrlRead($g_hChkTrophyRange) = $GUI_CHECKED)
-			$g_iDropTrophyMax = GUICtrlRead($g_hTxtMaxTrophy)
-			$g_iDropTrophyMin = GUICtrlRead($g_hTxtDropTrophy)
-			$g_bDropTrophyUseHeroes = (GUICtrlRead($g_hChkTrophyHeroes) = $GUI_CHECKED)
-			$g_iDropTrophyHeroesPriority = _GUICtrlComboBox_GetCurSel($g_hCmbTrophyHeroesPriority)
-			$g_bDropTrophyAtkDead = (GUICtrlRead($g_hChkTrophyAtkDead) = $GUI_CHECKED)
-			$g_iDropTrophyArmyMinPct = GUICtrlRead($g_hTxtDropTrophyArmyMin)
-	EndSwitch
-EndFunc   ;==>ApplyConfig_600_32
-
 Func ApplyConfig_600_33($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
 	Switch $TypeReadSave
@@ -2206,38 +2102,6 @@ Func ApplyConfig_641_1($TypeReadSave)
 	; <><><> Attack Plan / Train Army / Options <><><>
 	Switch $TypeReadSave
 		Case "Read"
-			; Training idle time
-			If $g_bCloseWhileTrainingEnable = True Then
-				GUICtrlSetState($g_hChkCloseWhileTraining, $GUI_CHECKED)
-				_GUI_Value_STATE("ENABLE", $groupCloseWhileTraining)
-				GUICtrlSetState($g_hLblCloseWaitingTroops, $GUI_ENABLE)
-				GUICtrlSetState($g_hCmbMinimumTimeClose, $GUI_ENABLE)
-				GUICtrlSetState($g_hLblSymbolWaiting, $GUI_ENABLE)
-				GUICtrlSetState($g_hLblWaitingInMinutes, $GUI_ENABLE)
-			Else
-				GUICtrlSetState($g_hChkCloseWhileTraining, $GUI_UNCHECKED)
-				_GUI_Value_STATE("DISABLE", $groupCloseWhileTraining)
-				GUICtrlSetState($g_hLblCloseWaitingTroops, $GUI_DISABLE)
-				GUICtrlSetState($g_hCmbMinimumTimeClose, $GUI_DISABLE)
-				GUICtrlSetState($g_hLblSymbolWaiting, $GUI_DISABLE)
-				GUICtrlSetState($g_hLblWaitingInMinutes, $GUI_DISABLE)
-			EndIf
-			GUICtrlSetState($g_hChkCloseWithoutShield, $g_bCloseWithoutShield ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkCloseEmulator, $g_bCloseEmulator ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkSuspendComputer, $g_bSuspendComputer ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkRandomClose, $g_bCloseRandom ? $GUI_CHECKED : $GUI_UNCHECKED)
-			btnCloseWaitStopRandom()
-			If $g_bCloseExactTime Then
-				GUICtrlSetState($g_hRdoCloseWaitExact, $GUI_CHECKED)
-				GUICtrlSetState($g_hRdoCloseWaitRandom, $GUI_UNCHECKED)
-			EndIf
-			If $g_bCloseRandomTime Then
-				GUICtrlSetState($g_hRdoCloseWaitRandom, $GUI_CHECKED)
-				GUICtrlSetState($g_hRdoCloseWaitExact, $GUI_UNCHECKED)
-			EndIf
-			_GUICtrlComboBox_SetCurSel($g_hCmbCloseWaitRdmPercent, $g_iCloseRandomTimePercent)
-			btnCloseWaitRandom()
-			GUICtrlSetData($g_hCmbMinimumTimeClose, $g_iCloseMinimumTime)
 			; Train click timing
 			GUICtrlSetData($g_hSldTrainITDelay, $g_iTrainClickDelay)
 			sldTrainITDelay()
@@ -2248,16 +2112,6 @@ Func ApplyConfig_641_1($TypeReadSave)
 			GUICtrlSetData($g_hTxtAddRandomDelayMax, $g_iTrainAddRandomDelayMax)
 			chkAddDelayIdlePhaseEnable()
 		Case "Save"
-			; Training idle time
-			$g_bCloseWhileTrainingEnable = (GUICtrlRead($g_hChkCloseWhileTraining) = $GUI_CHECKED)
-			$g_bCloseWithoutShield = (GUICtrlRead($g_hChkCloseWithoutShield) = $GUI_CHECKED)
-			$g_bCloseEmulator = (GUICtrlRead($g_hChkCloseEmulator) = $GUI_CHECKED)
-			$g_bSuspendComputer = (GUICtrlRead($g_hChkSuspendComputer) = $GUI_CHECKED)
-			$g_bCloseRandom = (GUICtrlRead($g_hChkRandomClose) = $GUI_CHECKED)
-			$g_bCloseExactTime = (GUICtrlRead($g_hRdoCloseWaitExact) = $GUI_CHECKED)
-			$g_bCloseRandomTime = (GUICtrlRead($g_hRdoCloseWaitRandom) = $GUI_CHECKED)
-			$g_iCloseRandomTimePercent = _GUICtrlComboBox_GetCurSel($g_hCmbCloseWaitRdmPercent)
-			$g_iCloseMinimumTime = GUICtrlRead($g_hCmbMinimumTimeClose)
 			; Train click timing
 			$g_iTrainClickDelay = GUICtrlRead($g_hSldTrainITDelay)
 			; Training add random delay

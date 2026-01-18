@@ -143,12 +143,37 @@ Func IsFullClanCastleType($CCType = 0) ; Troops = 0, Spells = 1, Siege Machine =
 	EndIf
 EndFunc   ;==>IsFullClanCastleType
 
-Func IsFullClanCastle()
+; #FUNCTION# ====================================================================================================================
+; Name ..........: IsFullClanCastle
+; Description ...: Checks whether Clan Castle troops/spells/siege meet configured wait requirements
+; Syntax ........: IsFullClanCastle([$bOpenArmyWindow = False[, $bCloseArmyWindow = False]])
+; Parameters ....: $bOpenArmyWindow - True to open Army Overview before checking
+;                  $bCloseArmyWindow - True to close Army Overview after checking
+; Return values .: True if Clan Castle is ready, False otherwise
+; Author ........:
+; Modified ......:
+; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
+;                  MyBot is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........: https://github.com/MyBotRun/MyBot/wiki
+; Example .......:
+; =====================================================================================================================
+Func IsFullClanCastle($bOpenArmyWindow = False, $bCloseArmyWindow = False)
 	Local $bNeedRequest = False
-	If Not $g_bRunState Then Return
+	Local $bFullClanCastle = True
+	If Not $g_bRunState Then Return False
 
 	If Not $g_abSearchCastleWaitEnable[$DB] And Not $g_abSearchCastleWaitEnable[$LB] Then
+		$g_bFullArmyCC = True
 		Return True
+	EndIf
+
+	If $bOpenArmyWindow Then
+		If Not OpenArmyOverview("IsFullClanCastle()") Then
+			$g_bFullArmyCC = False
+			Return False
+		EndIf
+		If _Sleep($DELAYCHECKARMYCAMP5) Then Return False
 	EndIf
 
 	If ($g_abAttackTypeEnable[$DB] And $g_abSearchCastleWaitEnable[$DB]) Or ($g_abAttackTypeEnable[$LB] And $g_abSearchCastleWaitEnable[$LB]) Then
@@ -162,10 +187,18 @@ Func IsFullClanCastle()
 		If $bNeedRequest Then
 			$g_bCanRequestCC = True
 			RequestCC(False, "IsFullClanCastle")
-			Return False
+			$bFullClanCastle = False
 		EndIf
 	EndIf
-	Return True
+
+	$g_bFullArmyCC = $bFullClanCastle
+
+	If $bCloseArmyWindow Then
+		ClickAway()
+		If _Sleep($DELAYCHECKARMYCAMP4) Then Return $bFullClanCastle
+	EndIf
+
+	Return $bFullClanCastle
 EndFunc   ;==>IsFullClanCastle
 
 Func CheckCCArmy()

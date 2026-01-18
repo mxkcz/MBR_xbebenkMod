@@ -14,17 +14,15 @@
 ; ===============================================================================================================================
 #include-once
 
-Global $g_aGroupSearchDB = "", $groupHerosDB = "", $groupSearchAB = "", $groupHerosAB = "", $groupSpellsDB = "", $groupSpellsAB = "", $groupSearchTS = ""
+Global $g_aGroupSearchDB = "", $groupSearchAB = "", $groupSpellsDB = "", $groupSpellsAB = "", $groupSearchTS = ""
 
 ;Attack
 Global $g_aGroupAttackDB = "", $g_aGroupAttackDBSpell = "", $groupIMGAttackDB = "", $groupIMGAttackDBSpell = "", $groupAttackAB = "", $groupAttackABSpell = "", _
 	   $groupIMGAttackAB = "", $groupIMGAttackABSpell = "", $groupAttackTS = "", $groupAttackTSSpell = "", $groupIMGAttackTS = "", $groupIMGAttackTSSpell = ""
 
-Global $g_aGroupListPicMinTrophy = "", $g_aGroupListPicMaxTrophy = ""
 
 ;End Battle
-Global $g_aGroupEndBattleDB = "", $groupEndBattkeAB = "", $groupKingSleeping = "", $groupQueenSleeping = "", $groupWardenSleeping = "", $groupCloseWhileTraining = "", _
-	   $grpTrainTroops = "", $grpCookSpell = "", $groupChampionSleeping = ""
+Global $g_aGroupEndBattleDB = "", $groupEndBattkeAB = "", $grpTrainTroops = "", $grpCookSpell = ""
 
 ;Spell
 Global $groupLightning = "", $groupHeal = "", $groupRage = "", $groupJump = "", $groupFreeze = "", $groupClone = "", $groupInvisibility = ""
@@ -55,26 +53,20 @@ Global $oAlwaysEnabledControls = ObjCreate("Scripting.Dictionary")
 
 Func InitializeControlVariables()
    $g_aGroupSearchDB = $g_hGrpDBFilter&"#"&$g_hCmbDBMeetGE&"#"&$g_hTxtDBMinGold&"#"&$g_hPicDBMinGold&"#"&$g_hTxtDBMinElixir&"#"&$g_hPicDBMinElixir&"#"& _
-				    $g_hTxtDBMinGoldPlusElixir&"#"&$g_hPicDBMinGPEGold&"#"&$g_hChkDBMeetDE&"#"&$g_hTxtDBMinDarkElixir&"#"&$g_hPicDBMinDarkElixir&"#"&$g_hChkDBMeetTrophy&"#"& _
-				    $g_hTxtDBMinTrophy&"#"&$g_hTxtDBMaxTrophy&"#"&$g_hPicDBMinTrophies&"#"&$g_hChkDBMeetTH&"#"&$g_hCmbDBTH&"#"&$g_hChkDBMeetTHO&"#"& _
+				    $g_hTxtDBMinGoldPlusElixir&"#"&$g_hPicDBMinGPEGold&"#"&$g_hChkDBMeetDE&"#"&$g_hTxtDBMinDarkElixir&"#"&$g_hPicDBMinDarkElixir&"#"& _
+				    $g_hChkDBMeetTH&"#"&$g_hCmbDBTH&"#"&$g_hChkDBMeetTHO&"#"& _
 				    $g_ahChkMeetOne[$DB]&"#"& _
 				    $g_ahChkMaxMortar[$DB]&"#"&$g_ahCmbWeakMortar[$DB]&"#"&$g_ahPicWeakMortar[$DB]&"#"&$g_ahChkMaxWizTower[$DB]&"#"&$g_ahCmbWeakWizTower[$DB]&"#"& _
 				    $g_ahPicWeakWizTower[$DB]&"#"& _
 				    $g_ahChkMaxXBow[$DB]&"#"&$g_ahCmbWeakXBow[$DB]&"#"&$g_ahPicWeakXBow[$DB]&"#"&$g_ahChkMaxInferno[$DB]&"#"&$g_ahCmbWeakInferno[$DB]&"#"& _
 				    $g_ahPicWeakInferno[$DB]&"#"&$g_ahChkMaxEagle[$DB]&"#"&$g_ahCmbWeakEagle[$DB]&"#"&$g_ahPicWeakEagle[$DB]&"#"&$g_ahChkMaxScatter[$DB]&"#"&$g_ahCmbWeakScatter[$DB]&"#"&$g_ahPicWeakScatter[$DB]
-   $groupHerosDB = $g_hPicDBHeroesWait&"#"&$g_hTxtDBHeroesWait&"#"&$g_hChkDBKingWait&"#"&$g_hChkDBQueenWait&"#"&$g_hChkDBWardenWait&"#"&$g_hChkDBChampionWait&"#"&$g_hPicDBKingWait&"#"& _
-				   $g_hPicDBQueenWait&"#"&$g_hPicDBWardenWait&"#"&$g_hPicDBChampionWait&"#"&$g_hChkDBNotWaitHeroes
-
    $groupSearchAB = $g_hGrpABFilter&"#"&$g_hCmbABMeetGE&"#"&$g_hTxtABMinGold&"#"&$g_hPicABMinGold&"#"&$g_hTxtABMinElixir&"#"&$g_hPicABMinElixir&"#"& _
-				    $g_hTxtABMinGoldPlusElixir&"#"&$g_hPicABMinGPEGold&"#"&$g_hChkABMeetDE&"#"&$g_hTxtABMinDarkElixir&"#"&	$g_hPicABMinDarkElixir&"#"&$g_hChkABMeetTrophy&"#"& _
-				    $g_hTxtABMinTrophy&"#"&$g_hTxtABMaxTrophy&"#"&$g_hPicABMinTrophies&"#"&$g_hChkABMeetTH&"#"&$g_hCmbABTH&"#"&$g_hChkABMeetTHO&"#"& _
+				    $g_hTxtABMinGoldPlusElixir&"#"&$g_hPicABMinGPEGold&"#"&$g_hChkABMeetDE&"#"&$g_hTxtABMinDarkElixir&"#"&	$g_hPicABMinDarkElixir&"#"& _
+				    $g_hChkABMeetTH&"#"&$g_hCmbABTH&"#"&$g_hChkABMeetTHO&"#"& _
 				    $g_ahChkMeetOne[$LB]&"#"& _
 				    $g_ahChkMaxMortar[$LB]&"#"&$g_ahCmbWeakMortar[$LB]&"#"&$g_ahPicWeakMortar[$LB]&"#"&$g_ahChkMaxWizTower[$LB]&"#"&$g_ahCmbWeakWizTower[$LB]&"#"& _
 					$g_ahPicWeakWizTower[$LB]&"#"&$g_ahChkMaxXBow[$LB]&"#"&$g_ahCmbWeakXBow[$LB]&"#"&$g_ahPicWeakXBow[$LB]&"#"&$g_ahChkMaxInferno[$LB]&"#"& _
 					$g_ahCmbWeakInferno[$LB]&"#"&$g_ahPicWeakInferno[$LB]&"#"&$g_ahChkMaxEagle[$LB]&"#"&$g_ahCmbWeakEagle[$LB]&"#"&$g_ahPicWeakEagle[$LB]&"#"&$g_ahChkMaxScatter[$LB]&"#"&$g_ahCmbWeakScatter[$LB]&"#"&$g_ahPicWeakScatter[$LB]
-   $groupHerosAB = $g_hPicABHeroesWait&"#"&$g_hTxtABHeroesWait&"#"&$g_hChkABKingWait&"#"&$g_hChkABQueenWait&"#"&$g_hChkABWardenWait&"#"&$g_hChkABChampionWait&"#"& _
-					$g_hPicABKingWait&"#"&$g_hPicABQueenWait&"#"&$g_hPicABWardenWait&"#"&$g_hPicABChampionWait&"#"&$g_hChkABNotWaitHeroes
-
    ;groupSpellsDB = $g_hChkDBSpellsWait&"#"&$g_hPicDBLightSpellWait&"#"&$g_hPicDBHealSpellWait&"#"&$g_hPicDBRageSpellWait&"#"&$g_hPicDBJumpSpellWait&"#"& _
 	;			    $g_hPicDBFreezeSpellWait&"#"&$g_hPicDBPoisonSpellWait&"#"&$g_hPicDBEarthquakeSpellWait&"#"&$g_hPicDBHasteSpellWait
    ;groupSpellsAB = $g_hChkABSpellsWait&"#"&$g_hPicABLightSpellWait&"#"&$g_hPicABHealSpellWait&"#"&$g_hPicABRageSpellWait&"#"&$g_hPicABJumpSpellWait&"#"& _
@@ -104,13 +96,6 @@ Func InitializeControlVariables()
 	;						$g_hPicABInvisibilitySpell&"#"&$g_hPicABPoisonSpell&"#"&$g_hPicABEarthquakeSpell&"#"&$g_hPicABHasteSpell&"#"&$g_hPicABSkeletonSpell&"#"&$g_hPicABBatSpell&"#"&$g_hPicABRecallSpell
 
 
-   $g_aGroupListPicMinTrophy = $g_hPicMinTrophies[$eLeagueUnranked]&"#"&$g_hPicMinTrophies[$eLeagueBronze]&"#"&$g_hPicMinTrophies[$eLeagueSilver]&"#"&$g_hPicMinTrophies[$eLeagueGold] &"#"& _
-				  $g_hPicMinTrophies[$eLeagueCrystal]&"#"&$g_hPicMinTrophies[$eLeagueMaster]&"#"&$g_hPicMinTrophies[$eLeagueChampion]&"#"&$g_hPicMinTrophies[$eLeagueTitan]&"#"& _
-				  $g_hPicMinTrophies[$eLeagueLegend]
-   $g_aGroupListPicMaxTrophy = $g_hPicMaxTrophies[$eLeagueUnranked]&"#"&$g_hPicMaxTrophies[$eLeagueBronze]&"#"&$g_hPicMaxTrophies[$eLeagueSilver]&"#"&$g_hPicMaxTrophies[$eLeagueGold] &"#"& _
-				  $g_hPicMaxTrophies[$eLeagueCrystal]&"#"&$g_hPicMaxTrophies[$eLeagueMaster]&"#"&$g_hPicMaxTrophies[$eLeagueChampion]&"#"&$g_hPicMaxTrophies[$eLeagueTitan]&"#"& _
-				  $g_hPicMaxTrophies[$eLeagueLegend]
-
    ;End Battle
    $g_aGroupEndBattleDB = $g_hGrpDBEndBattle&"#"&$g_hChkStopAtkDBNoLoot1&"#"&$g_hLblStopAtkDBNoLoot1a&"#"&$g_hTxtStopAtkDBNoLoot1&"#"&$g_hLblStopAtkDBNoLoot1b&"#"& _
 					   $g_hChkStopAtkDBNoLoot2&"#"&$g_hChkStopAtkDBNoLoot2&"#"&$g_hLblStopAtkDBNoLoot2a&"#"&$g_hTxtStopAtkDBNoLoot2&"#"&$g_hLblStopAtkDBNoLoot2b&"#"& _
@@ -121,13 +106,6 @@ Func InitializeControlVariables()
 					   $g_hLblABMinRerourcesAtk2&"#"&$g_hTxtABMinGoldStopAtk2&"#"&$g_hPicABMinGoldStopAtk2&"#"&$g_hTxtABMinElixirStopAtk2&"#"&$g_hPicABMinElixirStopAtk2&"#"& _
 					   $g_hTxtABMinDarkElixirStopAtk2&"#"&$g_hPicABMinDarkElixirStopAtk2&"#"&$g_hChkABEndNoResources&"#"&$g_hChkABEndOneStar&"#"&$g_hChkABEndTwoStars
 
-   $groupKingSleeping = $g_hPicDBKingSleepWait&"#"&$g_hPicABKingSleepWait&"#"&$g_hPicChkKingSleepWait
-   $groupQueenSleeping = $g_hPicDBQueenSleepWait&"#"&$g_hPicABQueenSleepWait&"#"&$g_hPicChkQueenSleepWait
-   $groupWardenSleeping = $g_hPicDBWardenSleepWait&"#"&$g_hPicABWardenSleepWait&"#"&$g_hPicChkWardenSleepWait
-   $groupChampionSleeping = $g_hPicDBChampionSleepWait&"#"&$g_hPicABChampionSleepWait&"#"&$g_hPicChkChampionSleepWait
-
-   $groupCloseWhileTraining = $g_hChkCloseWithoutShield&"#"&$g_hChkCloseEmulator&"#"&$g_hChkSuspendComputer&"#"&$g_hPicCloseWaitTrain&"#"&$g_hChkRandomClose&"#"&$g_hPicCloseWaitStop&"#"& _
-							  $g_hRdoCloseWaitExact&"#"&$g_hPicCloseWaitExact&"#"&$g_hRdoCloseWaitRandom&"#"&$g_hCmbCloseWaitRdmPercent&"#"&$g_hLblCloseWaitRdmPercent
    $grpTrainTroops = $g_ahTxtTrainArmyTroopCount[$eTroopBarbarian]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopSuperBarbarian]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopArcher]&"#"& _
 					 $g_ahTxtTrainArmyTroopCount[$eTroopSuperArcher]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopGiant]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopSuperGiant]&"#"& _
 					 $g_ahTxtTrainArmyTroopCount[$eTroopGoblin]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopSneakyGoblin]&"#"&$g_ahTxtTrainArmyTroopCount[$eTroopWallBreaker]&"#"& _
@@ -170,7 +148,7 @@ Func InitializeControlVariables()
    Dim $aTabControlsSearch = [$g_hGUI_SEARCH_TAB, $g_hGUI_SEARCH_TAB_ITEM1, $g_hGUI_SEARCH_TAB_ITEM2, $g_hGUI_SEARCH_TAB_ITEM3, $g_hGUI_SEARCH_TAB_ITEM4]
    Dim $aTabControlsDeadbase = [$g_hGUI_DEADBASE_TAB, $g_hGUI_DEADBASE_TAB_ITEM1, $g_hGUI_DEADBASE_TAB_ITEM2, $g_hGUI_DEADBASE_TAB_ITEM3, $g_hGUI_DEADBASE_TAB_ITEM4]
    Dim $aTabControlsActivebase = [$g_hGUI_ACTIVEBASE_TAB, $g_hGUI_ACTIVEBASE_TAB_ITEM1, $g_hGUI_ACTIVEBASE_TAB_ITEM2, $g_hGUI_ACTIVEBASE_TAB_ITEM3]
-   Dim $aTabControlsAttackOptions = [$g_hGUI_ATTACKOPTION_TAB, $g_hGUI_ATTACKOPTION_TAB_ITEM1, $g_hGUI_ATTACKOPTION_TAB_ITEM2, $g_hGUI_ATTACKOPTION_TAB_ITEM3,  $g_hGUI_ATTACKOPTION_TAB_ITEM4,  $g_hGUI_ATTACKOPTION_TAB_ITEM5]
+   Dim $aTabControlsAttackOptions = [$g_hGUI_ATTACKOPTION_TAB, $g_hGUI_ATTACKOPTION_TAB_ITEM1, $g_hGUI_ATTACKOPTION_TAB_ITEM2, $g_hGUI_ATTACKOPTION_TAB_ITEM3, $g_hGUI_ATTACKOPTION_TAB_ITEM4]
    Dim $aTabControlsStrategies = [$g_hGUI_STRATEGIES_TAB, $g_hGUI_STRATEGIES_TAB_ITEM1, $g_hGUI_STRATEGIES_TAB_ITEM2]
 
    Dim $aTabControlsBot = [$g_hGUI_BOT_TAB, $g_hGUI_BOT_TAB_ITEM1, $g_hGUI_BOT_TAB_ITEM2, $g_hGUI_BOT_TAB_ITEM3, $g_hGUI_BOT_TAB_ITEM4, $g_hGUI_BOT_TAB_ITEM5]

@@ -236,8 +236,6 @@ Func BotSearchMode()
 	btnStart()
 	checkMainScreen(False)
 	If _Sleep(100) Then Return FuncReturn()
-	$g_aiCurrentLoot[$eLootTrophy] = getTrophyMainScreen($aTrophies[0], $aTrophies[1]) ; get OCR to read current Village Trophies
-	If _Sleep(100) Then Return FuncReturn()
 	CheckIfArmyIsReady()
 	ClickAway()
 	If _Sleep(100) Then Return FuncReturn()

@@ -19,14 +19,14 @@ Global $ResetStats = 0
 Func UpdateStats($bForceUpdate = False)
 	; old values
 	Static $s_iOldSmartZapGain = 0, $s_iOldNumLSpellsUsed = 0, $s_iOldNumEQSpellsUsed = 0
-	Static $topgoldloot = 0, $topelixirloot = 0, $topdarkloot = 0, $topTrophyloot = 0
+	Static $topgoldloot = 0, $topelixirloot = 0, $topdarkloot = 0
 	Static $bDonateTroopsStatsChanged = False, $bDonateSpellsStatsChanged = False, $bDonateSiegeStatsChanged = False
 	Static $iOldFreeBuilderCount, $iOldTotalBuilderCount, $iOldGemAmount ; builder and gem amounts
 	Static $iOldCurrentLoot[$eLootCount] ; current stats
 	Static $iOldTotalLoot[$eLootCount] ; total stats
 	Static $iOldLastLoot[$eLootCount] ; loot and trophy gain from last raid
 	Static $iOldLastBonus[$eLootCount] ; bonus loot from last raid
-	Static $iOldSkippedVillageCount, $iOldDroppedTrophyCount ; skipped village and dropped trophy counts
+	Static $iOldSkippedVillageCount ; skipped village count
 	Static $iOldCostGoldWall, $iOldCostElixirWall, $iOldCostGoldBuilding, $iOldCostElixirBuilding, $iOldCostDElixirHero ; wall, building and hero upgrade costs
 	Static $iOldNbrOfWallsUppedGold, $iOldNbrOfWallsUppedElixir, $iOldNbrOfBuildingsUppedGold, $iOldNbrOfBuildingsUppedElixir, $iOldNbrOfHeroesUpped ; number of wall, building, hero upgrades with gold, elixir, delixir
 	Static $iOldSearchCost, $iOldTrainCostElixir, $iOldTrainCostDElixir, $iOldTrainCostGold ; search and train troops cost
@@ -34,7 +34,7 @@ Func UpdateStats($bForceUpdate = False)
 	Static $iOldNbrOfTHSnipeFails, $iOldNbrOfTHSnipeSuccess ; number of fails and success while TH Sniping
 	Static $iOldGoldFromMines, $iOldElixirFromCollectors, $iOldDElixirFromDrills ; number of resources gain by collecting mines, collectors, drills
 	Static $iOldAttackedCount, $iOldAttackedVillageCount[$g_iModeCount + 1] ; number of attack villages for DB, LB, TB, TS
-	Static $iOldTotalGoldGain[$g_iModeCount + 1], $iOldTotalElixirGain[$g_iModeCount + 1], $iOldTotalDarkGain[$g_iModeCount + 1], $iOldTotalTrophyGain[$g_iModeCount + 1] ; total resource gains for DB, LB, TB, TS
+	Static $iOldTotalGoldGain[$g_iModeCount + 1], $iOldTotalElixirGain[$g_iModeCount + 1], $iOldTotalDarkGain[$g_iModeCount + 1] ; total resource gains for DB, LB, TB, TS
 	Static $iOldNbrOfDetectedMines[$g_iModeCount + 1], $iOldNbrOfDetectedCollectors[$g_iModeCount + 1], $iOldNbrOfDetectedDrills[$g_iModeCount + 1] ; number of mines, collectors, drills detected for DB, LB, TB
 	Static $sOldClanGamesScore, $sOldClanGameTimeRemaining
 	; Builder Base old values
@@ -48,7 +48,6 @@ Func UpdateStats($bForceUpdate = False)
 		$topgoldloot = 0
 		$topelixirloot = 0
 		$topdarkloot = 0
-		$topTrophyloot = 0
 		$bDonateTroopsStatsChanged = True
 		$bDonateSpellsStatsChanged = True
 		$bDonateSiegeStatsChanged = True
@@ -60,7 +59,6 @@ Func UpdateStats($bForceUpdate = False)
 		UpdateStats_ClearArray($iOldLastLoot) ; loot and trophy gain from last raid
 		UpdateStats_ClearArray($iOldLastBonus) ; bonus loot from last raid
 		$iOldSkippedVillageCount = 0
-		$iOldDroppedTrophyCount = 0 ; skipped village and dropped trophy counts
 		$iOldCostGoldWall = 0
 		$iOldCostElixirWall = 0
 		$iOldCostGoldBuilding = 0
@@ -86,7 +84,6 @@ Func UpdateStats($bForceUpdate = False)
 		UpdateStats_ClearArray($iOldTotalGoldGain)
 		UpdateStats_ClearArray($iOldTotalElixirGain)
 		UpdateStats_ClearArray($iOldTotalDarkGain)
-		UpdateStats_ClearArray($iOldTotalTrophyGain) ; total resource gains for DB, LB, TB, TS
 		UpdateStats_ClearArray($iOldNbrOfDetectedMines)
 		UpdateStats_ClearArray($iOldNbrOfDetectedCollectors)
 		UpdateStats_ClearArray($iOldNbrOfDetectedDrills) ; number of mines, collectors, drills detected for DB, LB, TB
@@ -114,14 +111,12 @@ Func UpdateStats($bForceUpdate = False)
 			GUICtrlSetState($g_hPicDarkLastAttack, $GUI_HIDE)
 			GUICtrlSetState($g_hPicHourlyStatsDark, $GUI_HIDE)
 		EndIf
-		GUICtrlSetState($g_hLblResultTrophyNow, $GUI_SHOW)
 		GUICtrlSetState($g_hLblResultBuilderNow, $GUI_SHOW)
 		GUICtrlSetState($g_hLblResultGemNow, $GUI_SHOW)
 		btnVillageStat("UpdateStats")
 		$g_iStatsStartedWith[$eLootGold] = $g_aiCurrentLoot[$eLootGold]
 		$g_iStatsStartedWith[$eLootElixir] = $g_aiCurrentLoot[$eLootElixir]
 		$g_iStatsStartedWith[$eLootDarkElixir] = $g_aiCurrentLoot[$eLootDarkElixir]
-		$g_iStatsStartedWith[$eLootTrophy] = $g_aiCurrentLoot[$eLootTrophy]
 		GUICtrlSetData($g_ahLblStatsStartedWith[$eLootGold], _NumberFormat($g_aiCurrentLoot[$eLootGold], True))
 		GUICtrlSetData($g_hLblResultGoldNow, _NumberFormat($g_aiCurrentLoot[$eLootGold], True))
 		$iOldCurrentLoot[$eLootGold] = $g_aiCurrentLoot[$eLootGold]
@@ -133,9 +128,6 @@ Func UpdateStats($bForceUpdate = False)
 			GUICtrlSetData($g_hLblResultDeNow, _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir], True))
 			$iOldCurrentLoot[$eLootDarkElixir] = $g_aiCurrentLoot[$eLootDarkElixir]
 		EndIf
-		GUICtrlSetData($g_ahLblStatsStartedWith[$eLootTrophy], _NumberFormat($g_aiCurrentLoot[$eLootTrophy], True))
-		GUICtrlSetData($g_hLblResultTrophyNow, _NumberFormat($g_aiCurrentLoot[$eLootTrophy], True))
-		$iOldCurrentLoot[$eLootTrophy] = $g_aiCurrentLoot[$eLootTrophy]
 		GUICtrlSetData($g_hLblResultGemNow, _NumberFormat($g_iGemAmount, True))
 		$iOldGemAmount = $g_iGemAmount
 		GUICtrlSetData($g_hLblResultBuilderNow, $g_iFreeBuilderCount & "/" & $g_iTotalBuilderCount)
@@ -172,12 +164,6 @@ Func UpdateStats($bForceUpdate = False)
 		GUICtrlSetData($g_ahLblStatsTop[$eLootDarkElixir], _NumberFormat($topdarkloot))
 	EndIf
 
-	If Number($g_iStatsLastAttack[$eLootTrophy]) > Number($topTrophyloot) Then
-		$bStatsUpdated = True
-		$topTrophyloot = $g_iStatsLastAttack[$eLootTrophy]
-		GUICtrlSetData($g_ahLblStatsTop[$eLootTrophy], _NumberFormat($topTrophyloot))
-	EndIf
-
 	If $ResetStats = 1 Then
 		$bStatsUpdated = True
 		GUICtrlSetData($g_ahLblStatsStartedWith[$eLootGold], _NumberFormat($g_aiCurrentLoot[$eLootGold], True))
@@ -185,11 +171,9 @@ Func UpdateStats($bForceUpdate = False)
 		If $g_iStatsStartedWith[$eLootDarkElixir] <> "" Then
 			GUICtrlSetData($g_ahLblStatsStartedWith[$eLootDarkElixir], _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir], True))
 		EndIf
-		GUICtrlSetData($g_ahLblStatsStartedWith[$eLootTrophy], _NumberFormat($g_aiCurrentLoot[$eLootTrophy], True))
 		GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootGold], "")
 		GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootElixir], "")
 		GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootDarkElixir], "")
-		GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootTrophy], "")
 		GUICtrlSetData($g_hLblResultGoldHourNow, "") ;GUI BOTTOM
 		GUICtrlSetData($g_hLblResultElixirHourNow, "") ;GUI BOTTOM
 		GUICtrlSetData($g_hLblResultDEHourNow, "") ;GUI BOTTOM
@@ -227,12 +211,6 @@ Func UpdateStats($bForceUpdate = False)
 		$iOldCurrentLoot[$eLootDarkElixir] = $g_aiCurrentLoot[$eLootDarkElixir]
 	EndIf
 
-	If $iOldCurrentLoot[$eLootTrophy] <> $g_aiCurrentLoot[$eLootTrophy] Then
-		$bStatsUpdated = True
-		GUICtrlSetData($g_hLblResultTrophyNow, _NumberFormat($g_aiCurrentLoot[$eLootTrophy], True))
-		$iOldCurrentLoot[$eLootTrophy] = $g_aiCurrentLoot[$eLootTrophy]
-	EndIf
-
 	If $iOldTotalLoot[$eLootGold] <> $g_iStatsTotalGain[$eLootGold] And ($g_iFirstAttack = 2 Or $ResetStats = 1) Then
 		$bStatsUpdated = True
 		GUICtrlSetData($g_ahLblStatsTotalGain[$eLootGold], _NumberFormat($g_iStatsTotalGain[$eLootGold]))
@@ -251,11 +229,6 @@ Func UpdateStats($bForceUpdate = False)
 		$iOldTotalLoot[$eLootDarkElixir] = $g_iStatsTotalGain[$eLootDarkElixir]
 	EndIf
 
-	If $iOldTotalLoot[$eLootTrophy] <> $g_iStatsTotalGain[$eLootTrophy] And ($g_iFirstAttack = 2 Or $ResetStats = 1) Then
-		$bStatsUpdated = True
-		GUICtrlSetData($g_ahLblStatsTotalGain[$eLootTrophy], _NumberFormat($g_iStatsTotalGain[$eLootTrophy]))
-		$iOldTotalLoot[$eLootTrophy] = $g_iStatsTotalGain[$eLootTrophy]
-	EndIf
 
 	If $iOldLastLoot[$eLootGold] <> $g_iStatsLastAttack[$eLootGold] Then
 		$bStatsUpdated = True
@@ -273,12 +246,6 @@ Func UpdateStats($bForceUpdate = False)
 		$bStatsUpdated = True
 		GUICtrlSetData($g_ahLblStatsLastAttack[$eLootDarkElixir], _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]))
 		$iOldLastLoot[$eLootDarkElixir] = $g_iStatsLastAttack[$eLootDarkElixir]
-	EndIf
-
-	If $iOldLastLoot[$eLootTrophy] <> $g_iStatsLastAttack[$eLootTrophy] Then
-		$bStatsUpdated = True
-		GUICtrlSetData($g_ahLblStatsLastAttack[$eLootTrophy], _NumberFormat($g_iStatsLastAttack[$eLootTrophy]))
-		$iOldLastLoot[$eLootTrophy] = $g_iStatsLastAttack[$eLootTrophy]
 	EndIf
 
 	If $iOldLastBonus[$eLootGold] <> $g_iStatsBonusLast[$eLootGold] Then
@@ -334,12 +301,6 @@ Func UpdateStats($bForceUpdate = False)
 		GUICtrlSetData($g_hLblResultVillagesSkipped, _NumberFormat($g_iSkippedVillageCount, True))
 		GUICtrlSetData($g_hLblResultSkippedHourNow, _NumberFormat($g_iSkippedVillageCount, True))
 		$iOldSkippedVillageCount = $g_iSkippedVillageCount
-	EndIf
-
-	If $iOldDroppedTrophyCount <> $g_iDroppedTrophyCount Then
-		$bStatsUpdated = True
-		GUICtrlSetData($g_hLblResultTrophiesDropped, _NumberFormat($g_iDroppedTrophyCount, True))
-		$iOldDroppedTrophyCount = $g_iDroppedTrophyCount
 	EndIf
 
 	If $iOldNbrOfWallsUppedGold <> $g_iNbrOfWallsUppedGold Then
@@ -529,12 +490,6 @@ Func UpdateStats($bForceUpdate = False)
 			$iOldTotalDarkGain[$i] = $g_aiTotalDarkGain[$i]
 		EndIf
 
-		If $iOldTotalTrophyGain[$i] <> $g_aiTotalTrophyGain[$i] Then
-			$bStatsUpdated = True
-			GUICtrlSetData($g_hLblTotalTrophyGain[$i], _NumberFormat($g_aiTotalTrophyGain[$i], True))
-			$iOldTotalTrophyGain[$i] = $g_aiTotalTrophyGain[$i]
-		EndIf
-
 	Next
 
 	If $iOldAttackedCount <> $g_aiAttackedCount Then
@@ -573,7 +528,6 @@ Func UpdateStats($bForceUpdate = False)
 		If $g_iStatsStartedWith[$eLootDarkElixir] <> "" Then
 			GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootDarkElixir], _NumberFormat(Round($g_iStatsTotalGain[$eLootDarkElixir] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600 * 1000)) & " / h")
 		EndIf
-		GUICtrlSetData($g_ahLblStatsGainPerHour[$eLootTrophy], _NumberFormat(Round($g_iStatsTotalGain[$eLootTrophy] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600 * 1000)) & " / h")
 
 		GUICtrlSetData($g_hLblResultGoldHourNow, _NumberFormat(Round($g_iStatsTotalGain[$eLootGold] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600)) & "k / h") ;GUI BOTTOM
 		GUICtrlSetData($g_hLblResultElixirHourNow, _NumberFormat(Round($g_iStatsTotalGain[$eLootElixir] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600)) & "k / h") ;GUI BOTTOM
@@ -600,11 +554,6 @@ Func UpdateStats($bForceUpdate = False)
 		GUICtrlSetData($g_ahLblStatsTop[$eLootDarkElixir], _NumberFormat($topdarkloot))
 	EndIf
 
-	If Number($g_iStatsLastAttack[$eLootTrophy]) > Number($topTrophyloot) Then
-		$bStatsUpdated = True
-		$topTrophyloot = $g_iStatsLastAttack[$eLootTrophy]
-		GUICtrlSetData($g_ahLblStatsTop[$eLootTrophy], _NumberFormat($topTrophyloot))
-	EndIf
 
 	If $g_sClanGamesTimeRemaining <> $sOldClanGameTimeRemaining Then
 		GUICtrlSetData($g_hLblRemainTime, $g_sClanGamesTimeRemaining)
@@ -632,7 +581,6 @@ Func UpdateStats($bForceUpdate = False)
 		GUICtrlSetData($g_ahLblResultGoldNowAcc[$g_iCurAccount], _NumberFormat($g_aiCurrentLoot[$eLootGold], True))
 		GUICtrlSetData($g_ahLblResultElixirNowAcc[$g_iCurAccount], _NumberFormat($g_aiCurrentLoot[$eLootElixir], True))
 		GUICtrlSetData($g_ahLblResultDENowAcc[$g_iCurAccount], _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir], False))
-		GUICtrlSetData($g_ahLblResultTrophyNowAcc[$g_iCurAccount], _NumberFormat($g_aiCurrentLoot[$eLootTrophy], True))
 		GUICtrlSetData($g_ahLblResultBuilderNowAcc[$g_iCurAccount], $g_iFreeBuilderCount & "/" & $g_iTotalBuilderCount)
 		Local $TempGemDisplay = $g_iGemAmount < 10000 ? $g_iGemAmount : Round($g_iGemAmount/1000,1) & "K"
 		GUICtrlSetData($g_ahLblResultGemNowAcc[$g_iCurAccount], _NumberFormat($TempGemDisplay, True))
@@ -664,20 +612,16 @@ Func ResetStats()
 	$g_iStatsStartedWith[$eLootGold] = $g_aiCurrentLoot[$eLootGold]
 	$g_iStatsStartedWith[$eLootElixir] = $g_aiCurrentLoot[$eLootElixir]
 	$g_iStatsStartedWith[$eLootDarkElixir] = $g_aiCurrentLoot[$eLootDarkElixir]
-	$g_iStatsStartedWith[$eLootTrophy] = $g_aiCurrentLoot[$eLootTrophy]
 	$g_iStatsTotalGain[$eLootGold] = 0
 	$g_iStatsTotalGain[$eLootElixir] = 0
 	$g_iStatsTotalGain[$eLootDarkElixir] = 0
-	$g_iStatsTotalGain[$eLootTrophy] = 0
 	$g_iStatsLastAttack[$eLootGold] = 0
 	$g_iStatsLastAttack[$eLootElixir] = 0
 	$g_iStatsLastAttack[$eLootDarkElixir] = 0
-	$g_iStatsLastAttack[$eLootTrophy] = 0
 	$g_iStatsBonusLast[$eLootGold] = 0
 	$g_iStatsBonusLast[$eLootElixir] = 0
 	$g_iStatsBonusLast[$eLootDarkElixir] = 0
 	$g_iSkippedVillageCount = 0
-	$g_iDroppedTrophyCount = 0
 	$g_iCostGoldWall = 0
 	$g_iCostElixirWall = 0
 	$g_iCostGoldBuilding = 0
@@ -704,7 +648,6 @@ Func ResetStats()
 		$g_aiTotalGoldGain[$i] = 0
 		$g_aiTotalElixirGain[$i] = 0
 		$g_aiTotalDarkGain[$i] = 0
-		$g_aiTotalTrophyGain[$i] = 0
 		$g_aiNbrOfDetectedMines[$i] = 0
 		$g_aiNbrOfDetectedCollectors[$i] = 0
 		$g_aiNbrOfDetectedDrills[$i] = 0

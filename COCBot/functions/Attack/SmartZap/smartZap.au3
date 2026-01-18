@@ -157,8 +157,6 @@ Func smartZap($minDE = -1)
 		EndIf
 	EndIf
 	
-	If $g_iMatchMode = $DT Then $bZapDrills = True
-
 	If $bZapDrills Then
 		; Offset the drill level based on town hall level
 		$drillLvlOffset = getDrillOffset()

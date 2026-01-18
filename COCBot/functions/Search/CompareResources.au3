@@ -15,29 +15,25 @@
 
 Func CompareResources($pMode) ;Compares resources and returns true if conditions meet, otherwise returns false
 	If $g_bSearchReductionEnable Then
-		If $g_iSearchCount <> 0 And Mod($g_iSearchCount, $g_iSearchReductionCount) = 0 Then
-			If $g_iAimGold[$pMode] - $g_iSearchReductionGold >= 0 Then $g_iAimGold[$pMode] -= $g_iSearchReductionGold
-			If $g_iAimElixir[$pMode] - $g_iSearchReductionElixir >= 0 Then $g_iAimElixir[$pMode] -= $g_iSearchReductionElixir
-			If $g_iAimDark[$pMode] - $g_iSearchReductionDark >= 0 Then $g_iAimDark[$pMode] -= $g_iSearchReductionDark
-			If $g_iAimTrophy[$pMode] - $g_iSearchReductionTrophy >= 0 Then $g_iAimTrophy[$pMode] -= $g_iSearchReductionTrophy
-			If $g_iAimTrophyMax[$pMode] + $g_iSearchReductionTrophy < 99 Then $g_iAimTrophyMax[$pMode] += $g_iSearchReductionTrophy
-			If $g_iAimGoldPlusElixir[$pMode] - $g_iSearchReductionGoldPlusElixir >= 0 Then $g_iAimGoldPlusElixir[$pMode] -= $g_iSearchReductionGoldPlusElixir
+			If $g_iSearchCount <> 0 And Mod($g_iSearchCount, $g_iSearchReductionCount) = 0 Then
+				If $g_iAimGold[$pMode] - $g_iSearchReductionGold >= 0 Then $g_iAimGold[$pMode] -= $g_iSearchReductionGold
+				If $g_iAimElixir[$pMode] - $g_iSearchReductionElixir >= 0 Then $g_iAimElixir[$pMode] -= $g_iSearchReductionElixir
+				If $g_iAimDark[$pMode] - $g_iSearchReductionDark >= 0 Then $g_iAimDark[$pMode] -= $g_iSearchReductionDark
+				If $g_iAimGoldPlusElixir[$pMode] - $g_iSearchReductionGoldPlusElixir >= 0 Then $g_iAimGoldPlusElixir[$pMode] -= $g_iSearchReductionGoldPlusElixir
 
-			Local $sTrophyText = "", $sTownhallText = ""
-			If $g_abFilterMeetTrophyEnable[$pMode] Then $sTrophyText = " [T]:" & StringFormat("%2s", $g_iAimTrophy[$pMode]) & "-" & StringFormat("%2s", $g_iAimTrophyMax[$pMode])
-			If $g_abFilterMeetTH[$pMode] Then $sTownhallText = " [TH]:" & StringFormat("%2s", $g_aiMaxTH[$pMode]) ;---
-			If $g_abFilterMeetTHOutsideEnable[$pMode] Then $sTrophyText &= ", Out"
-			If $g_aiFilterMeetGE[$pMode] = 2 Then
-				SetLog("Aim:           [G+E]:" & StringFormat("%7s", $g_iAimGoldPlusElixir[$pMode]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$pMode]) & $sTrophyText & $sTownhallText & " for: " & $g_asModeText[$pMode], $COLOR_SUCCESS, "Lucida Console", 7.5) ;---
-			Else
-				SetLog("Aim: [G]:" & StringFormat("%7s", $g_iAimGold[$pMode]) & " [E]:" & StringFormat("%7s", $g_iAimElixir[$pMode]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$pMode]) & $sTrophyText & $sTownhallText & " for: " & $g_asModeText[$pMode], $COLOR_SUCCESS, "Lucida Console", 7.5) ;---
+				Local $sTownhallText = ""
+				If $g_abFilterMeetTH[$pMode] Then $sTownhallText = " [TH]:" & StringFormat("%2s", $g_aiMaxTH[$pMode]) ;---
+				If $g_abFilterMeetTHOutsideEnable[$pMode] Then $sTownhallText &= ", Out"
+				If $g_aiFilterMeetGE[$pMode] = 2 Then
+					SetLog("Aim:           [G+E]:" & StringFormat("%7s", $g_iAimGoldPlusElixir[$pMode]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$pMode]) & $sTownhallText & " for: " & $g_asModeText[$pMode], $COLOR_SUCCESS, "Lucida Console", 7.5) ;---
+				Else
+					SetLog("Aim: [G]:" & StringFormat("%7s", $g_iAimGold[$pMode]) & " [E]:" & StringFormat("%7s", $g_iAimElixir[$pMode]) & " [D]:" & StringFormat("%5s", $g_iAimDark[$pMode]) & $sTownhallText & " for: " & $g_asModeText[$pMode], $COLOR_SUCCESS, "Lucida Console", 7.5) ;---
+				EndIf
 			EndIf
 		EndIf
-	EndIf
 
 	Local $bGoldMet = (Number($g_iSearchGold) >= Number($g_iAimGold[$pMode])), $bElixirMet = (Number($g_iSearchElixir) >= Number($g_iAimElixir[$pMode]))
     Local $bDarkElixirMet = (Number($g_iSearchDark) >= Number($g_iAimDark[$pMode]))
-    Local $bTrophiesMet = (Number($g_iSearchTrophy) >= Number($g_iAimTrophy[$pMode])) And (Number($g_iSearchTrophy) <= Number($g_iAimTrophyMax[$pMode]))
     Local $bGoldPlusElxirMet = ((Number($g_iSearchGold) + Number($g_iSearchElixir)) >= Number($g_iAimGoldPlusElixir[$pMode]))
 
 	If $g_abFilterMeetOneConditionEnable[$pMode] Then
@@ -47,10 +43,6 @@ Func CompareResources($pMode) ;Compares resources and returns true if conditions
 
 		If $g_abFilterMeetDEEnable[$pMode] Then
 			If $bDarkElixirMet Then Return True
-		EndIf
-
-		If $g_abFilterMeetTrophyEnable[$pMode] Then
-			If $bTrophiesMet Then Return True
 		EndIf
 
 		If $g_aiFilterMeetGE[$pMode] = 1 Then
@@ -69,10 +61,6 @@ Func CompareResources($pMode) ;Compares resources and returns true if conditions
 
 		If $g_abFilterMeetDEEnable[$pMode] Then
 			If Not $bDarkElixirMet Then Return False
-		EndIf
-
-		If $g_abFilterMeetTrophyEnable[$pMode] Then
-			If Not $bTrophiesMet Then Return False
 		EndIf
 
 		If $g_aiFilterMeetGE[$pMode] = 1 Then

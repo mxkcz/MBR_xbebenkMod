@@ -31,64 +31,46 @@ Func BotCommand()
 
 	If $bChkBotStop Then
 
-		If $iCmbBotCond = 15 And $g_iCmbHoursStop <> 0 Then $TimeToStop = $g_iCmbHoursStop * 3600000 ; 3600000 = 1 Hours
+		If $iCmbBotCond = 6 And $g_iCmbHoursStop <> 0 Then $TimeToStop = $g_iCmbHoursStop * 3600000 ; 3600000 = 1 Hours
 
 		Switch $iCmbBotCond
 			Case 0
-				If isGoldFull() And isElixirFull() And isTrophyMax() Then $g_bMeetCondStop = True
-			Case 1
-				If (isGoldFull() And isElixirFull()) Or isTrophyMax() Then $g_bMeetCondStop = True
-			Case 2
-				If (isGoldFull() Or isElixirFull()) And isTrophyMax() Then $g_bMeetCondStop = True
-			Case 3
-				If isGoldFull() Or isElixirFull() Or isTrophyMax() Then $g_bMeetCondStop = True
-			Case 4
 				If isGoldFull() And isElixirFull() Then $g_bMeetCondStop = True
-			Case 5
+			Case 1
 				If isGoldFull() Or isElixirFull() Then $g_bMeetCondStop = True
-			Case 6
-				If isGoldFull() And isTrophyMax() Then $g_bMeetCondStop = True
-			Case 7
-				If isElixirFull() And isTrophyMax() Then $g_bMeetCondStop = True
-			Case 8
-				If isGoldFull() Or isTrophyMax() Then $g_bMeetCondStop = True
-			Case 9
-				If isElixirFull() Or isTrophyMax() Then $g_bMeetCondStop = True
-			Case 10
+			Case 2
 				If isGoldFull() Then $g_bMeetCondStop = True
-			Case 11
+			Case 3
 				If isElixirFull() Then $g_bMeetCondStop = True
-			Case 12
-				If isTrophyMax() Then $g_bMeetCondStop = True
-			Case 13
+			Case 4
 				If isDarkElixirFull() Then $g_bMeetCondStop = True
-			Case 14
+			Case 5
 				If isGoldFull() And isElixirFull() And isDarkElixirFull() Then $g_bMeetCondStop = True
-			Case 15 ; Bot running for...
+			Case 6 ; Bot running for...
 				If Round(__TimerDiff($g_hTimerSinceStarted)) > $TimeToStop Then $g_bMeetCondStop = True
-			Case 16 ; Train/Donate Only
+			Case 7 ; Train/Donate Only
 				$g_bMeetCondStop = True
-			Case 17 ; Donate Only
+			Case 8 ; Donate Only
 				$g_bMeetCondStop = True
 				$g_bTrainEnabled = False
-			Case 18 ; Only stay online
+			Case 9 ; Only stay online
 				$g_bMeetCondStop = True
 				$g_bTrainEnabled = False
 				$g_bDonationEnabled = False
-			Case 19 ; Have shield - Online/Train/Collect/Donate
+			Case 10 ; Have shield - Online/Train/Collect/Donate
 				If $g_bWaitShield = True Then $g_bMeetCondStop = True
-			Case 20 ; Have shield - Online/Collect/Donate
+			Case 11 ; Have shield - Online/Collect/Donate
 				If $g_bWaitShield = True Then
 					$g_bMeetCondStop = True
 					$g_bTrainEnabled = False
 				EndIf
-			Case 21 ; Have shield - Online/Collect
+			Case 12 ; Have shield - Online/Collect
 				If $g_bWaitShield = True Then
 					$g_bMeetCondStop = True
 					$g_bTrainEnabled = False
 					$g_bDonationEnabled = False
 				EndIf
-			Case 22 ; At certain time in the day
+			Case 13 ; At certain time in the day
 				Local $bResume = ($iCmbBotCommand = 0)
 				If StopAndResumeTimer($bResume) Then $g_bMeetCondStop = True
 		EndSwitch
@@ -96,7 +78,7 @@ Func BotCommand()
 		If $g_bMeetCondStop Then
 			Switch $iCmbBotCommand
 				Case 0
-					If $iCmbBotCond <= 14 And $g_bCollectStarBonus And WaitforPixel(91, 578, 92, 579, "FFFFA1", 1, "StarBonus") Then
+					If $iCmbBotCond <= 5 And $g_bCollectStarBonus And WaitforPixel(91, 578, 92, 579, "FFFFA1", 1, "StarBonus") Then
 						SetLog("Star bonus available. Continue attacking to collect them.")
 						Return False
 					EndIf
@@ -159,37 +141,6 @@ Func BotCommand()
 	Return False
 EndFunc   ;==>BotCommand
 
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: isTrophyMax
-; Description ...:
-; Syntax ........: isTrophyMax()
-; Parameters ....:
-; Return values .: None
-; Author ........: MonkeyHunter (2017-3)
-; Modified ......:
-; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
-;                  MyBot is distributed under the terms of the GNU GPL
-; Related .......:
-; Link ..........: https://github.com/MyBotRun/MyBot/wiki
-; Example .......: No
-; ===============================================================================================================================
-Func isTrophyMax()
-	If Number($g_aiCurrentLoot[$eLootTrophy]) > Number($g_iDropTrophyMax) Then
-		SetLog("Max. Trophy Reached!", $COLOR_SUCCESS)
-		If _Sleep($DELAYBOTCOMMAND1) Then Return
-		$g_abFullStorage[$eLootTrophy] = True
-	ElseIf $g_abFullStorage[$eLootTrophy] Then
-		If Number($g_aiCurrentLoot[$eLootTrophy]) >= Number($g_aiResumeAttackLoot[$eLootTrophy]) Then
-			SetLog("Trophy is still relatively high: " & $g_aiCurrentLoot[$eLootTrophy], $COLOR_SUCCESS)
-			$g_abFullStorage[$eLootTrophy] = True
-		Else
-			SetLog("Switching back to normal when Trophy drops below " & $g_aiResumeAttackLoot[$eLootTrophy], $COLOR_SUCCESS)
-			$g_abFullStorage[$eLootTrophy] = False
-		EndIf
-	EndIf
-	Return $g_abFullStorage[$eLootTrophy]
-EndFunc   ;==>isTrophyMax
 
 Func StopAndResumeTimer($bResume = False)
 

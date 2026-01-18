@@ -138,7 +138,6 @@ Func MakeSavePresetMessage()
 	$message &= "NOTES:" & @CRLF & @CRLF
 
 
-	If $g_bDropTrophyEnable Then $message &= "TROPHIES RANGE: " & $g_iDropTrophyMin & " - " & $g_iDropTrophyMax & @CRLF & @CRLF
 	$message &= "TRAIN ARMY SETTINGS:" & @CRLF
 	$message &= "- Custom Train Troops:" & @CRLF
 	For $i = 0 To $eTroopCount - 1
@@ -159,7 +158,6 @@ Func MakeSavePresetMessage()
 					$message &= "- AB search: "
 			EndSwitch
 			If $g_abSearchSearchesEnable[$i] Then $message &= " " & "s. " & $g_aiSearchSearchesMin[$i] & "-" & $g_aiSearchSearchesMax[$i]
-			If $g_abSearchTropiesEnable[$i] Then $message &= "  " & "t. " & $g_aiSearchTrophiesMin[$i] & "-" & $g_aiSearchTrophiesMax[$i]
 			If $g_abSearchCampsEnable[$i] Then $message &= " " & "c. >" & $g_aiSearchCampsPct[$i] & "%"
 			$message &= @CRLF
 			Switch $i
@@ -181,8 +179,6 @@ Func MakeSavePresetMessage()
 					$message &= " G+E >= " & $g_aiFilterMinGoldPlusElixir[$i] & "  "
 			EndSwitch
 			If $g_abFilterMeetDEEnable[$i] Then $message &= " D >= " & $g_aiFilterMeetDEMin[$i] & "  "
-			If $g_abFilterMeetTrophyEnable[$i] Then $message &= " TR >= " & $g_aiFilterMeetTrophyMin[$i] & "  "
-			If $g_abFilterMeetTrophyEnable[$i] Then $message &= " TR <= " & $g_aiFilterMeetTrophyMax[$i] & "  "
 			If $g_abFilterMeetTH[$i] Then $message &= " TH >= " & $g_aiFilterMeetTHMin[$i] + 6 & "  "
 			If $g_abFilterMeetTHOutsideEnable[$i] Then $message &= " THO" & "  "
 			If IsWeakBaseActive($i) Then $message &= " WB" & "  "

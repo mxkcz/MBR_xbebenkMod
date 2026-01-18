@@ -611,10 +611,10 @@ Global Enum $eBarb, $eSBarb, $eArch, $eSArch, $eGiant, $eSGiant, $eGobl, $eSGobl
 			$eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, $eArmyCount
 
 ; Attack types
-Global Enum $DB, $LB, $TB, $DT ; DeadBase, ActiveBase, TownhallBully, DropTrophy
+Global Enum $DB, $LB, $TB ; DeadBase, ActiveBase, TownhallBully
 Global Const $g_iModeCount = 3
-Global $g_iMatchMode = 0 ; 0 Dead / 1 Live / 2 TH Bully / 3 Drop Trophy
-Global Const $g_asModeText[4] = ["Dead Base", "Live Base", "TH Bully", "Drop Trophy"]
+Global $g_iMatchMode = 0 ; 0 Dead / 1 Live / 2 TH Bully
+Global Const $g_asModeText[3] = ["Dead Base", "Live Base", "TH Bully"]
 
 ; Troops
 Global Enum $eTroopBarbarian, $eTroopSuperBarbarian, $eTroopArcher, $eTroopSuperArcher, $eTroopGiant, $eTroopSuperGiant, $eTroopGoblin, $eTroopSneakyGoblin, $eTroopWallBreaker, $eTroopSuperWallBreaker, $eTroopBalloon, _
@@ -657,7 +657,6 @@ Global Const $g_aiTroopSpace[$eTroopCount] = [ _
 		1, 5, 1, 12, 5, 10, 1, 3, 2, 8, 5, _
 		8, 4, 10, 14, 20, 40, 25, 10, 15, 6, 24, _
 		 30, 18, 35, 25, 32, 20, 16, 40, 2, 12, 5, 12, 8, 20, 30, 12, 40, 30, 40, 6, 30, 15, 6, 20, 16, 18, 20, 8, 4, 4]
-Global Const $g_aiTroopTrainTime[$eTroopCount] = [5, 25, 8, 72, 30, 60, 7, 21, 15, 60, 30, 48, 30, 75, 120, 180, 360, 180, 90, 135, 30, 120, 360, 180, 250, 360, 220, 140, 0, 0, 18, 108, 45, 108, 90, 225, 300, 180, 400, 300, 400, 60, 300, 180, 60, 240, 150, 150, 30, 37, 30, 30]
 Global Const $g_aiTroopDonateXP[$eTroopCount ] = [1, 5, 1, 12, 5, 10, 1, 3, 2, 8, 5, _
 		8, 4, 10, 14, 20, 40, 25, 10, 15, 6, 24, _
 		30, 18, 35, 25, 32, 20, 16, 40, 2, 12, 5, 12, 8, 20, 30, 12, 40, 30, 40, 6, 30, 15, 6, 20, 16, 18, 20, 8, 4, 4]
@@ -691,7 +690,6 @@ Global Const $g_aSpellsIcon[$eSpellCount] = [$eIcnLightSpell, $eIcnHealSpell, $e
 Global Const $g_asSpellNames[$eSpellCount] = ["Lightning", "Healing", "Rage", "Jump", "Freeze", "Clone", "Invisibility", "Recall", "Revive", "Totem", "Poison", "Earthquake", "Haste", "Skeleton", "Bat", "OverGrowth", "IceBlock"]
 Global Const $g_asSpellShortNames[$eSpellCount] = ["LSpell", "HSpell", "RSpell", "JSpell", "FSpell", "CSpell", "ISpell", "ReSpell", "RvSpell", "TSpell", "PSpell", "ESpell", "HaSpell", "SkSpell", "BtSpell", "OgSpell", "IBSpell"]
 Global Const $g_aiSpellSpace[$eSpellCount] = [1, 2, 2, 2, 1, 3, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1]
-Global Const $g_aiSpellTrainTime[$eSpellCount] = [360, 360, 360, 360, 180, 720, 180, 360, 360, 180, 180, 180, 180, 180, 180, 360, 0]
 Global Const $g_aiSpellDonateXP[$eSpellCount] = [5, 10, 10, 10, 5, 15, 5, 10, 10, 5, 5, 5, 5, 5, 5, 10, 5]
 
 ; Siege Machines
@@ -710,7 +708,6 @@ Global Enum $eHeroNone = 0, $eHeroKing = 1, $eHeroQueen = 2, $eHeroWarden = 4, $
 Global Enum $eHeroBarbarianKing, $eHeroArcherQueen, $eHeroGrandWarden, $eHeroRoyalChampion, $eHeroMinionPrince, $eHeroCount
 Global Const $g_asHeroNames[$eHeroCount] = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion", "Minion Prince"]
 Global Const $g_asHeroShortNames[$eHeroCount] = ["King", "Queen", "Warden", "Champion", "Prince"]
-Global $g_aiHeroBoost[$eHeroCount] = ["1970/01/01 00:00:00", "1970/01/01 00:00:00", "1970/01/01 00:00:00", "1970/01/01 00:00:00"] ; Use Epoch as standard values :)
 
 ; Leagues MainVillage
 Global $g_bLeagueAttack = False
@@ -1014,7 +1011,7 @@ Global $g_bNotifyRemoteEnable = False, $g_sNotifyOrigin = "", $g_bNotifyDeleteAl
 Global $g_bNotifyAlertMatchFound = False, $g_bNotifyAlerLastRaidIMG = False, $g_bNotifyAlerLastRaidTXT = False, $g_bNotifyAlertCampFull = False, _
 		$g_bNotifyAlertUpgradeWalls = False, $g_bNotifyAlertOutOfSync = False, $g_bNotifyAlertTakeBreak = False, $g_bNotifyAlertBulderIdle = False, _
 		$g_bNotifyAlertVillageReport = False, $g_bNotifyAlertLastAttack = False, $g_bNotifyAlertAnotherDevice = False, $g_bNotifyAlertMaintenance = False, _
-		$g_bNotifyAlertBAN = False, $g_bNotifyAlertBOTUpdate = False, $g_bNotifyAlertSmartWaitTime = False, $g_bNotifyAlertLaboratoryIdle = False
+		$g_bNotifyAlertBAN = False, $g_bNotifyAlertBOTUpdate = False, $g_bNotifyAlertLaboratoryIdle = False
 ;Schedule
 Global $g_bNotifyScheduleHoursEnable = False, $g_bNotifyScheduleWeekDaysEnable = False
 Global $g_abNotifyScheduleHours[24] = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
@@ -1035,7 +1032,7 @@ Global $g_iTotalSpellValue = 0
 Global $g_bDoubleTrain, $g_bPreciseArmy
 
 ; <><><><> Attack Plan / Train Army / Boost <><><><>
-Global $g_iCmbBoostBarracks = 0, $g_iCmbBoostSpellFactory = 0, $g_iCmbBoostWorkshop = 0, $g_iCmbBoostBarbarianKing = 0, $g_iCmbBoostArcherQueen = 0, $g_iCmbBoostWarden = 0, $g_iCmbBoostChampion = 0, $g_iCmbBoostEverything = 0
+Global $g_iCmbBoostBarracks = 0, $g_iCmbBoostSpellFactory = 0, $g_iCmbBoostWorkshop = 0, $g_iCmbBoostEverything = 0
 Global $g_abBoostBarracksHours[24] = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 
 ; <><><><> Attack Plan / Train Army / Train Order <><><><>; <><><><> Attack Plan / Train Army / Train Order <><><><>
@@ -1101,29 +1098,22 @@ Global $g_aiDropOrder[$eDropOrderCount] = [ _
 		$eTroopGiantSkeletonS, $eTroopRoyalGhostS, $eTroopPartyWizardS, $eTroopIceWizardS, $eCCS, $eHeroeS]
 
 ; <><><><> Attack Plan / Train Army / Options <><><><>
-Global $g_bCloseWhileTrainingEnable = True, $g_bCloseWithoutShield = False, $g_bCloseEmulator = False, $g_bSuspendComputer = False, $g_bCloseRandom = False, _
-		$g_bCloseExactTime = False, $g_bCloseRandomTime = True, $g_iCloseRandomTimePercent = 10, $g_iCloseMinimumTime = 2
 Global $g_iTrainClickDelay = 150
 Global $g_bTrainAddRandomDelayEnable = False, $g_iTrainAddRandomDelayMin = 5, $g_iTrainAddRandomDelayMax = 60
 
 ; <><><><> Attack Plan / Search & Attack / {Common Across DeadBase, ActiveBase, Bully} <><><><>
-Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $DB, $LB, $TB, $DT - $DT unused here
+Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $DB, $LB, $TB plus reserved slot
 ; Search - Start Search If
 Global $g_abSearchSearchesEnable[$g_iModeCount] = [True, False, False], $g_aiSearchSearchesMin[$g_iModeCount] = [0, 0, 0], $g_aiSearchSearchesMax[$g_iModeCount] = [0, 0, 0] ; Search count limit
-Global $g_abSearchTropiesEnable[$g_iModeCount] = [False, False, False], $g_aiSearchTrophiesMin[$g_iModeCount] = [0, 0, 0], $g_aiSearchTrophiesMax[$g_iModeCount] = [0, 0, 0] ; Trophy limit
 Global $g_abSearchCampsEnable[$g_iModeCount] = [False, False, False], $g_aiSearchCampsPct[$g_iModeCount] = [0, 0, 0] ; Camp limit
-Global $g_aiSearchHeroWaitEnable[$g_iModeCount] = [0, 0, 0] ; Heroes wait status for attack; these are 3 bools (one for each hero) bitmapped onto an integer
 Global $g_abSearchSpellsWaitEnable[$g_iModeCount] = [False, False, False]
 Global $g_abSearchCastleWaitEnable[$g_iModeCount] = [False, False, False]
-Global $g_aiSearchNotWaitHeroesEnable[$g_iModeCount] = [0, 0, 0]
-Global $g_iSearchNotWaitHeroesEnable = -1
 Global $g_abSearchSiegeWaitEnable[$g_iModeCount] = [False, False, False] , $g_aiSearchSiegeWait[$g_iModeCount] = [0, 0, 0]
 
 ; Search - Filters
 Global $g_aiFilterMeetGE[$g_iModeCount] = [0, 0, 0], $g_aiFilterMinGold[$g_iModeCount] = [0, 0, 0], $g_aiFilterMinElixir[$g_iModeCount] = [0, 0, 0], _
 		$g_aiFilterMinGoldPlusElixir[$g_iModeCount] = [0, 0, 0]
 Global $g_abFilterMeetDEEnable[$g_iModeCount] = [False, False, False], $g_aiFilterMeetDEMin[$g_iModeCount] = [0, 0, 0]
-Global $g_abFilterMeetTrophyEnable[$g_iModeCount] = [False, False, False], $g_aiFilterMeetTrophyMin[$g_iModeCount] = [0, 0, 0], $g_aiFilterMeetTrophyMax[$g_iModeCount] = [99, 99, 99]
 Global $g_abFilterMeetTH[$g_iModeCount] = [False, False, False], $g_aiFilterMeetTHMin[$g_iModeCount] = [0, 0, 0]
 Global $g_abFilterMeetTHOutsideEnable[$g_iModeCount] = [False, False, False]
 Global $g_abFilterMaxMortarEnable[$g_iModeCount] = [False, False, False], $g_abFilterMaxWizTowerEnable[$g_iModeCount] = [False, False, False], _
@@ -1212,7 +1202,7 @@ Global $g_iAtkTBEnableCount = 150, $g_iAtkTBMaxTHLevel = 0, $g_iAtkTBMode = 0
 
 ; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
 Global $g_bSearchReductionEnable = False, $g_iSearchReductionCount = 20, $g_iSearchReductionGold = 2000, $g_iSearchReductionElixir = 2000, $g_iSearchReductionGoldPlusElixir = 4000, _
-		$g_iSearchReductionDark = 100, $g_iSearchReductionTrophy = 2
+		$g_iSearchReductionDark = 100
 Global $g_iSearchDelayMin = 0, $g_iSearchDelayMax = 0
 Global $g_bSearchAttackNowEnable = False, $g_iSearchAttackNowDelay = 0, $g_bSearchRestartEnable = False, $g_iSearchRestartLimit = 25, $g_bSearchAlertMe = True
 Global $g_asHeroHealTime[$eHeroCount] = ["", "", "", "", ""]
@@ -1236,9 +1226,6 @@ Global $g_Zapped = False
 Global $g_bShareAttackEnable = 0, $g_iShareMinGold = 300000, $g_iShareMinElixir = 300000, $g_iShareMinDark = 0, $g_sShareMessage = "Nice|Good|Thanks|Wowwww", _
 		$g_bTakeLootSnapShot = True, $g_bScreenshotLootInfo = False, $g_bShareAttackEnableNow = False
 
-; <><><><> Attack Plan / Search & Attack / Options / Trophy Settings <><><><>
-Global $g_bDropTrophyEnable = False, $g_iDropTrophyMax = 1200, $g_iDropTrophyMin = 800, $g_bDropTrophyUseHeroes = False, $g_iDropTrophyHeroesPriority = 0, _
-		$g_bDropTrophyAtkDead = 0, $g_iDropTrophyArmyMinPct = 70, $g_bDropTrophyZap = True
 
 ; <><><><> Attack Plan / Strategies <><><><>
 ; <<< nothing here >>>
@@ -1276,7 +1263,7 @@ Global $g_bChkSwitchAcc = False, $g_iTotalAcc = -1
 Global $g_bInitiateSwitchAcc = True, $g_bReMatchAcc = False, $g_bWaitForCCTroopSpell = False, $g_iNextAccount, $g_iCurAccount
 Global $g_abAccountNo[16], $g_asProfileName[16], $g_abDonateOnly[16]
 Global $g_aiAttackedCountSwitch[16], $g_iActiveSwitchCounter = 0, $g_iDonateSwitchCounter = 0
-Global $g_asTrainTimeFinish[16], $g_abPBActive[16]
+Global $g_abPBActive[16]
 Global $g_aiRunTime[16], $g_ahTimerSinceSwitched[16]
 
 ;--------------------------------------------------------------------------
@@ -1316,7 +1303,7 @@ Global $g_iStatsStartedWith[$eLootCount] = [0, 0, 0, 0]
 Global $g_iStatsTotalGain[$eLootCount] = [0, 0, 0, 0]
 Global $g_iStatsLastAttack[$eLootCount] = [0, 0, 0, 0]
 Global $g_iStatsBonusLast[$eLootCount] = [0, 0, 0, 0]
-Global $g_iSkippedVillageCount = 0, $g_iDroppedTrophyCount = 0 ; skipped village and dropped trophy counts
+Global $g_iSkippedVillageCount = 0 ; skipped village count
 Global $g_iCostGoldWall = 0, $g_iCostElixirWall = 0, $g_iCostGoldBuilding = 0, $g_iCostElixirBuilding = 0, $g_iCostDElixirHero = 0 ; wall, building and hero upgrade costs
 Global $g_iNbrOfWallsUpped = 0, $g_iNbrOfWallsUppedGold = 0, $g_iNbrOfWallsUppedElixir = 0
 Global $g_iNbrOfBuildingsUppedGold = 0, $g_iNbrOfBuildingsUppedElixir = 0, $g_iNbrOfHeroesUpped = 0 ; number of wall, building, hero upgrades with gold, elixir, delixir
@@ -1354,6 +1341,7 @@ Global $g_iTotalTrainSpaceSiege = 0
 Global $g_iCurrentSpells ; Current Spells
 Global $g_iCurrentCCSpells = 0, $g_iTotalCCSpells = 0
 Global $g_bFullArmySpells = False ; true when $g_iTotalTrainSpaceSpell = $iTotalSpellSpace in getArmySpellCount
+Global $g_bFullArmyCC = False ; true when Clan Castle troops/spells/siege meet wait requirements
 Global $g_CurrentCampUtilization = 0, $g_iTotalCampSpace = 0
 
 ; Upgrading - Lab
@@ -1524,10 +1512,12 @@ Global Const $g_aiSearchCost[$g_iMaxTHLevel] = [10, 50, 75, 110, 170, 250, 380, 
 Global $g_bSearchMode = False
 Global $g_bIsSearchLimit = False
 Global $g_bIsClientSyncError = False ;If true means while searching Client Out Of Sync error occurred.
-Global $g_iSearchGold = 0, $g_iSearchElixir = 0, $g_iSearchDark = 0, $g_iSearchTrophy = 0, $g_iSearchTH = 0 ;Resources of bases when searching
+Global $g_iSearchGold = 0, $g_iSearchElixir = 0, $g_iSearchDark = 0, $g_iSearchTH = 0 ;Resources of bases when searching
 Global $g_aiMaxTH[$g_iModeCount] = [0, 0, 0]
-Global $g_iAimGold[$g_iModeCount] = [0, 0, 0], $g_iAimElixir[$g_iModeCount] = [0, 0, 0], $g_iAimGoldPlusElixir[$g_iModeCount] = [0, 0, 0], $g_iAimDark[$g_iModeCount] = [0, 0, 0], _
-		$g_iAimTrophy[$g_iModeCount] = [0, 0, 0], $g_iAimTrophyMax[$g_iModeCount] = [99, 99, 99] ; Aiming Resource values
+Global $g_iAimGold[$g_iModeCount] = [0, 0, 0]
+Global $g_iAimElixir[$g_iModeCount] = [0, 0, 0]
+Global $g_iAimGoldPlusElixir[$g_iModeCount] = [0, 0, 0]
+Global $g_iAimDark[$g_iModeCount] = [0, 0, 0]
 Global $g_iTHx = 0, $g_iTHy = 0
 
 ; Town hall search
@@ -1563,7 +1553,6 @@ Global $g_iTotalAttackSlot = 10, $g_bDraggedAttackBar = False ; Slot11+
 Global $g_iSiegeLevel = 1
 
 ; Attack - Heroes
-Global $g_iHeroWaitAttackNoBit[$g_iModeCount][$eHeroCount] ; Heroes wait status for attack
 Global $g_iHeroAvailable = $eHeroNone ; Hero ready status; bitmapped
 Global $g_iHeroUpgrading[$eHeroCount] = [0, 0, 0, 0] ; Upgrading Heroes
 Global $g_iHeroUpgradingBit = $eHeroNone ; Upgrading Heroes
@@ -1671,7 +1660,6 @@ Global $ATTACKVECTOR_Y, $ATTACKVECTOR_Z
 ; Train
 Global $g_bTrainEnabled = True
 Global $g_bIsFullArmywithHeroesAndSpells = False
-Global $g_aiTimeTrain[4] = [0, 0, 0, 0] ; [Troop remaining time], [Spells remaining time], [Hero remaining time - when possible], [Siege remain Time]
 Global $g_bCheckSpells = False
 Global $g_bCheckClanCastleTroops = False
 
@@ -1704,7 +1692,6 @@ Global $g_iDonationWindowX = 0, $g_iDonationWindowY = 0
 Global $g_bDonated = False
 
 ; Drop trophy
-Global $g_avDTtroopsToBeUsed[10][2] = [["Barb", 0], ["SBarb", 0], ["Arch", 0], ["Giant", 0], ["Wall", 0], ["Gobl", 0], ["Mini", 0], ["Ball", 0], ["Wiza", 0], ["SMini", 0]] ; DT available troops [type, qty]
 
 ; Obstacles
 Global $g_bGfxError = False ; True when Android Gfx Errors detected that will initiate Android reboot
@@ -1965,7 +1952,6 @@ Global $g_sOppThlevel = Null
 Global $g_sOppGold = Null
 Global $g_sOppElixir = Null
 Global $g_sOppDE = Null
-Global $g_sOppTrophies = Null
 Global $g_sTotalDamage = Null
 Global $g_sLootGold = Null
 Global $g_sLootElixir = Null
@@ -2095,7 +2081,7 @@ Global $g_bSkipFirstCheckRoutine = False, $g_bSkipBB = False
 Global $g_bIgnoreIncorrectTroopCombo = False, $g_bIgnoreIncorrectSpellCombo = False
 Global $g_bAlwaysDropHero = True
 Global $g_bSkipWallPlacingOnBB = False, $g_iCmbFillIncorrectTroopCombo = 0, $g_iCmbFillIncorrectSpellCombo = 0
-Global $g_bEnableCCSleep = False, $g_bSkipDT = False, $g_iMainScreenTimeoutCount = 0
+Global $g_bEnableCCSleep = False, $g_iMainScreenTimeoutCount = 0
 
 ;Builder Base
 Global $g_bDebugBBattack = False

@@ -1657,20 +1657,6 @@ Func SetTime($bForceUpdate = False)
 		If GUICtrlRead($g_hGUI_STATS_TAB, 1) = $g_hGUI_STATS_TAB_ITEM5 And GUICtrlRead($g_hGUI_BOT_TAB, 1) = $g_hGUI_BOT_TAB_ITEM5 And GUICtrlRead($g_hTabMain, 1) = $g_hTabBot Then
 			_TicksToTime(Int(__TimerDiff($g_ahTimerSinceSwitched[$g_iCurAccount]) + $g_aiRunTime[$g_iCurAccount]), $hour, $min, $sec)
 			GUICtrlSetData($g_ahLblResultRuntimeNowAcc[$g_iCurAccount], StringFormat("%02i:%02i:%02i", $hour, $min, $sec))
-			For $i = 0 To $g_iTotalAcc
-				If _DateIsValid($g_asTrainTimeFinish[$i]) Then
-					Local $iTime = _DateDiff("s", _NowCalc(), $g_asTrainTimeFinish[$i]) * 1000
-					_TicksToTime(Abs($iTime), $hour, $min, $sec)
-					GUICtrlSetData($g_ahLblTroopTime[$i], ($iTime < 0 ? "-" : "") & StringFormat("%02i:%02i", $min, $sec))
-					If $i = $g_iCurAccount Then
-						GUICtrlSetColor($g_ahLblTroopTime[$i], $COLOR_GREEN)
-					ElseIf $iTime < 0 Then
-						GUICtrlSetColor($g_ahLblTroopTime[$i], $COLOR_RED)
-					Else
-						GUICtrlSetColor($g_ahLblTroopTime[$i], $COLOR_BLACK)
-					EndIf
-				EndIf
-			Next
 			SwitchAccountVariablesReload("SetTime")
 		EndIf
 	EndIf
@@ -2068,7 +2054,7 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 
 		Case $g_hGUI_ATTACKOPTION_TAB
 			; the icons for Attack Options tab
-			Local $aIconIndex = [$eIcnMagnifier, $eIcnCamp, $eIcnLightSpell, $eIcnSilverStar, $eIcnTrophy]
+			Local $aIconIndex = [$eIcnMagnifier, $eIcnCamp, $eIcnLightSpell, $eIcnSilverStar]
 
 		Case $g_hGUI_BB_TAB
 			; the icons for BuilderBase tab

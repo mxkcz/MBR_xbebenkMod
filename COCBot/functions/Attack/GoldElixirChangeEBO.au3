@@ -19,23 +19,21 @@ Func GoldElixirChangeEBO()
 	Local $Elixir1, $Elixir2
 	Local $DarkElixir1, $DarkElixir2
 	Local $DarkElixirChange
-	Local $Trophies
 	Local $txtDiff
 	Local $exitOneStar = 0, $exitTwoStars = 0
 	Local $Damage, $CurDamage
+	Local $bHasDark = _CheckPixel($aAtkHasDarkElixir, $g_bCapturePixel, Default, "HasDarkElixir") Or _ColorCheck(_GetPixelColor(31, 144, True), Hex(0x0F0617, 6), 5)
 	$g_iDarkLow = 0
 	;READ RESOURCES n.1
 	$Gold1 = getGoldVillageSearch(48, 76)
 	$Elixir1 = getElixirVillageSearch(48, 104)
-	$Trophies = getTrophyVillageSearch(45, 174)
 	$Damage = getOcrOverAllDamage(780, 529)
 	If Number($Damage) > Number($g_iPercentageDamage) Then $g_iPercentageDamage = Number($Damage)
-	If $Trophies <> "" Then ; If trophy value found, then base has Dark Elixir
+	If $bHasDark Then
 		If _Sleep($DELAYGOLDELIXIRCHANGEEBO1) Then Return
 		$DarkElixir1 = getDarkElixirVillageSearch(48, 132)
 	Else
 		$DarkElixir1 = ""
-		$Trophies = getTrophyVillageSearch(48, 76 + 68)
 	EndIf
 	
 	;SetLog("[G]: " & $Gold1 & " [E]: " & $Elixir1 & " [DE]: " & $DarkElixir1 & " [%]: " & $Damage, $COLOR_INFO)
@@ -116,14 +114,12 @@ Func GoldElixirChangeEBO()
 		;--> Read Resources #2
 		$Gold2 = getGoldVillageSearch(48, 76)
 		$Elixir2 = getElixirVillageSearch(48, 104)
-		$Trophies = getTrophyVillageSearch(45, 174)
 		$CurDamage = getOcrOverAllDamage(780, 529)
-		If $Trophies <> "" Then ; If trophy value found, then base has Dark Elixir
+		If $bHasDark Then
 			If _Sleep($DELAYGOLDELIXIRCHANGEEBO1) Then Return
 			$DarkElixir2 = getDarkElixirVillageSearch(48, 132)
 		Else
 			$DarkElixir2 = ""
-			$Trophies = getTrophyVillageSearch(48, 76 + 68)
 		EndIf
 		;--> Read Ressources #2
 

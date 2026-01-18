@@ -27,8 +27,7 @@ Func NotifyReport()
 		Local $text = $g_sNotifyOrigin & ":" & "%0A"
 		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootGold])
 		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootElixir]) & "%0A"
-		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir])
-		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootTrophy]) & "%0A"
+		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir]) & "%0A"
 		$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Free-Builders_Info_01", "No. of Free Builders") & "]: " & $g_iFreeBuilderCount
 		NotifyPushToTelegram($text)
 	EndIf
@@ -38,7 +37,6 @@ Func NotifyReport()
 			$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold])
 			$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & "%0A"
 			$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir])
-			$text &= " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootTrophy])
 			NotifyPushToTelegram($text)
 		EndIf
 	EndIf
@@ -357,7 +355,6 @@ Func NotifyRemoteControlProc()
 						Local $GoldGainPerHour = "0 / h"
 						Local $ElixirGainPerHour = "0 / h"
 						Local $DarkGainPerHour = "0 / h"
-						Local $TrophyGainPerHour = "0 / h"
 						If $g_iFirstAttack = 2 Then
 							$GoldGainPerHour = _NumberFormat(Round($g_iStatsTotalGain[$eLootGold] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600)) & "K / h"
 							$ElixirGainPerHour = _NumberFormat(Round($g_iStatsTotalGain[$eLootElixir] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600)) & "K / h"
@@ -365,13 +362,12 @@ Func NotifyRemoteControlProc()
 						If $g_iStatsStartedWith[$eLootDarkElixir] <> "" Then
 							$DarkGainPerHour = _NumberFormat(Round($g_iStatsTotalGain[$eLootDarkElixir] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600 * 1000)) & " / h"
 						EndIf
-						$TrophyGainPerHour = _NumberFormat(Round($g_iStatsTotalGain[$eLootTrophy] / (Int(__TimerDiff($g_hTimerSinceStarted) + $g_iTimePassed)) * 3600 * 1000)) & " / h"
 						Local $txtStats = " | " & GetTranslatedFileIni("MBR Func_Notify", "Stats_Info_02", "Stats Village Report") & "%0A" & GetTranslatedFileIni("MBR Func_Notify", "Stats_Info_05", "At Start") & "%0A[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsStartedWith[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: "
-						$txtStats &= _NumberFormat($g_iStatsStartedWith[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsStartedWith[$eLootDarkElixir]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_iStatsStartedWith[$eLootTrophy]
+						$txtStats &= _NumberFormat($g_iStatsStartedWith[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsStartedWith[$eLootDarkElixir])
 						$txtStats &= "%0A%0A" & GetTranslatedFileIni("MBR Func_Notify", "Stats-Now_Info_01", "Now (Current Resources)") & "%0A[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_aiCurrentLoot[$eLootElixir])
-						$txtStats &= " [D]: " & _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_aiCurrentLoot[$eLootTrophy] & " [GEM]: " & $g_iGemAmount
+						$txtStats &= " [D]: " & _NumberFormat($g_aiCurrentLoot[$eLootDarkElixir]) & " [GEM]: " & $g_iGemAmount
 						$txtStats &= "%0A%0A" & GetTranslatedFileIni("MBR Func_Notify", "Stats_Info_04", "Gain per Hour") & ":%0A[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & $GoldGainPerHour & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & $ElixirGainPerHour
-						$txtStats &= "%0A[D]: " & $DarkGainPerHour & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $TrophyGainPerHour
+						$txtStats &= "%0A[D]: " & $DarkGainPerHour
 						$txtStats &= "%0A%0A" & GetTranslatedFileIni("MBR Func_Notify", "Free-Builders_Info_01", "No. of Free Builders") & ": " & $g_iFreeBuilderCount & "%0A[" & GetTranslatedFileIni("MBR Func_Notify", "Wall-Up_Info_01", "No. of Wall Up") & "]: [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: "
 						$txtStats &= $g_iNbrOfWallsUppedGold & "/ [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & $g_iNbrOfWallsUppedElixir & "%0A%0A" & GetTranslatedFileIni("MBR Func_Notify", "Attack_Info_01", "Attacked") & ": "
 						$txtStats &= $g_aiAttackedCount & "%0A" & GetTranslatedFileIni("MBR Func_Notify", "Skip_Info_02", "Skipped") & ": " & $g_iSkippedVillageCount
@@ -394,11 +390,11 @@ Func NotifyRemoteControlProc()
 							NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Last-Raid_Info_03", "There is no last raid screenshot."))
 							SetLog("There is no last raid screenshot.")
 							SetLog("Notify Telegram: Your request has been received. Last Raid txt sent", $COLOR_SUCCESS)
-							NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Last-Raid_Info_04", "Last Raid txt") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_iStatsLastAttack[$eLootTrophy])
+							NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Last-Raid_Info_04", "Last Raid txt") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]))
 						EndIf
 					Case GetTranslatedFileIni("MBR Func_Notify", "LASTRAIDTXT", "LASTRAIDTXT"), '\UD83D\UDCC4 ' & GetTranslatedFileIni("MBR Func_Notify", "LASTRAIDTXT", "LASTRAIDTXT")
 						SetLog("Notify Telegram: Your request has been received. Last Raid txt sent", $COLOR_SUCCESS)
-						NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Last-Raid_Info_04", "Last Raid txt") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_iStatsLastAttack[$eLootTrophy])
+						NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Last-Raid_Info_04", "Last Raid txt") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold]) & " [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & " [D]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]))
 					Case GetTranslatedFileIni("MBR Func_Notify", "SCREENSHOT", "SCREENSHOT")
 						SetLog("Notify Telegram: ScreenShot request received", $COLOR_SUCCESS)
 						NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "SCREENSHOT_Info_03", "Chief, your request for Screenshot will be processed ASAP"))
@@ -450,7 +446,7 @@ Func NotifyRemoteControlProc()
 						NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "ATTACK ON_Info_02", "Set Halt Attack ON."))
 						btnStop()
 						$g_bChkBotStop = True ; set halt attack variable
-						$g_iCmbBotCond = 18 ; set stay online
+						$g_iCmbBotCond = 9 ; set stay online
 						btnStart()
 					Case GetTranslatedFileIni("MBR Func_Notify", "HALTATTACKOFF", "HALTATTACKOFF"), '\U2705 ' & StringUpper(GetTranslatedFileIni("MBR Func_Notify", "ATTACK ON_Info_01", "ATTACK ON"))
 						GUICtrlSetState($g_hChkBotStop, $GUI_UNCHECKED)
@@ -522,7 +518,6 @@ Func NotifyPushMessageToBoth($Message, $Source = "")
 			If $g_bNotifyAlertOutOfSync Then NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "LOG_Info_05", "Restarted after Out of Sync Error") & "%0A" & GetTranslatedFileIni("MBR Func_Notify", "Stats_Info_06", "Attacking now") & "...")
 		Case "LastRaid"
 			If $g_bNotifyAlerLastRaidTXT Then
-				$g_aiCurrentLoot[$eLootTrophy] = $g_aiCurrentLoot[$eLootTrophy] + $g_iStatsLastAttack[$eLootTrophy]
 				$g_iStatsLastAttack[$eLootGold] = $g_iStatsLastAttack[$eLootGold] / 1000
 				$g_iStatsLastAttack[$eLootElixir] = $g_iStatsLastAttack[$eLootElixir] / 1000
 				$g_iStatsLastAttack[$eLootDarkElixir] = $g_iStatsLastAttack[$eLootDarkElixir] / 1000
@@ -534,10 +529,8 @@ Func NotifyPushMessageToBoth($Message, $Source = "")
 						"%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootGold]) & _
 						"k  [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootElixir]) & _
 						"k  [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_iStatsLastAttack[$eLootDarkElixir]) & _
-						"k %0A[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_iStatsLastAttack[$eLootTrophy] & _
-						"  [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "%") & "]: " & $g_sTotalDamage & _
-						"  [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "*") & "]: " & $g_sStarsEarned & _
-						"  [Tr#]: " & $g_aiCurrentLoot[$eLootTrophy])
+						"k %0A[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "%") & "]: " & $g_sTotalDamage & _
+						"  [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "*") & "]: " & $g_sStarsEarned)
 				If _Sleep($DELAYPUSHMSG1) Then Return
 				SetLog("Notify Telegram: Last Raid Text has been sent!", $COLOR_SUCCESS)
 			EndIf
@@ -601,7 +594,7 @@ Func NotifyPushMessageToBoth($Message, $Source = "")
 		Case "OoSResources"
 			If $g_bNotifyAlertOutOfSync Then NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "LOG_Info_06", "Disconnected after") & " " & StringFormat("%3s", $g_iSearchCount) & " " & GetTranslatedFileIni("MBR Func_Notify", "Skip_Info_01", "skip(s)") & "%0A" & GetTranslatedFileIni("MBR Func_Notify", "Attack_Info_02", "Cannot locate Next button, Restarting Bot") & "...")
 		Case "MatchFound"
-			If $g_bNotifyAlertMatchFound Then NotifyPushToTelegram($g_sNotifyOrigin & " | " & $g_asModeText[$g_iMatchMode] & " " & GetTranslatedFileIni("MBR Func_Notify", "Match-Found_Info_01", "Match Found! after") & " " & StringFormat("%3s", $g_iSearchCount) & " " & GetTranslatedFileIni("MBR Func_Notify", "Skip_Info_01", "skip(s)") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iSearchGold) & "; [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iSearchElixir) & "; [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_iSearchDark) & "; [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-T_Info_01", "T") & "]: " & $g_iSearchTrophy)
+			If $g_bNotifyAlertMatchFound Then NotifyPushToTelegram($g_sNotifyOrigin & " | " & $g_asModeText[$g_iMatchMode] & " " & GetTranslatedFileIni("MBR Func_Notify", "Match-Found_Info_01", "Match Found! after") & " " & StringFormat("%3s", $g_iSearchCount) & " " & GetTranslatedFileIni("MBR Func_Notify", "Skip_Info_01", "skip(s)") & "%0A" & "[" & GetTranslatedFileIni("MBR Func_Notify", "Stats-G_Info_01", "G") & "]: " & _NumberFormat($g_iSearchGold) & "; [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-E_Info_01", "E") & "]: " & _NumberFormat($g_iSearchElixir) & "; [" & GetTranslatedFileIni("MBR Func_Notify", "Stats-DE_Info_01", "DE") & "]: " & _NumberFormat($g_iSearchDark))
 		Case "UpgradeWithGold"
 			If $g_bNotifyAlertUpgradeWalls Then NotifyPushToTelegram($g_sNotifyOrigin & " | " & GetTranslatedFileIni("MBR Func_Notify", "Upgrading_Info_07", "Upgrade completed by using GOLD") & "%0A" & GetTranslatedFileIni("MBR Func_Notify", "Upgrading_Info_03", "Complete by using GOLD") & "...")
 		Case "UpgradeWithElixir"

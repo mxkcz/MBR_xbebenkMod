@@ -15,7 +15,7 @@
 #include-once
 
 Global $g_hChkSearchReduction = 0, $g_hTxtSearchReduceCount = 0, $g_hTxtSearchReduceGold = 0, $g_hTxtSearchReduceElixir = 0, $g_hTxtSearchReduceGoldPlusElixir = 0, _
-	   $g_hTxtSearchReduceDark = 0, $g_hTxtSearchReduceTrophy = 0
+	   $g_hTxtSearchReduceDark = 0
 Global $g_hSldVSDelay = 0, $g_hSldMaxVSDelay = 0
 Global $g_hChkAttackNow = 0, $g_hCmbAttackNowDelay = 0, $g_hChkRestartSearchLimit = 0, $g_hTxtRestartSearchlimit = 0, $g_hChkAlertSearch = 0
 Global $g_hLblVSDelay = 0, $g_hLblTextVSDelay = 0, $g_hLblMaxVSDelay = 0, $g_hLblTextMaxVSDelay = 0, $g_hLblAttackNow = 0, $g_hLblAttackNowSec = 0
@@ -84,15 +84,6 @@ Func CreateAttackSearchOptionsSearch()
 		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDark, $x + 160, $y, 16, 16)
 			_GUICtrlSetTip(-1, $sTxtTip)
 
-	$y += 21
-		GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Options-Search", "LblSearchReduceTrophy", "- Reduce Tropies"), $x, $y + 3, -1, 17)
-			$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Options-Search", "LblSearchReduceTrophy_Info_01", "Lower value for Trophies by this amount on each step.")
-			_GUICtrlSetTip(-1, $sTxtTip)
-		$g_hTxtSearchReduceTrophy = GUICtrlCreateInput("2", $x + 115, $y, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-			_GUICtrlSetTip(-1, $sTxtTip)
-			GUICtrlSetLimit(-1, 1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrophy, $x + 160, $y, 16, 16)
-			_GUICtrlSetTip(-1, $sTxtTip)
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$x = 25

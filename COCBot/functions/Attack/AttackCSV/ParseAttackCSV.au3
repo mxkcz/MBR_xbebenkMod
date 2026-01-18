@@ -468,12 +468,12 @@ Func ParseAttackCSV($debug = False)
 						Local $Gold = 0
 						Local $Elixir = 0
 						Local $DarkElixir = 0
-						Local $Trophies = 0
 						Local $Damage = 0
 						Local $exitOneStar = 0
 						Local $exitTwoStars = 0
 						Local $exitNoResources = 0
 						Local $exitAttackEnded = 0
+						Local $bHasDark = _CheckPixel($aAtkHasDarkElixir, $g_bCapturePixel, Default, "HasDarkElixir") Or _ColorCheck(_GetPixelColor(31, 144, True), Hex(0x0F0617, 6), 5)
 						Local $bBreakImmediately = False
 						Local $bBreakOnTH = False
 						Local $bBreakOnSiege = False
@@ -592,12 +592,10 @@ Func ParseAttackCSV($debug = False)
 							$Gold = getGoldVillageSearch(48, 69)
 							$Elixir = getElixirVillageSearch(48, 69 + 29)
 							If _Sleep($DELAYRESPOND) Then Return ; check for pause/stop
-							$Trophies = getTrophyVillageSearch(48, 69 + 99)
-							If $Trophies <> "" Then ; If trophy value found, then base has Dark Elixir
+							If $bHasDark Then
 								$DarkElixir = getDarkElixirVillageSearch(48, 69 + 57)
 							Else
 								$DarkElixir = ""
-								$Trophies = getTrophyVillageSearch(48, 69 + 69)
 							EndIf
 							If $bBreakOn50Percent And Number($Damage) > 49 Then ContinueLoop 2
 							CheckHeroesHealth()

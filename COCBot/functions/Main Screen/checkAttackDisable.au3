@@ -142,13 +142,6 @@ Func checkAttackDisable($iSource, $Result = "")
 	; TODO: Check if you are using Switch account ,
 	;       adding 18 minutes to Remain train Time and goes to next available Account
 	If ProfileSwitchAccountEnabled() Then
-		SetLog("Adding the PB time to remain time of the current account.", $COLOR_INFO)
-		If _DateIsValid($g_asTrainTimeFinish[$g_iCurAccount]) Then
-			If _DateDiff("n", _NowCalc(), $g_asTrainTimeFinish[$g_iCurAccount]) < $g_iSinglePBForcedLogoffTime Then
-				$g_asTrainTimeFinish[$g_iCurAccount] = _DateAdd("n", $g_iSinglePBForcedLogoffTime, _NowCalc())
-			EndIf
-		EndIf
-		
 		$g_abPBActive[$g_iCurAccount] = True ;move here as we really need to switch to another account
 		
 		Local $iAllcounts = 0, $iAllAccountsPBactive = 0

@@ -97,19 +97,10 @@ Func CreateMiscNormalVillageSubTab()
 
 		$g_hCmbBotCond = GUICtrlCreateCombo("", $x + 173, $y - 3, 160, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			_GUICtrlSetTip(-1, $sTxtTip)
-			GUICtrlSetData(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_01", "G and E Full and Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_02", "(G and E) Full or Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_03", "(G or E) Full and Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_04", "G or E Full or Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_05", "Gold and Elixir Full") & "|" & _
+			GUICtrlSetData(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_05", "Gold and Elixir Full") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_06", "Gold or Elixir Full") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_07", "Gold Full and Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_08", "Elixir Full and Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_09", "Gold Full or Max.Trophy") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_10", "Elixir Full or Max.Trophy") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_11", "Gold Full") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_12", "Elixir Full") & "|" & _
-							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_13", "Reach Max. Trophy") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_14", "Dark Elixir Full") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_15", "All Storage (G+E+DE) Full") & "|" & _
 							   GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "CmbBotCond_Item_16", "Bot running for...") & "|" & _
@@ -146,15 +137,9 @@ Func CreateMiscNormalVillageSubTab()
 								"|12:00 PM|1:00 PM|2:00 PM|3:00 PM|4:00 PM|5:00 PM|6:00 PM|7:00 PM|8:00 PM|9:00 PM|10:00 PM|11:00 PM", "12:00 PM")
 		GUICtrlSetState(-1, $GUI_HIDE)
 
-		$g_ahTxtResumeAttackLoot[$eLootTrophy] = GUICtrlCreateInput("", $x + 5, $y, 50, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
-		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkResumeAttackTip_02", "After Halt-attack due to full resource, the Bot will resume attack when one of the resources drops below this minimum"))
-		GUICtrlSetLimit(-1, 4)
-		GUICtrlCreateLabel("<", $x - 5, $y + 2, -1, -1)
-		_GUICtrlCreateIcon($g_sLibIconPath, $eIcnTrophy, $x + 60, $y, 16, 16)
-
 		$g_hChkCollectStarBonus = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkCollectStarBonus", "When star bonus available"), $x - 5 , $y + 20, -1, -1)
 
-	$x += 80
+	$x += 0
 		GUICtrlCreateLabel("<", $x , $y + 2, -1, -1)
 		$g_ahTxtResumeAttackLoot[$eLootGold] = GUICtrlCreateInput("", $x + 10, $y, 70, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_CENTER, $ES_NUMBER))
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "ChkResumeAttackTip_02", -1))
@@ -484,7 +469,7 @@ EndFunc   ;==>CreateMiscClanGamesV3SubTab
 Global $g_hChkMMSkipFirstCheckRoutine = 0, $g_hChkMMSkipBB = 0, $g_hChkMMSkipTrain = 0, $g_hChkMMIgnoreIncorrectTroopCombo = 0, $g_hLblFillIncorrectTroopCombo = 0
 Global $g_hCmbFillIncorrectTroopCombo = 0, $g_hChkMMIgnoreIncorrectSpellCombo = 0, $g_hLblFillIncorrectSpellCombo = 0, $g_hCmbFillIncorrectSpellCombo = 0, $g_hUseQueuedTroopSpell = 0
 Global $g_hChkMMSkipWallPlacingOnBB = 0, $g_hChkMMCheckCGEarly = 0, $g_hUpgradeWallEarly = 0
-Global $g_hAutoUpgradeEarly = 0, $g_hChkForceSwitchifNoCGEvent = 0, $g_hDonateEarly = 0, $g_hChkEnableCCSleep = 0, $g_hChkSkipDT = 0, $g_hChkSkipBBRoutineOn6thBuilder = 0
+Global $g_hAutoUpgradeEarly = 0, $g_hChkForceSwitchifNoCGEvent = 0, $g_hDonateEarly = 0, $g_hChkEnableCCSleep = 0, $g_hChkSkipBBRoutineOn6thBuilder = 0
 Global $g_hChkTournament = 0, $g_hCmbTournamentAttackType = 0
 
 Global $g_sCmbFICTroops[7][3] = [ _
@@ -577,10 +562,6 @@ Func CreateMiscModSubTab()
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "SetCCSleep", "Enable Clan Castle sleep Mode"))
 		GUICtrlSetOnEvent(-1, "chkSetCCSleep")
 
-	$y += 22
-		$g_hChkSkipDT = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "SkipDT", "Skip Drop Trophy on FirstStart"), $x, $y, -1, -1)
-		GUICtrlSetOnEvent(-1, "chkSkipDropTrophyOnFirstStart")
-		
 	$y += 22
 		$g_hChkSkipBBRoutineOn6thBuilder = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "SkipBBRoutineOn6thBuilder", "Skip BB Routine on 6th Builder"), $x, $y, -1, -1)
 		GUICtrlSetOnEvent(-1, "ChkSkipBBRoutineOn6thBuilder")

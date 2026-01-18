@@ -98,14 +98,11 @@
 #include "functions\CreateArmy\TrainIt.au3"
 #include "functions\CreateArmy\DoubleTrain.au3" ; DoubleTrain Demen
 
-#include "functions\CreateArmy\getArmyTroops\getArmyTroopTime.au3"
 #include "functions\CreateArmy\getArmyTroops\getArmyTroopCapacity.au3"
 #include "functions\CreateArmy\getArmyTroops\getArmyTroops.au3"
 
 #include "functions\CreateArmy\getArmyHeroes\getArmyHeroCount.au3"
-#include "functions\CreateArmy\getArmyHeroes\getArmyHeroTime.au3"
 
-#include "functions\CreateArmy\getArmySpells\getArmySpellTime.au3"
 #include "functions\CreateArmy\getArmySpells\getArmySpells.au3"
 #include "functions\CreateArmy\getArmySpells\getArmySpellCapacity.au3"
 #include "functions\CreateArmy\getArmySpells\getArmySpellCount.au3"
@@ -230,7 +227,6 @@
 #include "functions\Village\CollectAchievements.au3"
 #include "functions\Village\TreasuryCollect.au3"
 #include "functions\Village\DonateCC.au3"
-#include "functions\Village\DropTrophy.au3"
 #include "functions\Village\GetTownHallLevel.au3"
 #include "functions\Village\isAtkDarkElixirFull.au3"
 #include "functions\Village\isDarkElixirFull.au3"
@@ -250,7 +246,6 @@
 #include "functions\Village\Notify.au3"
 #include "functions\Village\Laboratory.au3"
 #include "functions\Village\ReplayShare.au3"
-#include "functions\Village\BoostHeroes.au3"
 #include "functions\Village\UpgradeHeroes.au3"
 #include "functions\Village\AddIdleTime.au3"
 #include "functions\Village\GetVillageSize.au3"

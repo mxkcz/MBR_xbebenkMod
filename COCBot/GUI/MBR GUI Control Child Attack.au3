@@ -382,14 +382,12 @@ Func chkSearchReduction()
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceElixir, False)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceGoldPlusElixir, False)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceDark, False)
-		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceTrophy, False)
 	Else
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceCount, True)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceGold, True)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceGoldPlusElixir, True)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceElixir, True)
 		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceDark, True)
-		_GUICtrlEdit_SetReadOnly($g_hTxtSearchReduceTrophy, True)
 	EndIf
 EndFunc   ;==>chkSearchReduction
 
@@ -437,7 +435,7 @@ Func dbCheck()
 	$g_abAttackTypeEnable[$DB] = (GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED)
 
 	If IsBotLaunched() Then _GUICtrlTab_SetCurFocus($g_hGUI_SEARCH_TAB, 0) ; activate deadbase tab
-	If BitAND(GUICtrlRead($g_hChkDBActivateSearches), GUICtrlRead($g_hChkDBActivateTropies), GUICtrlRead($g_hChkDBActivateCamps), GUICtrlRead($g_hChkDBSpellsWait)) = $GUI_UNCHECKED Then
+	If BitAND(GUICtrlRead($g_hChkDBActivateSearches), GUICtrlRead($g_hChkDBActivateCamps)) = $GUI_UNCHECKED Then
 		GUICtrlSetState($g_hChkDBActivateSearches, $GUI_CHECKED)
 		chkDBActivateSearches() ; this includes a call to dbCheckall() -> tabSEARCH()
 	Else
@@ -449,7 +447,7 @@ Func abCheck()
 	$g_abAttackTypeEnable[$LB] = (GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED)
 
 	If IsBotLaunched() Then _GUICtrlTab_SetCurFocus($g_hGUI_SEARCH_TAB, 1)
-	If BitAND(GUICtrlRead($g_hChkABActivateSearches), GUICtrlRead($g_hChkABActivateTropies), GUICtrlRead($g_hChkABActivateCamps), GUICtrlRead($g_hChkABSpellsWait)) = $GUI_UNCHECKED Then
+	If BitAND(GUICtrlRead($g_hChkABActivateSearches), GUICtrlRead($g_hChkABActivateCamps)) = $GUI_UNCHECKED Then
 		GUICtrlSetState($g_hChkABActivateSearches, $GUI_CHECKED)
 		chkABActivateSearches() ; this includes a call to abCheckall() -> tabSEARCH()
 	Else

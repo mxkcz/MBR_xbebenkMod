@@ -39,7 +39,6 @@ Func SwitchAccountVariablesReload($sType = "Load", $iAccount = $g_iCurAccount)
 
 	; Misc Stats
 	Static $aiNbrOfOoS = $aiZero
-	Static $aiDroppedTrophyCount = $aiZero
 	Static $aiSearchCost = $aiZero, $aiTrainCostElixir = $aiZero, $aiTrainCostDElixir = $aiZero, $aiTrainCostGold = $aiZero ; search and train troops cost
 	Static $aiGoldFromMines = $aiZero, $aiElixirFromCollectors = $aiZero, $aiDElixirFromDrills = $aiZero ; number of resources gain by collecting mines, collectors, drills
 	Static $aiCostGoldWall = $aiZero, $aiCostElixirWall = $aiZero, $aiCostGoldBuilding = $aiZero, $aiCostElixirBuilding = $aiZero, $aiCostDElixirHero = $aiZero ; wall, building and hero upgrade costs
@@ -76,10 +75,6 @@ Func SwitchAccountVariablesReload($sType = "Load", $iAccount = $g_iCurAccount)
 			$abFirstStart = $aiTrue
 			$aiFirstRun = $aiTrue
 
-			$g_asTrainTimeFinish = $asEmpty
-			For $i = 0 To UBound($g_abAccountNo) - 1
-				GUICtrlSetData($g_ahLblTroopTime[$i], "")
-			Next
 			$g_ahTimerSinceSwitched = $aiZero
 			$g_ahTimerSinceSwitched[$iAccount] = $g_hTimerSinceStarted
 
@@ -95,7 +90,6 @@ Func SwitchAccountVariablesReload($sType = "Load", $iAccount = $g_iCurAccount)
 
 			; Misc Stats
 			$aiNbrOfOoS = $aiZero
-			$aiDroppedTrophyCount = $aiZero
 			$aiSearchCost = $aiZero
 			$aiTrainCostElixir = $aiZero
 			$aiTrainCostDElixir = $aiZero
@@ -166,7 +160,6 @@ Func SwitchAccountVariablesReload($sType = "Load", $iAccount = $g_iCurAccount)
 
 			; Misc Stats
 			;$aiNbrOfOoS[$iAccount] = $g_iNbrOfOoS
-			$aiDroppedTrophyCount[$iAccount] = $g_iDroppedTrophyCount
 			$aiSearchCost[$iAccount] = $g_iSearchCost
 			$aiTrainCostElixir[$iAccount] = $g_iTrainCostElixir
 			$aiTrainCostDElixir[$iAccount] = $g_iTrainCostDElixir
@@ -248,7 +241,6 @@ Func SwitchAccountVariablesReload($sType = "Load", $iAccount = $g_iCurAccount)
 
 			; Misc Stats
 			;$g_iNbrOfOoS = $aiNbrOfOoS[$iAccount]
-			$g_iDroppedTrophyCount = $aiDroppedTrophyCount[$iAccount]
 			$g_iSearchCost = $aiSearchCost[$iAccount]
 			$g_iTrainCostElixir = $aiTrainCostElixir[$iAccount]
 			$g_iTrainCostDElixir = $aiTrainCostDElixir[$iAccount]

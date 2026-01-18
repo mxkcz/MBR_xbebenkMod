@@ -93,12 +93,6 @@ Func TrainSiege($bTrainFullSiege = False)
 	EndIf
 	If _Sleep(500) Then Return
 
-	; OCR to get remain time - coc-siegeremain
-	Local $sSiegeTime = getRemainBuildTimer(715, 165) ; Get time via OCR.
-	If $sSiegeTime <> "" Then
-		$g_aiTimeTrain[3] = ConvertOCRTime("Siege", $sSiegeTime, False) ; Update global array
-		SetLog("Remaining Siege build time: " & StringFormat("%.2f", $g_aiTimeTrain[3]), $COLOR_INFO)
-	EndIf
 EndFunc   ;==>TrainSiege
 
 Func DragIfNeededSiege($iSiegeIndex = $eSiegeWallWrecker)

@@ -72,12 +72,6 @@ Func BoostTrainBuilding($sName, $iCmbBoost, $iCmbBoostCtrl)
 						SetLog("Remain " & $sName & " Boosts: Unlimited", $COLOR_SUCCESS)
 					EndIf
 					$bBoosted = True
-					; Force to get the Remain Time
-					If $sName = "Barracks" Then
-						$g_aiTimeTrain[0] = 0 ; reset Troop remaining time
-					Else
-						$g_aiTimeTrain[1] = 0 ; reset Spells remaining time
-					EndIf
 				EndIf
 			EndIf
 		Else
@@ -107,9 +101,6 @@ Func BoostEverything()
 	EndIf
 
 	Return BoostPotion("Everything", "Town Hall", $g_aiTownHallPos, $g_iCmbBoostEverything, $g_hCmbBoostEverything) = _NowCalc()
-	$g_aiTimeTrain[0] = 0 ; reset Troop remaining time
-	$g_aiTimeTrain[1] = 0 ; reset Spells remaining time
-	$g_aiTimeTrain[2] = 0 ; reset Heroes remaining time
 
 	If _Sleep($DELAYBOOSTBARRACKS3) Then Return
 	checkMainScreen(False, $g_bStayOnBuilderBase, "BoostEverything") ; Check for errors during function

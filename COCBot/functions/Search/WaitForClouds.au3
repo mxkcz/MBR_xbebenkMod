@@ -1,7 +1,6 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: WaitForClouds
 ; Description ...: Wait loop that checks for clouds to clear screen when searching for base to attack
-;					  : Includes ability to extend search time beyond normal 5 minute idle time with randomization of max wait time base on trophy level
 ; Syntax ........: WaitForClouds()
 ; Parameters ....:
 ; Return values .: None

@@ -27,7 +27,6 @@ Global $aArmyCCRemainTime[2] = [782, 552] ; Training Window Overviewscreen, Minu
 Global $aIsCampFull[4] = [42, 154, 0xFFFFFF, 10] ; Training Window, Overview screen White pixel in check mark with camp IS full (can not test for Green, as it has trees under it!)
 Global $aBuildersDigits[2] = [426, 22] ; Main Screen, Free/Total Builders
 Global $aBuildersDigitsBuilderBase[2] = [492, 22] ; Main Screen on Builders Base Free/Total Builders
-Global $aTrophies[2] = [68, 84] ; Main Screen, Trophies
 Global $aArmyTrainButton[2] = [40, 525] ; Main Screen, Army Train Button
 Global $aWonOneStar[4] = [714, 540, 0xC0C8C0, 20] ; Center of 1st Star for winning attack on enemy
 Global $aWonTwoStar[4] = [739, 540, 0xC0C8C0, 20] ; Center of 2nd Star for winning attack on enemy

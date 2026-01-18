@@ -260,35 +260,18 @@ Func CheckIfArmyIsReady($bCloseWindow = False)
 
 	$g_bCheckSpells = CheckSpells()
 
-	; add to the hereos available, the ones upgrading so that it ignores them... we need this logic or the bitwise math does not work out correctly
+	; Heroes are always treated as ready.
 	$g_iHeroAvailable = BitOR($g_iHeroAvailable, $g_iHeroUpgradingBit)
-	$bFullArmyHero = (BitAND($g_aiSearchHeroWaitEnable[$DB], $g_iHeroAvailable) = $g_aiSearchHeroWaitEnable[$DB] And $g_abAttackTypeEnable[$DB]) Or _
-			(BitAND($g_aiSearchHeroWaitEnable[$LB], $g_iHeroAvailable) = $g_aiSearchHeroWaitEnable[$LB] And $g_abAttackTypeEnable[$LB]) Or _
-			($g_aiSearchHeroWaitEnable[$DB] = $eHeroNone And $g_aiSearchHeroWaitEnable[$LB] = $eHeroNone)
+	$bFullArmyHero = True
 
 	If $g_bDebugSetlogTrain Then
-		Setlog("Heroes are Ready: " & String($bFullArmyHero))
+		Setlog("Heroes are Ready: True")
 		Setlog("Heroes Available Num: " & $g_iHeroAvailable) ;  	$eHeroNone = 0, $eHeroKing = 1, $eHeroQueen = 2, $eHeroWarden = 4, $eHeroChampion = 8
-		Setlog("Search Hero Wait Enable [$DB] Num: " & $g_aiSearchHeroWaitEnable[$DB]) ; 	what you are waiting for : 1 is King , 3 is King + Queen , etc etc
-		Setlog("Search Hero Wait Enable [$LB] Num: " & $g_aiSearchHeroWaitEnable[$LB])
-		Setlog("Dead Base BitAND: " & BitAND($g_aiSearchHeroWaitEnable[$DB], $g_iHeroAvailable))
-		Setlog("Live Base BitAND: " & BitAND($g_aiSearchHeroWaitEnable[$LB], $g_iHeroAvailable))
-		Setlog("Are you 'not' waiting for Heroes: " & String($g_aiSearchHeroWaitEnable[$DB] = $eHeroNone And $g_aiSearchHeroWaitEnable[$LB] = $eHeroNone))
-		Setlog("Is Wait for Heroes Active : " & IsWaitforHeroesActive())
 	EndIf
 
 	$bFullArmyCC = IsFullClanCastle()
+	$g_bFullArmyCC = $bFullArmyCC
 	$bFullSiege = CheckSiegeMachine()
-
-	; If Drop Trophy with Heroes is checked and a Hero is Available or under the trophies range, Then set $g_bFullArmyHero to True
-	If Not IsWaitforHeroesActive() And $g_bDropTrophyUseHeroes Then $bFullArmyHero = True
-	If Not IsWaitforHeroesActive() And Not $g_bDropTrophyUseHeroes And Not $bFullArmyHero Then
-		If $g_iHeroAvailable > 0 Or Number($g_aiCurrentLoot[$eLootTrophy]) <= Number($g_iDropTrophyMax) Then
-			$bFullArmyHero = True
-		Else
-			SetLog("Waiting for Heroes to drop trophies!", $COLOR_ACTION)
-		EndIf
-	EndIf
 
 	If $g_bFullArmy And $g_bCheckSpells And $bFullArmyHero And $bFullArmyCC And $bFullSiege Then
 		$g_bIsFullArmywithHeroesAndSpells = True
@@ -339,20 +322,7 @@ EndFunc   ;==>CheckIfArmyIsReady
 
 Func CheckSpells()
 	If Not $g_bRunState Then Return
-
-	Local $bToReturn = False
-
-	If (Not $g_abSearchSpellsWaitEnable[$DB] And Not $g_abSearchSpellsWaitEnable[$LB]) Or ($g_bFullArmySpells And ($g_abSearchSpellsWaitEnable[$DB] Or $g_abSearchSpellsWaitEnable[$LB])) Then
-		Return True
-	EndIf
-
-	If (($g_abAttackTypeEnable[$DB] And $g_abSearchSpellsWaitEnable[$DB]) Or ($g_abAttackTypeEnable[$LB] And $g_abSearchSpellsWaitEnable[$LB])) And $g_iTownHallLevel >= 5 Then
-		$bToReturn = $g_bFullArmySpells
-	Else
-		$bToReturn = True
-	EndIf
-
-	Return $bToReturn
+	Return True
 EndFunc   ;==>CheckSpells
 
 Func CheckSiegeMachine()
@@ -1199,13 +1169,13 @@ Func MakingDonatedTroops($sType = "All")
 		$avDefaultTroopGroup[$i][0] = $g_asTroopShortNames[$i]
 		$avDefaultTroopGroup[$i][1] = $i
 		$avDefaultTroopGroup[$i][2] = $g_aiTroopSpace[$i]
-		$avDefaultTroopGroup[$i][3] = $g_aiTroopTrainTime[$i]
+		$avDefaultTroopGroup[$i][3] = 0
 		$avDefaultTroopGroup[$i][4] = 0
 		$avDefaultTroopGroup[$i][5] = $i >= $eMini ? "d" : "e"
 	Next
 
 	; notes $avDefaultTroopGroup[19][5]
-	; notes $avDefaultTroopGroup[19][0] = TroopName | [1] = TroopNamePosition | [2] = TroopHeight | [3] = Times | [4] = qty | [5] = marker for DarkTroop or ElixerTroop]
+	; notes $avDefaultTroopGroup[19][0] = TroopName | [1] = TroopNamePosition | [2] = TroopHeight | [3] = unused | [4] = qty | [5] = marker for DarkTroop or ElixerTroop]
 	; notes ClickDrag(616, 445, 400, 445, 2000) ; Click drag for dark Troops
 	; notes	ClickDrag(400, 445, 616, 445, 2000) ; Click drag for Elixer Troops
 	; notes $RemainTrainSpace[0] = Current Army  | [1] = Total Army Capacity  | [2] = Remain Space for the current Army
