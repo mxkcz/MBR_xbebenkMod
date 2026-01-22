@@ -1139,6 +1139,9 @@ Func FirstCheck()
 	EndIf
 
 	waitMainScreen() ;check mainscreen and remove any obstacle window/popup
+	If Not $g_bRunState Then Return
+	_ClanGames()
+	If _Sleep(50) Then Return
 	If BotCommand() Then btnStop()
 	If Not $g_bRunState Then Return
 	If ProfileSwitchAccountEnabled() And ($g_iCommandStop = 0 Or $g_iCommandStop = 1) Then
@@ -1160,12 +1163,14 @@ Func FirstCheckRoutine()
 	
 	If _Sleep(50) Then Return
 	If Not $g_bRunState Then Return
+
+	_ClanGames()
+	If _Sleep(50) Then Return
 	
 	If $g_iCommandStop <> 3 And $g_iCommandStop <> 0 Then
 		; Now the bot can attack
 		UseFreeMagicItem()
 		Setlog("Before any other routine let's attack!", $COLOR_INFO)
-		If Not $g_bChkCGBBAttackOnly Then _ClanGames()
 		
 		FillArmyCamp()
 		
@@ -1195,7 +1200,7 @@ Func FirstCheckRoutine()
 	If _Sleep(50) Then Return
 	If Not $g_bRunState Then Return
 	
-	If $g_bChkCGBBAttackOnly And ProfileSwitchAccountEnabled() Then
+	If $g_bChkCGBBAttackOnly Then
 		For $count = 1 to 3
 			If Not $g_bRunState Then Return
 			If _ClanGames() Then
@@ -1446,7 +1451,7 @@ Func GotoBBTodoCG()
 		$g_bStayOnBuilderBase = True
 		BuilderBaseReport(True, False)
 		CollectBuilderBase()
-		DoAttackBB(0)
+		DoAttackBB(0, True)
 		CollectBBCart()
 		; switch back to normal village
 		SwitchBetweenBases("Main")

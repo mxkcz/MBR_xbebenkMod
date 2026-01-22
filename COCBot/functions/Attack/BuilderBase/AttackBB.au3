@@ -29,8 +29,9 @@ Func CheckCGCompleted()
 	Return $bRet
 EndFunc
 
-Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount)
-	If Not $g_bChkEnableBBAttack Then Return
+Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
+	If Not $g_bChkEnableBBAttack And Not $bForceAttack Then Return
+	If Not $g_bChkEnableBBAttack And $bForceAttack Then SetLog("BB attack disabled in settings, forcing attack for Clan Games", $COLOR_INFO)
 	If Not $g_bStayOnBuilderBase Then $g_bStayOnBuilderBase = True
 	If Not $g_bRunState Then Return
 	
