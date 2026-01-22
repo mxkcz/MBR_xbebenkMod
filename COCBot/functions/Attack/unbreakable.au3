@@ -16,12 +16,11 @@
 Func Unbreakable()
 	;
 	; Special mode to complete unbreakable achievement
-	; Need to set max/min trophy on Misc tab to range where base can win defenses
 	; Enable mode with checkbox, and set desired time to be offline getting defense wins before base is reset.
 	; Set absolute minimum loot required to still farm for more loot in Farm Minimum setting, and Save Minimum setting loot that will atttact enemy attackers
 	
 	If $g_iUnbrkMode < 1 Then Return False
-	Local $x, $y, $i, $iTime, $iCount
+	Local $iTime, $iCount
 	
 	Switch $g_iUnbrkMode
 		Case 2

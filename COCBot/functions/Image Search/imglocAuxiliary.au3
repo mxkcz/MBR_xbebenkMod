@@ -288,8 +288,6 @@ Func GetButtonDiamond($sButtonName)
 			$btnDiamond = "282,635|306,635|306,680|282,680"
 		Case "Collect"
 			$btnDiamond = GetDiamondFromRect("350,420,520,500")
-		Case "BoostBarrack", "BarrackBoosted"
-			$btnDiamond = GetDiamondFromRect("630,280,850,360")
 		Case "ArmyTab", "TrainTroopsTab", "BrewSpellsTab", "BuildSiegeMachinesTab", "QuickTrainTab"
 			$btnDiamond = GetDiamondFromRect("76,118,740,153")
 		Case "MessagesButton"

@@ -1031,10 +1031,6 @@ Global $g_iTotalCampForcedValue = 220
 Global $g_iTotalSpellValue = 0
 Global $g_bDoubleTrain, $g_bPreciseArmy
 
-; <><><><> Attack Plan / Train Army / Boost <><><><>
-Global $g_iCmbBoostBarracks = 0, $g_iCmbBoostSpellFactory = 0, $g_iCmbBoostWorkshop = 0, $g_iCmbBoostEverything = 0
-Global $g_abBoostBarracksHours[24] = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
-
 ; <><><><> Attack Plan / Train Army / Train Order <><><><>; <><><><> Attack Plan / Train Army / Train Order <><><><>
 Global Const $g_aiTroopOrderIcon[$eTroopCount + 1] = [ $eIcnOptions, _
 		$eIcnBarbarian, $eIcnSuperBarbarian, $eIcnArcher, $eIcnSuperArcher, $eIcnGiant, $eIcnSuperGiant, $eIcnGoblin, $eIcnSneakyGoblin, $eIcnWallBreaker, $eIcnSuperWallBreaker, $eIcnBalloon, $eIcnRocketBalloon, _

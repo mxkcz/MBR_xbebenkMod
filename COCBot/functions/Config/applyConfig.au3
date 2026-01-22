@@ -87,8 +87,6 @@ Func applyConfig($bRedrawAtExit = True, $TypeReadSave = "Read") ;Applies the dat
 
 	; <><><><> Village / Notify <><><><>
 	ApplyConfig_600_19($TypeReadSave)
-	; <><><> Attack Plan / Train Army / Boost <><><>
-	ApplyConfig_600_22($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
 	ApplyConfig_600_26($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
@@ -1120,42 +1118,6 @@ Func ApplyConfig_600_19($TypeReadSave)
 			Next
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_19
-
-Func ApplyConfig_600_22($TypeReadSave)
-	; <><><> Attack Plan / Train Army / Boost <><><>
-	Switch $TypeReadSave
-		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostBarracks, $g_iCmbBoostBarracks)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostSpellFactory, $g_iCmbBoostSpellFactory)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostWorkshop, $g_iCmbBoostWorkshop)
-			_GUICtrlComboBox_SetCurSel($g_hCmbBoostEverything, $g_iCmbBoostEverything)
-			For $i = 0 To 23
-				GUICtrlSetState($g_hChkBoostBarracksHours[$i], $g_abBoostBarracksHours[$i] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			Next
-			GUICtrlSetState($g_hChkSuperTroops, $g_bSuperTroopsEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkSkipBoostSuperTroopOnHalt, $g_bSkipBoostSuperTroopOnHalt ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkUsePotion, $g_bSuperTroopsBoostUsePotion ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkSuperTroops()
-			For $i = 0 To $iMaxSupersTroop - 1
-				_GUICtrlComboBox_SetCurSel($g_ahCmbSuperTroops[$i], $g_iCmbSuperTroops[$i])
-				_GUICtrlSetImage($g_ahPicSuperTroops[$i], $g_sLibIconPath, $g_aSuperTroopsIcons[$g_iCmbSuperTroops[$i]])
-			Next
-		Case "Save"
-			$g_iCmbBoostBarracks = _GUICtrlComboBox_GetCurSel($g_hCmbBoostBarracks)
-			$g_iCmbBoostSpellFactory = _GUICtrlComboBox_GetCurSel($g_hCmbBoostSpellFactory)
-			$g_iCmbBoostWorkshop = _GUICtrlComboBox_GetCurSel($g_hCmbBoostWorkshop)
-			$g_iCmbBoostEverything = _GUICtrlComboBox_GetCurSel($g_hCmbBoostEverything)
-			For $i = 0 To 23
-				$g_abBoostBarracksHours[$i] = (GUICtrlRead($g_hChkBoostBarracksHours[$i]) = $GUI_CHECKED)
-			Next
-			$g_bSuperTroopsEnable = (GUICtrlRead($g_hChkSuperTroops) = $GUI_CHECKED)
-			$g_bSkipBoostSuperTroopOnHalt = (GUICtrlRead($g_hChkSkipBoostSuperTroopOnHalt) = $GUI_CHECKED)
-			$g_bSuperTroopsBoostUsePotion = (GUICtrlRead($g_hChkUsePotion) = $GUI_CHECKED)
-			For $i = 0 To $iMaxSupersTroop - 1
-				$g_iCmbSuperTroops[$i] = _GUICtrlComboBox_GetCurSel($g_ahCmbSuperTroops[$i])
-			Next
-	EndSwitch
-EndFunc   ;==>ApplyConfig_600_22
 
 Func ApplyConfig_600_26($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>

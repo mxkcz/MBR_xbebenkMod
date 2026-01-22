@@ -214,8 +214,6 @@ Func ReadRegularConfig()
 	ReadConfig_600_18()
 	; <><><><> Village / Notify <><><><>
 	ReadConfig_600_19()
-	; <><><> Attack Plan / Train Army / Boost <><><>
-	ReadConfig_600_22()
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
 	ReadConfig_600_26()
 	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
@@ -381,40 +379,45 @@ Func ReadConfig_600_6()
 	IniReadS($g_bChkBotStop, $g_sProfileConfigPath, "general", "BotStop", True, "Bool")
 	IniReadS($g_iCmbBotCommand, $g_sProfileConfigPath, "general", "Command", 0, "int")
 	IniReadS($g_iCmbBotCond, $g_sProfileConfigPath, "general", "Cond", 0, "int")
-	Switch $g_iCmbBotCond
-		Case 0, 1, 4
-			$g_iCmbBotCond = 0 ; Gold and Elixir Full
-		Case 2, 3, 5
-			$g_iCmbBotCond = 1 ; Gold or Elixir Full
-		Case 6, 8, 10
-			$g_iCmbBotCond = 2 ; Gold Full
-		Case 7, 9, 11
-			$g_iCmbBotCond = 3 ; Elixir Full
-		Case 12
-			$g_iCmbBotCond = 0 ; legacy max trophy -> Gold and Elixir Full
-		Case 13
-			$g_iCmbBotCond = 4 ; Dark Elixir Full
-		Case 14
-			$g_iCmbBotCond = 5 ; All Storage Full
-		Case 15
-			$g_iCmbBotCond = 6 ; Bot running for...
-		Case 16
-			$g_iCmbBotCond = 7 ; Now (Train/Donate Only)
-		Case 17
-			$g_iCmbBotCond = 8 ; Now (Donate Only)
-		Case 18
-			$g_iCmbBotCond = 9 ; Now (Only stay online)
-		Case 19
-			$g_iCmbBotCond = 10 ; W/Shield (Train/Donate Only)
-		Case 20
-			$g_iCmbBotCond = 11 ; W/Shield (Donate Only)
-		Case 21
-			$g_iCmbBotCond = 12 ; W/Shield (Only stay online)
-		Case 22
-			$g_iCmbBotCond = 13 ; At certain time in the day
-		Case Else
-			$g_iCmbBotCond = 0
-	EndSwitch
+	If $g_iCmbBotCond < 0 Then
+		$g_iCmbBotCond = 0
+	ElseIf $g_iCmbBotCond > 13 Then
+		; Legacy mapping for older profiles with a larger condition list.
+		Switch $g_iCmbBotCond
+			Case 0, 1, 4
+				$g_iCmbBotCond = 0 ; Gold and Elixir Full
+			Case 2, 3, 5
+				$g_iCmbBotCond = 1 ; Gold or Elixir Full
+			Case 6, 8, 10
+				$g_iCmbBotCond = 2 ; Gold Full
+			Case 7, 9, 11
+				$g_iCmbBotCond = 3 ; Elixir Full
+			Case 12
+				$g_iCmbBotCond = 0 ; legacy max trophy -> Gold and Elixir Full
+			Case 13
+				$g_iCmbBotCond = 4 ; Dark Elixir Full
+			Case 14
+				$g_iCmbBotCond = 5 ; All Storage Full
+			Case 15
+				$g_iCmbBotCond = 6 ; Bot running for...
+			Case 16
+				$g_iCmbBotCond = 7 ; Now (Train/Donate Only)
+			Case 17
+				$g_iCmbBotCond = 8 ; Now (Donate Only)
+			Case 18
+				$g_iCmbBotCond = 9 ; Now (Only stay online)
+			Case 19
+				$g_iCmbBotCond = 10 ; W/Shield (Train/Donate Only)
+			Case 20
+				$g_iCmbBotCond = 11 ; W/Shield (Donate Only)
+			Case 21
+				$g_iCmbBotCond = 12 ; W/Shield (Only stay online)
+			Case 22
+				$g_iCmbBotCond = 13 ; At certain time in the day
+			Case Else
+				$g_iCmbBotCond = 0
+		EndSwitch
+	EndIf
 	IniReadS($g_iCmbHoursStop, $g_sProfileConfigPath, "general", "Hour", 0, "int")
 	For $i = 0 To $eLootCount - 1
 		IniReadS($g_aiResumeAttackLoot[$i], $g_sProfileConfigPath, "other", "MinResumeAttackLoot_" & $i, 100, "int")
@@ -942,23 +945,6 @@ Func ReadConfig_600_19()
 		$g_abNotifyScheduleWeekDays[$i] = ($g_abNotifyScheduleWeekDays[$i] = "1")
 	Next
 EndFunc   ;==>ReadConfig_600_19
-
-Func ReadConfig_600_22()
-	; <><><><> Attack Plan / Train Army / Boost <><><><>
-	$g_abBoostBarracksHours = StringSplit(IniRead($g_sProfileConfigPath, "planned", "BoostBarracksHours", "1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1"), "|", $STR_NOCOUNT)
-	For $i = 0 To 23
-		$g_abBoostBarracksHours[$i] = ($g_abBoostBarracksHours[$i] = "1")
-	Next
-	IniReadS($g_bSuperTroopsEnable, $g_sProfileConfigPath, "SuperTroopsBoost", "SuperTroopsEnable", False, "Bool")
-	IniReadS($g_bSkipBoostSuperTroopOnHalt, $g_sProfileConfigPath, "SuperTroopsBoost", "SkipSuperTroopsBoostOnHalt", False, "Bool")
-	IniReadS($g_bSuperTroopsBoostUsePotion, $g_sProfileConfigPath, "SuperTroopsBoost", "SuperTroopsBoostUsePotion", False, "Bool")
-
-	For $i = 0 To $iMaxSupersTroop - 1
-		$g_iCmbSuperTroops[$i] = Int(IniRead($g_sProfileConfigPath, "SuperTroopsBoost", "SuperTroopsIndex" & $i, 0))
-	Next
-	; Note: These global variables are not stored to the ini file, to prevent automatic boosting (and spending of gems) when the bot is started:
-	; $g_iCmbBoostBarracks, $g_iCmbBoostSpellFactory, $g_iCmbBoostWorkshop
-EndFunc   ;==>ReadConfig_600_22
 
 Func ReadConfig_600_26()
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>

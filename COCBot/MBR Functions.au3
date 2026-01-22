@@ -216,8 +216,6 @@
 #include "functions\Search\IsSearchAttackEnabled.au3"
 #include "functions\Search\WaitForClouds.au3"
 
-#include "functions\Village\BoostStructure.au3"
-#include "functions\Village\BoostBarracks.au3"
 #include "functions\Village\BotDetectFirstTime.au3"
 #include "functions\Village\BotCommand.au3"
 #include "functions\Village\BreakPersonalShield.au3"

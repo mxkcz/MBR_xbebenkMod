@@ -15,10 +15,10 @@
 #include-once
 
 Global $g_hGUI_TRAINARMY = 0
-Global $g_hGUI_TRAINARMY_TAB = 0, $g_hGUI_TRAINARMY_TAB_ITEM1 = 0, $g_hGUI_TRAINARMY_TAB_ITEM2 = 0, $g_hGUI_TRAINARMY_TAB_ITEM3 = 0, $g_hGUI_TRAINARMY_TAB_ITEM4 = 0
+Global $g_hGUI_TRAINARMY_TAB = 0, $g_hGUI_TRAINARMY_TAB_ITEM1 = 0, $g_hGUI_TRAINARMY_TAB_ITEM2 = 0, $g_hGUI_TRAINARMY_TAB_ITEM3 = 0
 
 ; TrainArmy childs
-Global $g_hGUI_TRAINARMY_ARMY = 0, $g_hGUI_TRAINARMY_BOOST = 0, $g_hGUI_TRAINARMY_TRAINORDER = 0, $g_hGUI_TRAINARMY_OPTIONS = 0
+Global $g_hGUI_TRAINARMY_ARMY = 0, $g_hGUI_TRAINARMY_TRAINORDER = 0, $g_hGUI_TRAINARMY_OPTIONS = 0
 Global $g_hGUI_TRAINARMY_ARMY_TAB = 0, $g_hGUI_TRAINARMY_ARMY_TAB_ITEM1 = 0, $g_hGUI_TRAINARMY_ARMY_TAB_ITEM2 = 0
 Global $g_hGUI_TRAINARMY_ORDER_TAB = 0, $g_hGUI_TRAINARMY_ORDER_TAB_ITEM1 = 0, $g_hGUI_TRAINARMY_ORDER_TAB_ITEM2 = 0
 
@@ -48,14 +48,6 @@ Global $g_ahLblTrainArmySiegeTmp[3] = [0, 0, 0]
 Global $g_hLblTotalTimeCamp = 0, $g_hLblElixirCostCamp = 0, $g_hLblDarkCostCamp = 0, $g_hCalTotalTroops = 0, $g_hCalTotalSpells =0, $g_hLblCountTotalSpells = 0, $g_hLblCountTotal = 0, _
 		$g_hTxtTotalCountSpell = 0, $g_hLblTotalTimeSpell = 0, $g_hLblElixirCostSpell = 0, $g_hLblDarkCostSpell = 0, _
 		$g_hLblTotalTimeSiege = 0, $g_hLblCountTotalSiege = 0, $g_hLblGoldCostSiege = 0
-
-; Boost sub-tab
-Global $g_hCmbBoostBarracks = 0, $g_hCmbBoostSpellFactory = 0, $g_hCmbBoostWorkshop = 0, $g_hCmbBoostEverything = 0
-Global $g_hCmbBoostMaxSuperTroops = 0
-Global $g_hLblBoosthour = 0, $g_ahLblBoosthoursE = 0
-Global $g_hLblBoosthours[12] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-Global $g_hChkBoostBarracksHours[24] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], $g_hChkBoostBarracksHoursE1 = 0, $g_hChkBoostBarracksHoursE2 = 0
-Global $g_hChkSuperTroops = 0, $g_hChkSkipBoostSuperTroopOnHalt = 0, $g_hChkUsePotion = 0, $g_ahLblSuperTroops[$iMaxSupersTroop] = [0, 0], $g_ahCmbSuperTroops[$iMaxSupersTroop] = [0, 0], $g_ahPicSuperTroops[$iMaxSupersTroop] = [0, 0]
 
 ; Train Order sub-tab
 Global $g_hChkCustomTrainOrderEnable = 0
@@ -159,16 +151,14 @@ Func CreateAttackTroops()
 
 	;creating subchilds first!
 	CreateTrainArmy()
-	CreateTrainBoost()
 	CreateTrainOrder()
 	CreateTrainOptions()
 
 	GUISwitch($g_hGUI_TRAINARMY)
 	$g_hGUI_TRAINARMY_TAB = GUICtrlCreateTab(0, 0, $g_iSizeWGrpTab2, $g_iSizeHGrpTab2, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
 	$g_hGUI_TRAINTYPE_TAB_ITEM1 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_01", "Army"))
-	$g_hGUI_TRAINTYPE_TAB_ITEM2 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_02", "Boost"))
-	$g_hGUI_TRAINTYPE_TAB_ITEM3 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_03", "Train Order"))
-	$g_hGUI_TRAINTYPE_TAB_ITEM4 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_04", "Options"))
+	$g_hGUI_TRAINTYPE_TAB_ITEM2 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_03", "Train Order"))
+	$g_hGUI_TRAINTYPE_TAB_ITEM3 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_01_STab_04", "Options"))
 
 	GUICtrlCreateTabItem("")
 
@@ -1004,170 +994,6 @@ Func CreateCustomTrainSubTab()
 	HideAllTroops()
 	BtnElixirTroops()
 EndFunc   ;==>CreateCustomTrainSubTab
-
-Func CreateTrainBoost()
-
-	Local $sTxtTip = ""
-
-	$g_hGUI_TRAINARMY_BOOST = _GUICreate("", $g_iSizeWGrpTab3, $g_iSizeHGrpTab3, 5, 25, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_TRAINARMY)
-	GUISetBkColor($COLOR_WHITE, $g_hGUI_TRAINARMY_BOOST)
-
-	Local $x = 25, $y = 20
-	; Army Buildings
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_01", "Boost Army Buildings"), $x - 20, $y - 20, $g_iSizeWGrpTab3 - 12, 73)
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnBarrackBoost, $x - 10, $y - 2, 24, 24)
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDarkBarrackBoost, $x + 19, $y - 2, 24, 24)
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblBarracksBoost", "Barracks"), $x + 20 + 29, $y + 4, -1, -1)
-	$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblBarracksBoost_Info_01", "Use this to boost your Barracks with GEMS! Use with caution!")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	$g_hCmbBoostBarracks = GUICtrlCreateCombo("", $x + 135, $y, 60, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-	GUICtrlSetData(-1, "0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|No limit", "0")
-	_GUICtrlSetTip(-1, $sTxtTip)
-
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnSpellFactoryBoost, $x + 204, $y - 2, 24, 24)
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnDarkSpellBoost, $x + 233, $y - 2, 24, 24)
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblSpellFactoryBoost", "Spell Factory"), $x + 263, $y + 4, -1, -1)
-	$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblSpellFactoryBoost_Info_01", "Use this to boost your Spell Factory with GEMS! Use with caution!")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	$g_hCmbBoostSpellFactory = GUICtrlCreateCombo("", $x + 330, $y, 60, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-	GUICtrlSetData(-1, "0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|No limit", "0")
-	_GUICtrlSetTip(-1, $sTxtTip)
-
-	$y += 25
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnWorkshopBoost, $x + 5, $y - 2, 24, 24)
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblWorkshopBoost", "Workshop"), $x + 20 + 29, $y + 4, -1, -1)
-	$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblWorkshopBoost_Info_01", "Use this to boost your Workshop with GEMS! Use with caution!")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	$g_hCmbBoostWorkshop = GUICtrlCreateCombo("", $x + 135, $y, 60, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-	GUICtrlSetData(-1, "0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|No limit", "0")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
-
-	$y += 55
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_03", "Boost Everything"), $x - 20, $y - 20, $g_iSizeWGrpTab3 - 12, 48)
-	_GUICtrlCreateIcon($g_sLibIconPath, $eIcnBoostPotion, $x - 10, $y - 2, 24, 24)
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR Global GUI Design Names Troops", "Potion", "Potion"), $x + 20, $y + 4, -1, -1)
-	$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "LblEverythingBoost_Info_01", "Use this to boost everything with POTIONS! Use with caution!")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	$g_hCmbBoostEverything = GUICtrlCreateCombo("", $x + 135, $y, 60, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-	GUICtrlSetData(-1, "0|1|2|3|4|5", "0")
-	_GUICtrlSetTip(-1, $sTxtTip)
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
-
-	$y += 55
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_04", "Boost Schedule"), $x - 20, $y - 20, $g_iSizeWGrpTab3 - 12, 75)
-
-	$g_hLblBoosthour = GUICtrlCreateLabel(GetTranslatedFileIni("MBR Global GUI Design", "Hour", -1) & ":", $x, $y, -1, 15)
-	$sTxtTip = GetTranslatedFileIni("MBR Global GUI Design", "Only_during_hours", -1)
-	_GUICtrlSetTip(-1, $sTxtTip)
-	$g_hLblBoosthours[0] = GUICtrlCreateLabel(" 0", $x + 30, $y)
-	$g_hLblBoosthours[1] = GUICtrlCreateLabel(" 1", $x + 45, $y)
-	$g_hLblBoosthours[2] = GUICtrlCreateLabel(" 2", $x + 60, $y)
-	$g_hLblBoosthours[3] = GUICtrlCreateLabel(" 3", $x + 75, $y)
-	$g_hLblBoosthours[4] = GUICtrlCreateLabel(" 4", $x + 90, $y)
-	$g_hLblBoosthours[5] = GUICtrlCreateLabel(" 5", $x + 105, $y)
-	$g_hLblBoosthours[6] = GUICtrlCreateLabel(" 6", $x + 120, $y)
-	$g_hLblBoosthours[7] = GUICtrlCreateLabel(" 7", $x + 135, $y)
-	$g_hLblBoosthours[8] = GUICtrlCreateLabel(" 8", $x + 150, $y)
-	$g_hLblBoosthours[9] = GUICtrlCreateLabel(" 9", $x + 165, $y)
-	$g_hLblBoosthours[10] = GUICtrlCreateLabel("10", $x + 180, $y)
-	$g_hLblBoosthours[11] = GUICtrlCreateLabel("11", $x + 195, $y)
-	$g_ahLblBoosthoursE = GUICtrlCreateLabel("X", $x + 213, $y + 2, 11, 11)
-
-	$y += 15
-	$g_hChkBoostBarracksHours[0] = GUICtrlCreateCheckbox("", $x + 30, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[1] = GUICtrlCreateCheckbox("", $x + 45, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[2] = GUICtrlCreateCheckbox("", $x + 60, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[3] = GUICtrlCreateCheckbox("", $x + 75, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[4] = GUICtrlCreateCheckbox("", $x + 90, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[5] = GUICtrlCreateCheckbox("", $x + 105, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[6] = GUICtrlCreateCheckbox("", $x + 120, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[7] = GUICtrlCreateCheckbox("", $x + 135, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[8] = GUICtrlCreateCheckbox("", $x + 150, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[9] = GUICtrlCreateCheckbox("", $x + 165, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[10] = GUICtrlCreateCheckbox("", $x + 180, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[11] = GUICtrlCreateCheckbox("", $x + 195, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHoursE1 = GUICtrlCreateCheckbox("", $x + 211, $y + 1, 13, 13, BitOR($BS_PUSHLIKE, $BS_ICON))
-	_GUICtrlSetImage(-1, $g_sLibIconPath, $eIcnGoldStar, 0)
-	GUICtrlSetState(-1, $GUI_UNCHECKED)
-	_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR Global GUI Design", "Clear_set_row_of_boxes", "This button will clear or set the entire row of boxes"))
-	GUICtrlSetOnEvent(-1, "chkBoostBarracksHoursE1")
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR Global GUI Design", "AM", "AM"), $x + 5, $y)
-
-	$y += 15
-	$g_hChkBoostBarracksHours[12] = GUICtrlCreateCheckbox("", $x + 30, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[13] = GUICtrlCreateCheckbox("", $x + 45, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[14] = GUICtrlCreateCheckbox("", $x + 60, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[15] = GUICtrlCreateCheckbox("", $x + 75, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[16] = GUICtrlCreateCheckbox("", $x + 90, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[17] = GUICtrlCreateCheckbox("", $x + 105, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[18] = GUICtrlCreateCheckbox("", $x + 120, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[19] = GUICtrlCreateCheckbox("", $x + 135, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[20] = GUICtrlCreateCheckbox("", $x + 150, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[21] = GUICtrlCreateCheckbox("", $x + 165, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[22] = GUICtrlCreateCheckbox("", $x + 180, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHours[23] = GUICtrlCreateCheckbox("", $x + 195, $y, 15, 15)
-	GUICtrlSetState(-1, $GUI_CHECKED)
-	$g_hChkBoostBarracksHoursE2 = GUICtrlCreateCheckbox("", $x + 211, $y + 1, 13, 13, BitOR($BS_PUSHLIKE, $BS_ICON))
-	_GUICtrlSetImage(-1, $g_sLibIconPath, $eIcnGoldStar, 0)
-	GUICtrlSetState(-1, $GUI_UNCHECKED)
-	_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR Global GUI Design", "Clear_set_row_of_boxes", -1))
-	GUICtrlSetOnEvent(-1, "chkBoostBarracksHoursE2")
-	GUICtrlCreateLabel(GetTranslatedFileIni("MBR Global GUI Design", "PM", "PM"), $x + 5, $y)
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
-
-	$y += 45
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_05", "Boost Super Troops"), $x - 20, $y - 20, $g_iSizeWGrpTab3 - 12, 90)
-	$x += 200
-	$g_hChkSkipBoostSuperTroopOnHalt = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "ChkSkipBoostSuperTroopOnHalt", "Skip Boost on Halt"), $x - 14, $y - 10, -1, -1)
-		GUICtrlSetOnEvent(-1, "chkSuperTroops")
-		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_05", "Will Skip boost If Enabled Halt Attack and Account got on HaltAttack Mode"))
-	$g_hChkUsePotion = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "ChkusePotion", "Use Potion if no DE"), $x - 14, $y + 10, -1, -1)
-		GUICtrlSetOnEvent(-1, "chkSuperTroops")
-		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "Group_05", "Will Skip boost If Enabled Halt Attack and Account got on HaltAttack Mode"))
-	$x -= 200
-	
-	Local $sCmbTroopList = GetTranslatedFileIni("MBR Global GUI Design Names Troops", "TxtListOfSuperTroops", "Disabled|" & _ArrayToString($g_asSuperTroopNames))
-
-	$g_hChkSuperTroops = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Troops_Boost", "ChkSuperTroops", "Enable Super Troops"), $x - 14, $y + 5, -1, -1)
-		GUICtrlSetOnEvent(-1, "chkSuperTroops")
-
-	For $i = 0 To $iMaxSupersTroop - 1
-		$g_ahLblSuperTroops[$i] = GUICtrlCreateLabel($i + 1 & ":", $x - 14, $y + 38, 50, -1)
-			GUICtrlSetState(-1, $GUI_DISABLE)
-		$g_ahCmbSuperTroops[$i] = GUICtrlCreateCombo("", $x + 1, $y + 35, 115, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL, $WS_VSCROLL))
-			GUICtrlSetData(-1, $sCmbTroopList, "Disabled")
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			GUICtrlSetOnEvent(-1, "cmbSuperTroops")
-		$g_ahPicSuperTroops[$i] = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnOptions, $x + 120, $y - 5, 41, 41)
-			GUICtrlSetState(-1, $GUI_HIDE)
-		$x += 200
-	Next
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
-EndFunc   ;==>CreateTrainBoost
 
 Func CreateTrainOrder()
 	$g_hGUI_TRAINARMY_TRAINORDER = _GUICreate("", $g_iSizeWGrpTab3, $g_iSizeHGrpTab3, 5, 25, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_TRAINARMY)

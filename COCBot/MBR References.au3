@@ -207,13 +207,11 @@ Func ReferenceGlobals()
 	$a1 = $eIcnWizard
 	$a1 = $eIcnDonWizard
 	$a1 = $eIcnXbow
-	$a1 = $eIcnBarrackBoost
 	$a1 = $eIcnMine
 	$a1 = $eIcnCamp
 	$a1 = $eIcnBarrack
 	$a1 = $eIcnSpellFactory
 	$a1 = $eIcnDonBlacklist
-	$a1 = $eIcnSpellFactoryBoost
 	$a1 = $eIcnMortar
 	$a1 = $eIcnWizTower
 	$a1 = $eIcnPayPal
@@ -249,17 +247,10 @@ Func ReferenceGlobals()
 	$a1 = $eIcnWallGold
 	$a1 = $eIcnKing
 	$a1 = $eIcnQueen
-	$a1 = $eIcnDarkSpellBoost
-	$a1 = $eIcnQueenBoostLocate
-	$a1 = $eIcnKingBoostLocate
 	$a1 = $eIcnKingUpgr
 	$a1 = $eIcnQueenUpgr
 	$a1 = $eIcnWardenUpgr
 	$a1 = $eIcnWarden
-	$a1 = $eIcnWardenBoostLocate
-	$a1 = $eIcnKingBoost
-	$a1 = $eIcnQueenBoost
-	$a1 = $eIcnWardenBoost
 	$a1 = $eEmpty3
 	$a1 = $eIcnReload
 	$a1 = $eIcnCopy
@@ -305,7 +296,6 @@ Func ReferenceGlobals()
 	$a1 = $eIcnDonCustomB
 	$a1 = $eIcnAirdefense
 	$a1 = $eIcnScattershot
-	$a1 = $eIcnDarkBarrackBoost
 	$a1 = $eIcnDarkElixirStorage
 	$a1 = $eIcnSpellsCost
 	$a1 = $eIcnTroopsCost
@@ -460,9 +450,7 @@ Func ReferenceGlobals()
 	$a1 = $eBtSpell
 
 	$a1 = $eIcnChampion
-	$a1 = $eIcnChampionBoostLocate
 	$a1 = $eIcnChampionUpgr
-	$a1 = $eIcnChampionBoost
 	$a1 = $eIcnSleepingChampion
 	$a1 = $eChampion
 

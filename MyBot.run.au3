@@ -719,10 +719,8 @@ Func runBot() ;Bot that runs everything in order
 			If BotCommand() Then btnStop()
 			If Not $g_bRunState Then Return
 
-			If IsSearchAttackEnabled() Then ;if attack is disabled skip reporting, requesting, donating, training, and boosting
-				BoostEverything() ; 1st Check if is to use Training Potion
-
-				Local $aRndFuncList = ['ReplayShare', 'NotifyReport', 'BoostBarracks', 'BoostSpellFactory', 'BoostWorkshop', 'BoostKing', 'BoostQueen', 'BoostWarden', 'BoostChampion']
+			If IsSearchAttackEnabled() Then ;if attack is disabled skip reporting, requesting, donating, training
+				Local $aRndFuncList = ['ReplayShare', 'NotifyReport']
 				For $Index In $aRndFuncList
 					If Not $g_bRunState Then Return
 					_RunFunction($Index)
@@ -1021,30 +1019,6 @@ Func __RunFunction($action)
 			If _Sleep(50) Then Return
 		Case "NotifyReport"
 			NotifyReport()
-			If _Sleep(50) Then Return		
-		Case "BoostBarracks"
-			BoostBarracks()
-			If _Sleep(50) Then Return
-		Case "BoostSpellFactory"
-			BoostSpellFactory()
-			If _Sleep(50) Then Return
-		Case "BoostWorkshop"
-			BoostWorkshop()
-			If _Sleep(50) Then Return
-		Case "BoostKing"
-			BoostKing()
-			If _Sleep(50) Then Return
-		Case "BoostQueen"
-			BoostQueen()
-			If _Sleep(50) Then Return
-		Case "BoostWarden"
-			BoostWarden()
-			If _Sleep(50) Then Return
-		Case "BoostChampion"
-			BoostChampion()
-			If _Sleep(50) Then Return
-		Case "BoostEverything"
-			BoostEverything()
 			If _Sleep(50) Then Return
 		Case ""
 			SetDebugLog("Function call doesn't support empty string, please review array size", $COLOR_ERROR)
@@ -1199,7 +1173,7 @@ Func FirstCheckRoutine()
 		While True
 			$g_bRestart = False
 			If Not $g_bRunState Then Return
-			If AttackMain($g_bSkipDT) Then
+			If AttackMain() Then
 				Setlog("[" & $loopcount & "] 1st Attack Loop Success", $COLOR_SUCCESS)
 				RequestCC()
 				ExitLoop
@@ -1290,7 +1264,7 @@ Func FirstCheckRoutine()
 			While True
 				$g_bRestart = False
 				If Not $g_bRunState Then Return
-				If AttackMain($g_bSkipDT) Then
+				If AttackMain() Then
 					Setlog("[" & $loopcount & "] 2nd Attack Loop Success", $COLOR_SUCCESS)
 					$b_SuccessAttack = True
 					ExitLoop

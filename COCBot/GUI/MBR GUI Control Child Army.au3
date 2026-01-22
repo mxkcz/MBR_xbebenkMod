@@ -206,34 +206,6 @@ Func TotalSpellCountClick()
 	SetRedrawBotWindow($bWasRedraw, Default, Default, Default, "TotalSpellCountClick")
 EndFunc   ;==>TotalSpellCountClick
 
-Func chkBoostBarracksHoursE1()
-	If GUICtrlRead($g_hChkBoostBarracksHoursE1) = $GUI_CHECKED And GUICtrlRead($g_hChkBoostBarracksHours[0]) = $GUI_CHECKED Then
-		For $i = 0 To 11
-			GUICtrlSetState($g_hChkBoostBarracksHours[$i], $GUI_UNCHECKED)
-		Next
-	Else
-		For $i = 0 To 11
-			GUICtrlSetState($g_hChkBoostBarracksHours[$i], $GUI_CHECKED)
-		Next
-	EndIf
-	Sleep(300)
-	GUICtrlSetState($g_hChkBoostBarracksHoursE1, $GUI_UNCHECKED)
-EndFunc   ;==>chkBoostBarracksHoursE1
-
-Func chkBoostBarracksHoursE2()
-	If GUICtrlRead($g_hChkBoostBarracksHoursE2) = $GUI_CHECKED And GUICtrlRead($g_hChkBoostBarracksHours[12]) = $GUI_CHECKED Then
-		For $i = 12 To 23
-			GUICtrlSetState($g_hChkBoostBarracksHours[$i], $GUI_UNCHECKED)
-		Next
-	Else
-		For $i = 12 To 23
-			GUICtrlSetState($g_hChkBoostBarracksHours[$i], $GUI_CHECKED)
-		Next
-	EndIf
-	Sleep(300)
-	GUICtrlSetState($g_hChkBoostBarracksHoursE2, $GUI_UNCHECKED)
-EndFunc   ;==>chkBoostBarracksHoursE2
-
 Func sldTrainITDelay()
 	$g_iTrainClickDelay = GUICtrlRead($g_hSldTrainITDelay)
 	GUICtrlSetData($g_hLblTrainITDelayTime, $g_iTrainClickDelay & " ms")

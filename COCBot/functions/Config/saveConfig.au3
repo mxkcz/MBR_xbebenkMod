@@ -222,8 +222,6 @@ Func SaveRegularConfig()
 	SaveConfig_600_18()
 	; <><><><> Village / Notify <><><><>
 	SaveConfig_600_19()
-	; <><><> Attack Plan / Train Army / Boost <><><>
-	SaveConfig_600_22()
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
 	SaveConfig_600_26()
 	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
@@ -743,23 +741,6 @@ Func SaveConfig_600_19()
 	Next
 	_Ini_Add("notify", "NotifyWeekDays", $string)
 EndFunc   ;==>SaveConfig_600_19
-
-Func SaveConfig_600_22()
-	; <><><> Attack Plan / Train Army / Boost <><><>
-	ApplyConfig_600_22(GetApplyConfigSaveAction())
-	; Boost settings are not saved to ini, by design, to prevent automatic gem spending
-	Local $string = ""
-	For $i = 0 To 23
-		$string &= ($g_abBoostBarracksHours[$i] ? "1" : "0") & "|"
-	Next
-	_Ini_Add("planned", "BoostBarracksHours", $string)
-	_Ini_Add("SuperTroopsBoost", "SuperTroopsEnable", $g_bSuperTroopsEnable ? 1 : 0)
-	_Ini_Add("SuperTroopsBoost", "SkipSuperTroopsBoostOnHalt", $g_bSkipBoostSuperTroopOnHalt ? 1 : 0)
-	_Ini_Add("SuperTroopsBoost", "SuperTroopsBoostUsePotion", $g_bSuperTroopsBoostUsePotion ? 1 : 0)
-	For $i = 0 To $iMaxSupersTroop - 1
-		_Ini_Add("SuperTroopsBoost", "SuperTroopsIndex" & $i, $g_iCmbSuperTroops[$i])
-	Next
-EndFunc   ;==>SaveConfig_600_22
 
 Func SaveConfig_600_26()
 	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
