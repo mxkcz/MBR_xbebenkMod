@@ -29,11 +29,73 @@ Func CheckCGCompleted()
 	Return $bRet
 EndFunc
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CheckCGCompletedWithRecheck
+; Description ...: Detects Clan Games completion and forces a recheck from the Clan Games tab after consecutive misses.
+; Syntax ........: CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 3)
+; Parameters ....: $iNoCompleteCount - [in/out] consecutive misses counter
+;                  $iMaxNoComplete   - max misses before forcing a recheck
+; Return values .: True if completion is confirmed, False otherwise.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 3)
+	If CheckCGCompleted() Then
+		$iNoCompleteCount = 0
+		Return True
+	EndIf
+
+	$iNoCompleteCount += 1
+	If $iNoCompleteCount < $iMaxNoComplete Then Return False
+
+	SetLog("No CG completion popup detected after " & $iNoCompleteCount & " attacks, rechecking Clan Games tab", $COLOR_INFO)
+	$iNoCompleteCount = 0
+
+	Local $bPrevStayOnBB = $g_bStayOnBuilderBase
+	Local $bWasOnBB = isOnBuilderBase()
+	Local $bEventRunning = True
+
+	If $bWasOnBB Then
+		If Not SwitchBetweenBases("Main") Then
+			SetLog("Failed to switch to Main Village for Clan Games recheck", $COLOR_WARNING)
+			Return False
+		EndIf
+		If _Sleep(1000) Then Return False
+	EndIf
+
+	$bEventRunning = IsEventRunning(True)
+	If _Sleep(500) Then Return False
+
+	If $bWasOnBB Then
+		If Not SwitchBetweenBases("BB") Then
+			SetLog("Failed to switch back to Builder Base after Clan Games recheck", $COLOR_WARNING)
+			Return False
+		EndIf
+		If _Sleep(1000) Then Return False
+		$g_bStayOnBuilderBase = $bPrevStayOnBB
+	EndIf
+
+	If Not $bEventRunning Then
+		SetLog("Clan Games event no longer running after recheck", $COLOR_INFO)
+		Return True
+	EndIf
+
+	Return False
+EndFunc
+
 Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 	If Not $g_bChkEnableBBAttack And Not $bForceAttack Then Return
 	If Not $g_bChkEnableBBAttack And $bForceAttack Then SetLog("BB attack disabled in settings, forcing attack for Clan Games", $COLOR_INFO)
 	If Not $g_bStayOnBuilderBase Then $g_bStayOnBuilderBase = True
 	If Not $g_bRunState Then Return
+
+	Local $iCGNoCompleteCount = 0
+	Local Const $iCGNoCompleteMax = 3
 	
 	If $g_iBBAttackCount = 0 Then
 		Local $count = 1
@@ -45,7 +107,7 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 			_AttackBB()
 			If Not $g_bRunState Then Return
 			If $g_bIsBBevent Then
-				If CheckCGCompleted() Then ExitLoop
+				If CheckCGCompletedWithRecheck($iCGNoCompleteCount, $iCGNoCompleteMax) Then ExitLoop
 				If isGoldFullBB() Or isElixirFullBB() Then 
 					AutoUpgradeBB()
 					StarLabUpgrade()
@@ -82,7 +144,7 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 				_AttackBB()
 				If Not $g_bRunState Then Return
 				If $g_bIsBBevent Then
-					If CheckCGCompleted() Then ExitLoop
+					If CheckCGCompletedWithRecheck($iCGNoCompleteCount, $iCGNoCompleteMax) Then ExitLoop
 				Else
 					If _Sleep(2000) Then Return
 				EndIf
