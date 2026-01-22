@@ -44,7 +44,7 @@ EndFunc
 ; Link ..........:
 ; Example .......:
 ; =====================================================================================================================
-Func CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 3)
+Func CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 5)
 	If CheckCGCompleted() Then
 		$iNoCompleteCount = 0
 		Return True
@@ -95,7 +95,7 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 	If Not $g_bRunState Then Return
 
 	Local $iCGNoCompleteCount = 0
-	Local Const $iCGNoCompleteMax = 3
+	Local Const $iCGNoCompleteMax = 5
 	
 	If $g_iBBAttackCount = 0 Then
 		Local $count = 1
