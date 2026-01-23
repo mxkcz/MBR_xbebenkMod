@@ -1416,7 +1416,11 @@ Func BuilderBase()
 			SetLog("6th Builder Unlocked, attackBB disabled", $COLOR_DEBUG)
 		Else
 			SetLog("StopAttackBB6thBuilder: " & String($g_bChkStopAttackBB6thBuilder) & ", Is6thBuilderUnlocked: " & String($g_bIs6thBuilderUnlocked), $COLOR_DEBUG1)
-			DoAttackBB()
+			If $g_bChkCGBBAttackOnly And Not $g_bIsCGEventRunning Then
+				SetLog("Clan Games BB-only enabled and no active CG event, skip BuilderBase attacks", $COLOR_INFO)
+			Else
+				DoAttackBB()
+			EndIf
 			If _Sleep(50) Then Return
 		EndIf
 		

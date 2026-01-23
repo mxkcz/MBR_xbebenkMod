@@ -525,7 +525,7 @@ Func SelectEvent(ByRef $aSelectChallenges)
 EndFunc
 
 Func WaitCGWindowOpen()
-	If _Sleep(500) Then Return
+	If _Sleep(1500) Then Return ; increase wait time to avoid reading wrong state
 	For $i = 1 To 10
 		If IsCGWindowOpen() Then Return True
 		If _Sleep(500) Then Return
@@ -796,10 +796,12 @@ Func StartsEvent($sEventName, $g_bPurgeJob = False, $OnlyPurge = False)
 			If QuickMIS("BC1", $g_sImgVersus, 425, 190, 700, 250) Then
 				$g_bIsBBevent = True
 				$g_sCGCurrentEventName = $sEventName
+				$g_bIsCGEventRunning = True
 				Setlog("Running Challenge is BB Challenge : " & $g_sCGCurrentEventName, $COLOR_INFO)
 			Else
 				Setlog("Running Challenge is MainVillage Challenge", $COLOR_INFO)
 				$g_bIsBBevent = False
+				$g_bIsCGEventRunning = False
 			EndIf
 		EndIf
 		Return True

@@ -22,6 +22,9 @@ Func CheckCGCompleted()
 		If _Sleep(1000) Then Return
 		If QuickMIS("BC1", $g_sImgGameComplete, 760, 450, 820, 520) Then
 			SetLog("Nice, Game Completed", $COLOR_INFO)
+			$g_bIsCGEventRunning = False
+			$g_bIsBBevent = False
+			$g_sCGCurrentEventName = ""
 			$bRet = True
 			ExitLoop
 		EndIf
@@ -32,7 +35,7 @@ EndFunc
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: CheckCGCompletedWithRecheck
 ; Description ...: Detects Clan Games completion and forces a recheck from the Clan Games tab after consecutive misses.
-; Syntax ........: CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 3)
+; Syntax ........: CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 5)
 ; Parameters ....: $iNoCompleteCount - [in/out] consecutive misses counter
 ;                  $iMaxNoComplete   - max misses before forcing a recheck
 ; Return values .: True if completion is confirmed, False otherwise.
@@ -82,6 +85,9 @@ Func CheckCGCompletedWithRecheck(ByRef $iNoCompleteCount, $iMaxNoComplete = 5)
 
 	If Not $bEventRunning Then
 		SetLog("Clan Games event no longer running after recheck", $COLOR_INFO)
+		$g_bIsCGEventRunning = False
+		$g_bIsBBevent = False
+		$g_sCGCurrentEventName = ""
 		Return True
 	EndIf
 
@@ -93,9 +99,14 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 	If Not $g_bChkEnableBBAttack And $bForceAttack Then SetLog("BB attack disabled in settings, forcing attack for Clan Games", $COLOR_INFO)
 	If Not $g_bStayOnBuilderBase Then $g_bStayOnBuilderBase = True
 	If Not $g_bRunState Then Return
+	If $g_bChkCGBBAttackOnly And Not $g_bIsBBevent And Not $bForceAttack Then
+		SetLog("BB-only enabled and no active BB Clan Games event, skip BuilderBase attack", $COLOR_INFO)
+		Return
+	EndIf
 
 	Local $iCGNoCompleteCount = 0
 	Local Const $iCGNoCompleteMax = 5
+	Local $bCGContext = $bForceAttack Or $g_bIsBBevent
 	
 	If $g_iBBAttackCount = 0 Then
 		Local $count = 1
@@ -104,9 +115,9 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 			If IsProblemAffect() Then Return
 			If $g_bDebugSetlog Then SetLog("PrepareAttackBB(): Success.", $COLOR_SUCCESS)
 			SetLog("Attack #" & $count & "/~", $COLOR_INFO)
-			_AttackBB()
+			_AttackBB($bCGContext)
 			If Not $g_bRunState Then Return
-			If $g_bIsBBevent Then
+			If $bCGContext Then
 				If CheckCGCompletedWithRecheck($iCGNoCompleteCount, $iCGNoCompleteMax) Then ExitLoop
 				If isGoldFullBB() Or isElixirFullBB() Then 
 					AutoUpgradeBB()
@@ -130,7 +141,7 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 			checkMainScreen()
 			BuilderBaseReport(False, False)
 		Wend
-		CollectBBCart()
+		If Not $bCGContext Then CollectBBCart()
 		SetLog("Skip Attack this time..", $COLOR_DEBUG)
 		ClickAway("Left")
 		If _Sleep(1000) Then Return
@@ -141,9 +152,9 @@ Func DoAttackBB($g_iBBAttackCount = $g_iBBAttackCount, $bForceAttack = False)
 			If PrepareAttackBB() Then
 				If $g_bDebugSetlog Then SetLog("PrepareAttackBB(): Success.", $COLOR_SUCCESS)
 				SetLog("Attack #" & $i & "/" & $g_iBBAttackCount, $COLOR_INFO)
-				_AttackBB()
+				_AttackBB($bCGContext)
 				If Not $g_bRunState Then Return
-				If $g_bIsBBevent Then
+				If $bCGContext Then
 					If CheckCGCompletedWithRecheck($iCGNoCompleteCount, $iCGNoCompleteMax) Then ExitLoop
 				Else
 					If _Sleep(2000) Then Return
@@ -210,7 +221,7 @@ Func WaitCloudsBB()
 	Return $bRet
 EndFunc
 
-Func _AttackBB()
+Func _AttackBB($bCGContext = False)
 	If Not $g_bRunState Then Return
 	Local $iSide = Random(0, 1, 1) ; randomly choose top left or top right
 	If _Sleep(500) Then Return
@@ -248,7 +259,8 @@ Func _AttackBB()
 	If EndBattleBB() Then SetLog("Battle ended", $COLOR_INFO)
 	
 	If isOnBuilderBase() Then
-		If Not $g_bIsBBevent Then  ;disable collect cart if doing CG Challenges, too much time waste, bot need to check If CG Challenges is Completed
+		Local $bSkipCart = $bCGContext Or $g_bIsBBevent
+		If Not $bSkipCart Then ; disable collect cart if doing CG challenges, save time for CG checks
 			CollectBBCart()
 			BuilderBaseReport(True, False)
 		EndIf
