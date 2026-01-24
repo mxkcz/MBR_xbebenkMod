@@ -411,21 +411,11 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		EndIf
 	EndIf
 
-	Local $bAnyLocate = False
-	If $bPrepOk And $g_abCSVPrepValid[$g_iMatchMode] Then
-		For $i = 0 To $eCSVLocateCount - 1
-			If $g_abCSVPrepLocate[$g_iMatchMode][$i] Then
-				$bAnyLocate = True
-				ExitLoop
-			EndIf
-		Next
-	Else
-		$bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
-				$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
-				$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
-				$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
-				$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
-	EndIf
+	Local $bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
+			$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
+			$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
+			$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
+			$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
 
 	;01 - TROOPS ------------------------------------------------------------------------------------------------------------------------------------------
 	debugAttackCSV("Troops to be used (purged from troops) ")
@@ -1146,13 +1136,11 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 		EndIf
 	EndIf
 
-	Local $bAnyLocate = False
-	For $i = 0 To $eCSVLocateCount - 1
-		If $g_abCSVPrepLocate[$iMode][$i] Then
-			$bAnyLocate = True
-			ExitLoop
-		EndIf
-	Next
+	Local $bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
+			$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
+			$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
+			$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
+			$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
 	If Not $bAnyLocate Then
 		CSV_LogTiming("precache skipped", "no locate flags")
 		Return 1

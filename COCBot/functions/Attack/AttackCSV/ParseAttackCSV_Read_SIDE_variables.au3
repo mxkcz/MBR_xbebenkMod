@@ -140,25 +140,6 @@ Func ParseAttackCSV_Read_SIDE_variables()
 							; $value8 = Forced Side value
 						EndIf
 					Case "SIDEB"
-						If $bForceSideExist = False Then
-							If Int($value1) > 0 Then $g_bCSVLocateEagle = True
-							If Int($value2) > 0 Then $g_bCSVLocateInferno = True
-							If Int($value3) > 0 Then $g_bCSVLocateXBow = True
-							If Int($value4) > 0 Then
-								$g_bCSVLocateWizTower = True
-								$g_bCSVLocateSuperWizTower = True
-							EndIf
-							If Int($value5) > 0 Then $g_bCSVLocateMortar = True
-							If Int($value6) > 0 Then $g_bCSVLocateAirDefense = True
-								If Int($value7) > 0 Then $g_bCSVLocateScatter = True
-								If Int($value8) > 0 Then $g_bCSVLocateSweeper = True
-								If Int($value9) > 0 Then $g_bCSVLocateMonolith = True
-								If Int($value10) > 0 Then $g_bCSVLocateFireSpitter = True
-								If Int($value11) > 0 Then $g_bCSVLocateMultiArcherTower = True
-								If Int($value12) > 0 Then $g_bCSVLocateRicochetCannon = True
-								If Int($value13) > 0 Then $g_bCSVLocateRevengeTower = True
-								; $value14 = Gem Box placeholder
-						EndIf
 						$g_aiCSVSideBWeights[0] = Int($value1)
 						$g_aiCSVSideBWeights[1] = Int($value2)
 						$g_aiCSVSideBWeights[2] = Int($value3)
@@ -334,24 +315,6 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 					If Int($value7) > 0 Then $aLocate[$eCSVLocateStorageTownHall] = True
 				EndIf
 			Case "SIDEB"
-				If $bForceSideExist = False Then
-					If Int($value1) > 0 Then $aLocate[$eCSVLocateEagle] = True
-					If Int($value2) > 0 Then $aLocate[$eCSVLocateInferno] = True
-					If Int($value3) > 0 Then $aLocate[$eCSVLocateXBow] = True
-					If Int($value4) > 0 Then
-						$aLocate[$eCSVLocateWizTower] = True
-						$aLocate[$eCSVLocateSuperWizTower] = True
-					EndIf
-					If Int($value5) > 0 Then $aLocate[$eCSVLocateMortar] = True
-					If Int($value6) > 0 Then $aLocate[$eCSVLocateAirDefense] = True
-						If Int($value7) > 0 Then $aLocate[$eCSVLocateScatter] = True
-						If Int($value8) > 0 Then $aLocate[$eCSVLocateSweeper] = True
-						If Int($value9) > 0 Then $aLocate[$eCSVLocateMonolith] = True
-						If Int($value10) > 0 Then $aLocate[$eCSVLocateFireSpitter] = True
-						If Int($value11) > 0 Then $aLocate[$eCSVLocateMultiArcherTower] = True
-						If Int($value12) > 0 Then $aLocate[$eCSVLocateRicochetCannon] = True
-						If Int($value13) > 0 Then $aLocate[$eCSVLocateRevengeTower] = True
-				EndIf
 				$aWeights[0] = Int($value1)
 				$aWeights[1] = Int($value2)
 				$aWeights[2] = Int($value3)
@@ -368,14 +331,12 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 				$aWeights[13] = Int($value14)
 			Case "MAKE"
 				If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then
-					If Not _CSVPrepApplyMakeTarget($aLocate, $value8, $bPrioMakeFound, $sTargetEnums) Then
+					If Not _CSVScanMakeTargets($aLocate, $value8, $bPrioMakeFound, $sTargetEnums) Then
 						SetDebugLog("Invalid MAKE building target name: " & $value8, $COLOR_WARNING)
 					EndIf
 				EndIf
 		EndSwitch
 	Next
-
-	If $bPrioMakeFound Then _CSVPrepEnablePrioLocateFromWeights($aLocate, $aWeights)
 
 	If Not AttackCSV_ScanMakeUsage($sFilename, $aSidesUsed, $bAllMakeTargeted) Then
 		$aSidesUsed[0] = False
@@ -430,36 +391,45 @@ Func AttackCSV_ApplyPrepared($iMode, $iTH)
 		Return SetError(2, 0, 0)
 	EndIf
 
-	$g_bCSVLocateMine = $g_abCSVPrepLocate[$iMode][$eCSVLocateMine]
-	$g_bCSVLocateElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateElixir]
-	$g_bCSVLocateDrill = $g_abCSVPrepLocate[$iMode][$eCSVLocateDrill]
-	$g_bCSVLocateStorageGold = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageGold]
-	$g_bCSVLocateStorageElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageElixir]
-	$g_bCSVLocateStorageDarkElixir = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageDarkElixir]
-	$g_bCSVLocateStorageTownHall = $g_abCSVPrepLocate[$iMode][$eCSVLocateStorageTownHall]
-	$g_bCSVLocateEagle = $g_abCSVPrepLocate[$iMode][$eCSVLocateEagle]
-	$g_bCSVLocateScatter = $g_abCSVPrepLocate[$iMode][$eCSVLocateScatter]
-	$g_bCSVLocateInferno = $g_abCSVPrepLocate[$iMode][$eCSVLocateInferno]
-	$g_bCSVLocateXBow = $g_abCSVPrepLocate[$iMode][$eCSVLocateXBow]
-	$g_bCSVLocateWizTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateWizTower]
-	$g_bCSVLocateMortar = $g_abCSVPrepLocate[$iMode][$eCSVLocateMortar]
-	$g_bCSVLocateAirDefense = $g_abCSVPrepLocate[$iMode][$eCSVLocateAirDefense]
-	$g_bCSVLocateSweeper = $g_abCSVPrepLocate[$iMode][$eCSVLocateSweeper]
-	$g_bCSVLocateMonolith = $g_abCSVPrepLocate[$iMode][$eCSVLocateMonolith]
-	$g_bCSVLocateFireSpitter = $g_abCSVPrepLocate[$iMode][$eCSVLocateFireSpitter]
-	$g_bCSVLocateMultiArcherTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateMultiArcherTower]
-	$g_bCSVLocateMultiGearTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateMultiGearTower]
-	$g_bCSVLocateRicochetCannon = $g_abCSVPrepLocate[$iMode][$eCSVLocateRicochetCannon]
-	$g_bCSVLocateSuperWizTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateSuperWizTower]
-	$g_bCSVLocateRevengeTower = $g_abCSVPrepLocate[$iMode][$eCSVLocateRevengeTower]
-	$g_bCSVLocateWall = $g_abCSVPrepLocate[$iMode][$eCSVLocateWall]
+	_CSVResolveLocateFlags($iMode)
+	If $g_abCSVPrepHasPrioMake[$iMode] And _CSVIsWeaponizedTownHall($iTH) Then
+		$g_abCSVPrepLocate[$iMode][$eCSVLocateStorageTownHall] = True
+	EndIf
+	Local $aLocateResolved[$eCSVLocateCount]
+	For $i = 0 To $eCSVLocateCount - 1
+		$aLocateResolved[$i] = $g_abCSVPrepLocate[$iMode][$i]
+	Next
+	_CSVPrecalcLocateForTH($iMode, $iTH, 1, $aLocateResolved)
+
+	$g_bCSVLocateMine = $aLocateResolved[$eCSVLocateMine]
+	$g_bCSVLocateElixir = $aLocateResolved[$eCSVLocateElixir]
+	$g_bCSVLocateDrill = $aLocateResolved[$eCSVLocateDrill]
+	$g_bCSVLocateStorageGold = $aLocateResolved[$eCSVLocateStorageGold]
+	$g_bCSVLocateStorageElixir = $aLocateResolved[$eCSVLocateStorageElixir]
+	$g_bCSVLocateStorageDarkElixir = $aLocateResolved[$eCSVLocateStorageDarkElixir]
+	$g_bCSVLocateStorageTownHall = $aLocateResolved[$eCSVLocateStorageTownHall]
+	$g_bCSVLocateEagle = $aLocateResolved[$eCSVLocateEagle]
+	$g_bCSVLocateScatter = $aLocateResolved[$eCSVLocateScatter]
+	$g_bCSVLocateInferno = $aLocateResolved[$eCSVLocateInferno]
+	$g_bCSVLocateXBow = $aLocateResolved[$eCSVLocateXBow]
+	$g_bCSVLocateWizTower = $aLocateResolved[$eCSVLocateWizTower]
+	$g_bCSVLocateMortar = $aLocateResolved[$eCSVLocateMortar]
+	$g_bCSVLocateAirDefense = $aLocateResolved[$eCSVLocateAirDefense]
+	$g_bCSVLocateSweeper = $aLocateResolved[$eCSVLocateSweeper]
+	$g_bCSVLocateMonolith = $aLocateResolved[$eCSVLocateMonolith]
+	$g_bCSVLocateFireSpitter = $aLocateResolved[$eCSVLocateFireSpitter]
+	$g_bCSVLocateMultiArcherTower = $aLocateResolved[$eCSVLocateMultiArcherTower]
+	$g_bCSVLocateMultiGearTower = $aLocateResolved[$eCSVLocateMultiGearTower]
+	$g_bCSVLocateRicochetCannon = $aLocateResolved[$eCSVLocateRicochetCannon]
+	$g_bCSVLocateSuperWizTower = $aLocateResolved[$eCSVLocateSuperWizTower]
+	$g_bCSVLocateRevengeTower = $aLocateResolved[$eCSVLocateRevengeTower]
+	$g_bCSVLocateWall = $aLocateResolved[$eCSVLocateWall]
 
 	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
 		$g_aiCSVSideBWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
 	Next
 
-	If $g_abCSVPrepHasPrioMake[$iMode] Then _CSVEnablePrioLocateFromWeights()
-	PrepareCSVBuildingsTH($iTH)
+	PrepareCSVBuildingsTH($iTH, True)
 	Return 1
 EndFunc   ;==>AttackCSV_ApplyPrepared
 
@@ -559,6 +529,243 @@ Func AttackCSV_GetTargetMaxReturnPoints($iMode, $iTH, $iCap)
 EndFunc   ;==>AttackCSV_GetTargetMaxReturnPoints
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVInitTargetEnumToLocateMap
+; Description ...: Build lookup map from building enum to CSV locate index.
+; Syntax ........: _CSVInitTargetEnumToLocateMap()
+; Parameters ....: None
+; Return values .: Success: 1
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates lookup array)
+Func _CSVInitTargetEnumToLocateMap()
+	Local $iSize = $eBldgRevengeTower + 1
+	If Not IsArray($g_aiCSVPrepTargetEnumToLocate) Or UBound($g_aiCSVPrepTargetEnumToLocate) <> $iSize Then
+		ReDim $g_aiCSVPrepTargetEnumToLocate[$iSize]
+	EndIf
+	For $i = 0 To $iSize - 1
+		$g_aiCSVPrepTargetEnumToLocate[$i] = -1
+	Next
+
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgGoldM] = $eCSVLocateMine
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgElixirC] = $eCSVLocateElixir
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgDrill] = $eCSVLocateDrill
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgGoldS] = $eCSVLocateStorageGold
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgElixirS] = $eCSVLocateStorageElixir
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgDarkS] = $eCSVLocateStorageDarkElixir
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgTownHall] = $eCSVLocateStorageTownHall
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgEagle] = $eCSVLocateEagle
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgScatter] = $eCSVLocateScatter
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgInferno] = $eCSVLocateInferno
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgXBow] = $eCSVLocateXBow
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgWizTower] = $eCSVLocateWizTower
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgMortar] = $eCSVLocateMortar
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgAirDefense] = $eCSVLocateAirDefense
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgSweeper] = $eCSVLocateSweeper
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgMonolith] = $eCSVLocateMonolith
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgFireSpitter] = $eCSVLocateFireSpitter
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgMultiArcherTower] = $eCSVLocateMultiArcherTower
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgMultiGearTower] = $eCSVLocateMultiGearTower
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgRicochetCannon] = $eCSVLocateRicochetCannon
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgSuperWizTower] = $eCSVLocateSuperWizTower
+	$g_aiCSVPrepTargetEnumToLocate[$eBldgRevengeTower] = $eCSVLocateRevengeTower
+	$g_aiCSVPrepTargetEnumToLocate[$eExternalWall] = $eCSVLocateWall
+	$g_aiCSVPrepTargetEnumToLocate[$eInternalWall] = $eCSVLocateWall
+	Return 1
+EndFunc   ;==>_CSVInitTargetEnumToLocateMap
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVLocateEnumToIndex
+; Description ...: Convert building enum to CSV locate index.
+; Syntax ........: _CSVLocateEnumToIndex($iEnum)
+; Parameters ....: $iEnum             - Building enum.
+; Return values .: Success: locate index
+;                  Failure: -1
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVLocateEnumToIndex($iEnum)
+	If $iEnum <= 0 Then Return -1
+	If Not IsArray($g_aiCSVPrepTargetEnumToLocate) Then Return -1
+	If UBound($g_aiCSVPrepTargetEnumToLocate) = 0 Then Return -1
+	If $iEnum < 0 Or $iEnum >= UBound($g_aiCSVPrepTargetEnumToLocate) Then Return -1
+	Return $g_aiCSVPrepTargetEnumToLocate[$iEnum]
+EndFunc   ;==>_CSVLocateEnumToIndex
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVLocateIndexToEnum
+; Description ...: Convert CSV locate index to building enum.
+; Syntax ........: _CSVLocateIndexToEnum($iIndex)
+; Parameters ....: $iIndex            - Locate index.
+; Return values .: Success: building enum
+;                  Failure: -1
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVLocateIndexToEnum($iIndex)
+	Switch $iIndex
+		Case $eCSVLocateMine
+			Return $eBldgGoldM
+		Case $eCSVLocateElixir
+			Return $eBldgElixirC
+		Case $eCSVLocateDrill
+			Return $eBldgDrill
+		Case $eCSVLocateStorageGold
+			Return $eBldgGoldS
+		Case $eCSVLocateStorageElixir
+			Return $eBldgElixirS
+		Case $eCSVLocateStorageDarkElixir
+			Return $eBldgDarkS
+		Case $eCSVLocateStorageTownHall
+			Return $eBldgTownHall
+		Case $eCSVLocateEagle
+			Return $eBldgEagle
+		Case $eCSVLocateScatter
+			Return $eBldgScatter
+		Case $eCSVLocateInferno
+			Return $eBldgInferno
+		Case $eCSVLocateXBow
+			Return $eBldgXBow
+		Case $eCSVLocateWizTower
+			Return $eBldgWizTower
+		Case $eCSVLocateMortar
+			Return $eBldgMortar
+		Case $eCSVLocateAirDefense
+			Return $eBldgAirDefense
+		Case $eCSVLocateSweeper
+			Return $eBldgSweeper
+		Case $eCSVLocateMonolith
+			Return $eBldgMonolith
+		Case $eCSVLocateFireSpitter
+			Return $eBldgFireSpitter
+		Case $eCSVLocateMultiArcherTower
+			Return $eBldgMultiArcherTower
+		Case $eCSVLocateMultiGearTower
+			Return $eBldgMultiGearTower
+		Case $eCSVLocateRicochetCannon
+			Return $eBldgRicochetCannon
+		Case $eCSVLocateSuperWizTower
+			Return $eBldgSuperWizTower
+		Case $eCSVLocateRevengeTower
+			Return $eBldgRevengeTower
+	EndSwitch
+	Return -1
+EndFunc   ;==>_CSVLocateIndexToEnum
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVResolveLocateFlags
+; Description ...: Resolve CSV locate flags from PRIO weights and explicit MAKE targets.
+; Syntax ........: _CSVResolveLocateFlags($iMode)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates prep locate flags)
+Func _CSVResolveLocateFlags($iMode)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+
+	_CSVInitTargetEnumToLocateMap()
+
+	Local $aResolved[$eCSVLocateCount]
+	For $i = 0 To $eCSVLocateCount - 1
+		If $g_abCSVPrepLocate[$iMode][$i] Then $aResolved[$i] = True
+	Next
+
+	If $g_abCSVPrepHasPrioMake[$iMode] Then
+		Local $aWeights[14]
+		For $i = 0 To 13
+			$aWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
+		Next
+		_CSVPrepEnablePrioLocateFromWeights($aResolved, $aWeights)
+	EndIf
+
+	If $g_asCSVPrepTargetEnums[$iMode] <> "" Then
+		Local $aEnums = StringSplit($g_asCSVPrepTargetEnums[$iMode], "|", $STR_NOCOUNT)
+		For $i = 0 To UBound($aEnums) - 1
+			Local $iEnum = Int($aEnums[$i])
+			If $iEnum <= 0 Then ContinueLoop
+			Local $iLocate = _CSVLocateEnumToIndex($iEnum)
+			If $iLocate >= 0 And $iLocate < $eCSVLocateCount Then $aResolved[$iLocate] = True
+		Next
+	EndIf
+
+	Local $iCount = 0
+	For $i = 0 To $eCSVLocateCount - 1
+		$g_abCSVPrepLocate[$iMode][$i] = $aResolved[$i]
+		If $aResolved[$i] Then $iCount += 1
+	Next
+
+	SetDebugLog("CSV prep: resolved locate flags (mode " & $iMode & ", count=" & $iCount & ")", $COLOR_DEBUG)
+	Return 1
+EndFunc   ;==>_CSVResolveLocateFlags
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrecalcLocateForTH
+; Description ...: Disable locate flags for buildings locked below the minimum TH (with delta).
+; Syntax ........: _CSVPrecalcLocateForTH($iMode, $iTH, $iDelta, $aLocateOverride)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iTH               - Townhall level (may be "-").
+;                  $iDelta            - [optional] TH delta tolerance. Default is 1.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates override array)
+Func _CSVPrecalcLocateForTH($iMode, $iTH, $iDelta, ByRef $aLocateOverride)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+
+	Local $bUnknownTH = False
+	Local $iTHLocal = _CSVNormalizeTH($iTH, $bUnknownTH)
+	If $bUnknownTH Then $iDelta = 0
+
+	Local $iMinTH = ($iTHLocal - $iDelta)
+	If $iMinTH < 1 Then $iMinTH = 1
+
+	For $i = 0 To $eCSVLocateCount - 1
+		If Not $aLocateOverride[$i] Then ContinueLoop
+		Local $iBldgEnum = _CSVLocateIndexToEnum($i)
+		If $iBldgEnum <= 0 Then ContinueLoop
+		Local $iMaxLevel = _CSVGetBldgMaxLevel($iBldgEnum, $iMinTH)
+		If $iMaxLevel = -1 Then ContinueLoop
+		If $iMaxLevel <= 0 Then
+			$aLocateOverride[$i] = False
+			SetDebugLog("CSV precalc: skip " & $g_sBldgNames[$iBldgEnum] & " (locked at TH" & $iMinTH & ")", $COLOR_DEBUG)
+		EndIf
+	Next
+	Return 1
+EndFunc   ;==>_CSVPrecalcLocateForTH
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: CSV_LogTiming
 ; Description ...: Log CSV timing markers relative to the search window timer when debug is enabled.
 ; Syntax ........: CSV_LogTiming($sLabel[, $sDetail = ""])
@@ -640,6 +847,29 @@ Func _CSVLookupTargetEnum($sTarget, ByRef $iEnum, ByRef $iWeightIndex)
 	Next
 	Return False
 EndFunc   ;==>_CSVLookupTargetEnum
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVScanMakeTargets
+; Description ...: Process MAKE target column and capture explicit building enums.
+; Syntax ........: _CSVScanMakeTargets(ByRef $aLocate, $sTarget, ByRef $bPrioMakeFound, ByRef $sTargetEnums)
+; Parameters ....: $aLocate          - [in/out] Locate flags array.
+;                  $sTarget          - Target value from MAKE column.
+;                  $bPrioMakeFound   - [in/out] PRIO target flag.
+;                  $sTargetEnums     - [in/out] Pipe-delimited building enum list.
+; Return values .: Success: True
+;                  Failure: False for invalid target.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates locate flags and target list)
+Func _CSVScanMakeTargets(ByRef $aLocate, $sTarget, ByRef $bPrioMakeFound, ByRef $sTargetEnums)
+	Return _CSVPrepApplyMakeTarget($aLocate, $sTarget, $bPrioMakeFound, $sTargetEnums)
+EndFunc   ;==>_CSVScanMakeTargets
 
 ; Side-effect: impure-deterministic (mutates prep locate flags)
 Func _CSVPrepApplyMakeTarget(ByRef $aLocate, $sTarget, ByRef $bPrioMakeFound, ByRef $sTargetEnums)

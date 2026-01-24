@@ -1,15 +1,26 @@
-
-; Purpose: Adjust CSV building image sources and locate flags based on TH level.
-; Assumptions: CSV locate flags already parsed; $g_oBldgLevels/$g_oBldgImages initialized.
-; Author: mxkcz
+; #FUNCTION# ====================================================================================================================
+; Name ..........: PrepareCSVBuildingsTH
+; Description ...: Adjust CSV building image sources and locate flags based on TH level.
+; Syntax ........: PrepareCSVBuildingsTH($iAttackingTH = $g_iMaxTHLevel[, $bSkipDisable = False])
+; Parameters ....: $iAttackingTH      - [optional] Townhall level (default = max).
+;                  $bSkipDisable      - [optional] Skip disable checks when precalc already applied.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; Side-effect: impure-deterministic (mutates CSV locate flags and building image map)
-Func PrepareCSVBuildingsTH($iAttackingTH = $g_iMaxTHLevel)
+Func PrepareCSVBuildingsTH($iAttackingTH = $g_iMaxTHLevel, $bSkipDisable = False)
 	Local $bUnknownTH = False
 	Local $iTH = _CSVNormalizeTH($iAttackingTH, $bUnknownTH)
 
 	_CSVPrepareSuperWizTowerImages($iTH, $bUnknownTH)
 
-	If $bUnknownTH Then Return
+	If $bUnknownTH Or $bSkipDisable Then Return
 
 	_CSVDisableLocateIfLocked("g_bCSVLocateMine", $eBldgGoldM, $iTH)
 	_CSVDisableLocateIfLocked("g_bCSVLocateElixir", $eBldgElixirC, $iTH)

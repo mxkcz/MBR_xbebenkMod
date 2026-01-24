@@ -1646,9 +1646,11 @@ Global $g_abCSVPrepAllMakeTargeted[$g_iModeCount]
 Global $g_abCSVPrepHasPrioMake[$g_iModeCount]
 Global $g_abCSVPrepValid[$g_iModeCount]
 Global $g_asCSVPrepTargetEnums[$g_iModeCount]
+Global $g_aiCSVPrepTargetEnumToLocate[0]
 Global $g_asCSVPrepName[$g_iModeCount]
 Global $g_asCSVPrepMTime[$g_iModeCount]
 Global $g_sCSVPrioRedlineKey = ""
+Global $g_sCSVRedlineHash = ""
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F
 Global $ATTACKVECTOR_G, $ATTACKVECTOR_H, $ATTACKVECTOR_I, $ATTACKVECTOR_J, $ATTACKVECTOR_K, $ATTACKVECTOR_L

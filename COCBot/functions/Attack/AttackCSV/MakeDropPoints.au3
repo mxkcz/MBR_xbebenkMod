@@ -465,6 +465,32 @@ Func _CSVPrioGetRedlineKey()
 EndFunc   ;==>_CSVPrioGetRedlineKey
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVComputeRedlineHash
+; Description ...: Build a lightweight hash string for the redline cache key.
+; Syntax ........: _CSVComputeRedlineHash($sRedline)
+; Parameters ....: $sRedline          - Redline string.
+; Return values .: Success: hash string
+;                  Failure: empty string
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVComputeRedlineHash($sRedline)
+	If $sRedline = "" Then Return ""
+	Local $iLen = StringLen($sRedline)
+	Local $aSplit = StringSplit($sRedline, "|", $STR_NOCOUNT)
+	Local $iCount = (IsArray($aSplit) ? UBound($aSplit) : 0)
+	Local $sHead = StringLeft($sRedline, 50)
+	Local $sTail = StringRight($sRedline, 50)
+	Return $iLen & "|" & $iCount & "|" & $sHead & "|" & $sTail
+EndFunc   ;==>_CSVComputeRedlineHash
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVPrioSyncRedlineCache
 ; Description ...: Invalidate PRIO caches when redline changes.
 ; Syntax ........: _CSVPrioSyncRedlineCache()
@@ -482,7 +508,8 @@ EndFunc   ;==>_CSVPrioGetRedlineKey
 Func _CSVPrioSyncRedlineCache()
 	Local $sKey = _CSVPrioGetRedlineKey()
 	If $sKey = "" Then
-		If $g_sCSVPrioRedlineKey <> "" Then SetDebugLog("CSV PRIO cache cleared: redline unavailable", $COLOR_WARNING)
+		If $g_sCSVRedlineHash <> "" Then SetDebugLog("CSV PRIO cache cleared: redline unavailable", $COLOR_WARNING)
+		$g_sCSVRedlineHash = ""
 		$g_sCSVPrioRedlineKey = ""
 		If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
 		If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
@@ -490,8 +517,10 @@ Func _CSVPrioSyncRedlineCache()
 		Return 0
 	EndIf
 
-	If $g_sCSVPrioRedlineKey <> $sKey Then
-		$g_sCSVPrioRedlineKey = $sKey
+	Local $sHash = _CSVComputeRedlineHash($sKey)
+	If $g_sCSVRedlineHash <> $sHash Then
+		$g_sCSVRedlineHash = $sHash
+		$g_sCSVPrioRedlineKey = $sHash
 		If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
 		If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
 		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
