@@ -238,6 +238,10 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
 	If $g_aiAttackAlgorithm[$iMode] <> 1 Then Return SetError(2, 0, 0)
 
+	_CSVInitPrioCandidates()
+	_CSVInitTargetEnumToLocateMap()
+	_CSVInitTHWindow()
+
 	Local $sFilename = $g_sAttackScrScriptName[$iMode]
 	If $sFilename = "" Then
 		_CSVPrepResetMode($iMode)
@@ -257,6 +261,7 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	If @error Then $sMTime = ""
 
 	If Not $bForce And $g_abCSVPrepValid[$iMode] And $g_asCSVPrepName[$iMode] = $sFilename And $g_asCSVPrepMTime[$iMode] = $sMTime Then
+		_CSVPrebuildTHLocateTableWindow($iMode)
 		Return 1
 	EndIf
 
@@ -362,6 +367,7 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	$g_asCSVPrepName[$iMode] = $sFilename
 	$g_asCSVPrepMTime[$iMode] = $sMTime
 
+	_CSVPrebuildTHLocateTableWindow($iMode)
 	SetDebugLog("CSV prep cached for " & $sFilename & " (mode " & $iMode & ")", $COLOR_DEBUG)
 	Return 1
 EndFunc   ;==>PrepareAttackCSV
@@ -392,14 +398,21 @@ Func AttackCSV_ApplyPrepared($iMode, $iTH)
 	EndIf
 
 	_CSVResolveLocateFlags($iMode)
-	If $g_abCSVPrepHasPrioMake[$iMode] And _CSVIsWeaponizedTownHall($iTH) Then
-		$g_abCSVPrepLocate[$iMode][$eCSVLocateStorageTownHall] = True
-	EndIf
 	Local $aLocateResolved[$eCSVLocateCount]
-	For $i = 0 To $eCSVLocateCount - 1
-		$aLocateResolved[$i] = $g_abCSVPrepLocate[$iMode][$i]
-	Next
-	_CSVPrecalcLocateForTH($iMode, $iTH, 1, $aLocateResolved)
+	If $g_abCSVPrepTHWindowValid[$iMode] Then
+		Local $iWindow = _CSVTHToWindowIndex($iTH)
+		For $i = 0 To $eCSVLocateCount - 1
+			$aLocateResolved[$i] = $g_aCSVPrepLocateByTHWindow[$iMode][$iWindow][$i]
+		Next
+	Else
+		If $g_abCSVPrepHasPrioMake[$iMode] And _CSVIsWeaponizedTownHall($iTH) Then
+			$g_abCSVPrepLocate[$iMode][$eCSVLocateStorageTownHall] = True
+		EndIf
+		For $i = 0 To $eCSVLocateCount - 1
+			$aLocateResolved[$i] = $g_abCSVPrepLocate[$iMode][$i]
+		Next
+		_CSVPrecalcLocateForTH($iMode, $iTH, 1, $aLocateResolved)
+	EndIf
 
 	$g_bCSVLocateMine = $aLocateResolved[$eCSVLocateMine]
 	$g_bCSVLocateElixir = $aLocateResolved[$eCSVLocateElixir]
@@ -670,6 +683,198 @@ Func _CSVLocateIndexToEnum($iIndex)
 EndFunc   ;==>_CSVLocateIndexToEnum
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVInitTHWindow
+; Description ...: Initialize TH window (TH-1/TH/TH+1) for precalc tables.
+; Syntax ........: _CSVInitTHWindow()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates global window)
+Func _CSVInitTHWindow()
+	Local $iTH = $g_iTownHallLevel
+	If $iTH < 1 Then $iTH = 1
+	If $iTH > $g_iMaxTHLevel Then $iTH = $g_iMaxTHLevel
+
+	Local $iMin = 1
+	Local $iMax = $g_iMaxTHLevel
+
+	Local $iPrev = $iTH - 1
+	If $iPrev < $iMin Then $iPrev = $iMin
+	Local $iNext = $iTH + 1
+	If $iNext > $iMax Then $iNext = $iMax
+
+	$g_aCSVPrepTHWindow[0] = $iPrev
+	$g_aCSVPrepTHWindow[1] = $iTH
+	$g_aCSVPrepTHWindow[2] = $iNext
+EndFunc   ;==>_CSVInitTHWindow
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVTHToWindowIndex
+; Description ...: Resolve a TH value to the closest precalc window index.
+; Syntax ........: _CSVTHToWindowIndex($iTH)
+; Parameters ....: $iTH               - Townhall level (may be "-").
+; Return values .: Success: window index (0..2)
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVTHToWindowIndex($iTH)
+	If $iTH = "-" Or $iTH = "" Or Not IsNumber($iTH) Then Return 1
+	Local $iVal = Int($iTH)
+	If $iVal = $g_aCSVPrepTHWindow[0] Then Return 0
+	If $iVal = $g_aCSVPrepTHWindow[1] Then Return 1
+	If $iVal = $g_aCSVPrepTHWindow[2] Then Return 2
+
+	Local $iBest = 1
+	Local $iBestD = Abs($iVal - $g_aCSVPrepTHWindow[1])
+	For $w = 0 To 2
+		Local $iD = Abs($iVal - $g_aCSVPrepTHWindow[$w])
+		If $iD < $iBestD Then
+			$iBestD = $iD
+			$iBest = $w
+		EndIf
+	Next
+	Return $iBest
+EndFunc   ;==>_CSVTHToWindowIndex
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVGetResolvedLocateBase
+; Description ...: Build resolved locate flags from weights and explicit targets.
+; Syntax ........: _CSVGetResolvedLocateBase($iMode, ByRef $aResolved)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $aResolved         - [out] Locate flags array.
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (reads prep cache, mutates local output)
+Func _CSVGetResolvedLocateBase($iMode, ByRef $aResolved)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+
+	_CSVInitTargetEnumToLocateMap()
+	_CSVInitPrioCandidates()
+
+	Local $aLocal[$eCSVLocateCount]
+	For $i = 0 To $eCSVLocateCount - 1
+		$aLocal[$i] = $g_abCSVPrepLocate[$iMode][$i]
+	Next
+
+	If $g_abCSVPrepHasPrioMake[$iMode] Then
+		Local $aWeights[14]
+		For $i = 0 To 13
+			$aWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
+		Next
+		_CSVPrepEnablePrioLocateFromWeights($aLocal, $aWeights)
+	EndIf
+
+	If $g_asCSVPrepTargetEnums[$iMode] <> "" Then
+		Local $aEnums = StringSplit($g_asCSVPrepTargetEnums[$iMode], "|", $STR_NOCOUNT)
+		For $i = 0 To UBound($aEnums) - 1
+			Local $iEnum = Int($aEnums[$i])
+			If $iEnum <= 0 Then ContinueLoop
+			Local $iLocate = _CSVLocateEnumToIndex($iEnum)
+			If $iLocate >= 0 And $iLocate < $eCSVLocateCount Then $aLocal[$iLocate] = True
+		Next
+	EndIf
+
+	$aResolved = $aLocal
+	Return 1
+EndFunc   ;==>_CSVGetResolvedLocateBase
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrebuildTHLocateTableWindow
+; Description ...: Precompute locate flags for the TH window (TH-1/TH/TH+1).
+; Syntax ........: _CSVPrebuildTHLocateTableWindow($iMode)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates precalc tables)
+Func _CSVPrebuildTHLocateTableWindow($iMode)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
+
+	Local $aBase[$eCSVLocateCount]
+	If Not _CSVGetResolvedLocateBase($iMode, $aBase) Then Return SetError(2, 0, 0)
+
+	For $w = 0 To 2
+		Local $iTH = $g_aCSVPrepTHWindow[$w]
+		Local $aTemp[$eCSVLocateCount]
+		For $i = 0 To $eCSVLocateCount - 1
+			$aTemp[$i] = $aBase[$i]
+		Next
+
+		If $g_abCSVPrepHasPrioMake[$iMode] And _CSVIsWeaponizedTownHall($iTH) Then
+			$aTemp[$eCSVLocateStorageTownHall] = True
+		EndIf
+
+		_CSVPrecalcLocateForTH($iMode, $iTH, 0, $aTemp)
+
+		For $i = 0 To $eCSVLocateCount - 1
+			$g_aCSVPrepLocateByTHWindow[$iMode][$w][$i] = $aTemp[$i]
+		Next
+	Next
+
+	$g_abCSVPrepTHWindowValid[$iMode] = True
+	Return 1
+EndFunc   ;==>_CSVPrebuildTHLocateTableWindow
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVHasAnyLocateFlag
+; Description ...: Determine if any locate flag is enabled for a mode and TH.
+; Syntax ........: _CSVHasAnyLocateFlag($iMode, $iTH)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iTH               - Townhall level (may be "-").
+; Return values .: Success: True/False
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVHasAnyLocateFlag($iMode, $iTH)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return False
+	If $g_abCSVPrepTHWindowValid[$iMode] Then
+		Local $iWindow = _CSVTHToWindowIndex($iTH)
+		For $i = 0 To $eCSVLocateCount - 1
+			If $g_aCSVPrepLocateByTHWindow[$iMode][$iWindow][$i] Then Return True
+		Next
+	Else
+		For $i = 0 To $eCSVLocateCount - 1
+			If $g_abCSVPrepLocate[$iMode][$i] Then Return True
+		Next
+	EndIf
+	Return False
+EndFunc   ;==>_CSVHasAnyLocateFlag
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVResolveLocateFlags
 ; Description ...: Resolve CSV locate flags from PRIO weights and explicit MAKE targets.
 ; Syntax ........: _CSVResolveLocateFlags($iMode)
@@ -688,30 +893,8 @@ EndFunc   ;==>_CSVLocateIndexToEnum
 Func _CSVResolveLocateFlags($iMode)
 	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return SetError(1, 0, 0)
 
-	_CSVInitTargetEnumToLocateMap()
-
 	Local $aResolved[$eCSVLocateCount]
-	For $i = 0 To $eCSVLocateCount - 1
-		If $g_abCSVPrepLocate[$iMode][$i] Then $aResolved[$i] = True
-	Next
-
-	If $g_abCSVPrepHasPrioMake[$iMode] Then
-		Local $aWeights[14]
-		For $i = 0 To 13
-			$aWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
-		Next
-		_CSVPrepEnablePrioLocateFromWeights($aResolved, $aWeights)
-	EndIf
-
-	If $g_asCSVPrepTargetEnums[$iMode] <> "" Then
-		Local $aEnums = StringSplit($g_asCSVPrepTargetEnums[$iMode], "|", $STR_NOCOUNT)
-		For $i = 0 To UBound($aEnums) - 1
-			Local $iEnum = Int($aEnums[$i])
-			If $iEnum <= 0 Then ContinueLoop
-			Local $iLocate = _CSVLocateEnumToIndex($iEnum)
-			If $iLocate >= 0 And $iLocate < $eCSVLocateCount Then $aResolved[$iLocate] = True
-		Next
-	EndIf
+	If Not _CSVGetResolvedLocateBase($iMode, $aResolved) Then Return SetError(2, 0, 0)
 
 	Local $iCount = 0
 	For $i = 0 To $eCSVLocateCount - 1
@@ -827,6 +1010,27 @@ Func _CSVGetPrioCandidateMap(ByRef $aEnums, ByRef $aNames, ByRef $aWeightIndex)
 	Return 1
 EndFunc   ;==>_CSVGetPrioCandidateMap
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVInitPrioCandidates
+; Description ...: Initialize PRIO candidate arrays once per run.
+; Syntax ........: _CSVInitPrioCandidates()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates global arrays)
+Func _CSVInitPrioCandidates()
+	If $g_bPrioCandidatesInit Then Return
+	_CSVGetPrioCandidateMap($g_aPrioCandidateEnums, $g_aPrioCandidateNames, $g_aPrioCandidateWeightIdx)
+	$g_bPrioCandidatesInit = True
+EndFunc   ;==>_CSVInitPrioCandidates
+
 ; Side-effect: pure
 Func _CSVLookupTargetEnum($sTarget, ByRef $iEnum, ByRef $iWeightIndex)
 	$iEnum = 0
@@ -836,12 +1040,11 @@ Func _CSVLookupTargetEnum($sTarget, ByRef $iEnum, ByRef $iWeightIndex)
 		Return True
 	EndIf
 
-	Local $aEnums, $aNames, $aWeightIndex
-	_CSVGetPrioCandidateMap($aEnums, $aNames, $aWeightIndex)
-	For $i = 0 To UBound($aNames) - 1
-		If $aNames[$i] = $sTarget Then
-			$iEnum = $aEnums[$i]
-			$iWeightIndex = $aWeightIndex[$i]
+	_CSVInitPrioCandidates()
+	For $i = 0 To UBound($g_aPrioCandidateNames) - 1
+		If $g_aPrioCandidateNames[$i] = $sTarget Then
+			$iEnum = $g_aPrioCandidateEnums[$i]
+			$iWeightIndex = $g_aPrioCandidateWeightIdx[$i]
 			Return True
 		EndIf
 	Next
@@ -956,6 +1159,7 @@ Func _CSVPrepResetMode($iMode)
 	$g_abCSVPrepAllMakeTargeted[$iMode] = False
 	$g_abCSVPrepHasPrioMake[$iMode] = False
 	$g_abCSVPrepValid[$iMode] = False
+	$g_abCSVPrepTHWindowValid[$iMode] = False
 	$g_asCSVPrepTargetEnums[$iMode] = ""
 	$g_asCSVPrepName[$iMode] = ""
 	$g_asCSVPrepMTime[$iMode] = ""

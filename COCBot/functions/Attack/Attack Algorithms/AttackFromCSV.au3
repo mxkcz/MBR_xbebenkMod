@@ -368,6 +368,38 @@ Func _CSVBuildDropLines(ByRef $aSidesUsed, $bAllMakeTargeted)
 EndFunc   ;==>_CSVBuildDropLines
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVEstimateMainSide
+; Description ...: Estimate main attack side from Town Hall position.
+; Syntax ........: _CSVEstimateMainSide($iTHx, $iTHy)
+; Parameters ....: $iTHx              - Town Hall X coordinate.
+;                  $iTHy              - Town Hall Y coordinate.
+; Return values .: Success: main side string (TOP-LEFT/TOP-RIGHT/BOTTOM-LEFT/BOTTOM-RIGHT)
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVEstimateMainSide($iTHx, $iTHy)
+	If $iTHx < $InternalArea[2][0] Then
+		If $iTHy < $InternalArea[0][1] Then
+			Return "BOTTOM-RIGHT"
+		Else
+			Return "TOP-RIGHT"
+		EndIf
+	Else
+		If $iTHy < $InternalArea[0][1] Then
+			Return "BOTTOM-LEFT"
+		Else
+			Return "TOP-LEFT"
+		EndIf
+	EndIf
+EndFunc   ;==>_CSVEstimateMainSide
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: Algorithm_AttackCSV
 ; Description ...:
 ; Syntax ........: Algorithm_AttackCSV([$testattack = False])
@@ -390,9 +422,10 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Local $aResult
 
 	;00 read attack file SIDE row and valorize variables
-	Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
-	$g_iCSVLastTroopPositionDropTroopFromINI = -1
-	If _Sleep($DELAYRESPOND) Then Return
+Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
+$g_iCSVLastTroopPositionDropTroopFromINI = -1
+If _Sleep($DELAYRESPOND) Then Return
+CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
 
 	; Pre-scan MAKE usage for targeted-only optimizations
 	Local $sMakeScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
@@ -411,11 +444,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		EndIf
 	EndIf
 
-	Local $bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
-			$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
-			$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
-			$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
-			$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
+Local $bAnyLocate = _CSVHasAnyLocateFlag($g_iMatchMode, $g_iSearchTH)
 
 	;01 - TROOPS ------------------------------------------------------------------------------------------------------------------------------------------
 	debugAttackCSV("Troops to be used (purged from troops) ")
@@ -452,15 +481,17 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	; 03 - TOWNHALL ------------------------------------------------------------------------
 
-	If $g_bCSVLocateStorageTownHall = True Then
-		If $g_iSearchTH = "-" Or $g_oBldgAttackInfo.Exists($eBldgTownHall & "_LOCATION") = False Then ; If TH is unknown, try again to find as it is needed by script
-			imglocTHSearch(True, False, False)
-		Else
-			SetLog("> Townhall has already been located in while searching for an image", $COLOR_INFO)
-		EndIf
+If $g_bCSVLocateStorageTownHall = True Then
+	CSV_LogTiming("locate start", "townhall")
+	If $g_iSearchTH = "-" Or $g_oBldgAttackInfo.Exists($eBldgTownHall & "_LOCATION") = False Then ; If TH is unknown, try again to find as it is needed by script
+		imglocTHSearch(True, False, False)
 	Else
-		SetLog("> Townhall search not needed, skip")
+		SetLog("> Townhall has already been located in while searching for an image", $COLOR_INFO)
 	EndIf
+	CSV_LogTiming("locate done", "townhall")
+Else
+	SetLog("> Townhall search not needed, skip")
+EndIf
 	If _Sleep($DELAYRESPOND) Then Return
 
 	;04 - MINES, COLLECTORS, DRILLS -----------------------------------------------------------------------------------------------------------------------
@@ -475,10 +506,11 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Local $g_aiPixelNearCollectorBottomRightSTR = ""
 	Local $bCollectorsSuspended = False
 
-	If $g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Then
-		SuspendAndroid()
-		$bCollectorsSuspended = True
-	EndIf
+If $g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Then
+	CSV_LogTiming("locate start", "collectors")
+	SuspendAndroid()
+	$bCollectorsSuspended = True
+EndIf
 
 
 	;04.01 If drop troop near gold mine
@@ -609,7 +641,10 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Else
 		SetLog("> Drills detection not needed, skip", $COLOR_INFO)
 	EndIf
-	If $bCollectorsSuspended Then ResumeAndroid()
+	If $bCollectorsSuspended Then
+		ResumeAndroid()
+		CSV_LogTiming("locate done", "collectors")
+	EndIf
 	If _Sleep($DELAYRESPOND) Then Return
 
 	If StringLen($g_aiPixelNearCollectorTopLeftSTR) > 0 Then $g_aiPixelNearCollectorTopLeftSTR = StringLeft($g_aiPixelNearCollectorTopLeftSTR, StringLen($g_aiPixelNearCollectorTopLeftSTR) - 1)
@@ -624,6 +659,9 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	; 05 - Gold, Elixir and Dark Elixir STORAGES ------------------------------------------------------------------------
 
+	If $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or $g_bCSVLocateStorageDarkElixir Then
+		CSV_LogTiming("locate start", "storages")
+	EndIf
 	If $g_bCSVLocateStorageGold Then
 		$aResult = GetLocationBuilding($eBldgGoldS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 		If $aResult <> -1 Then ; check if Monkey ate bad banana
@@ -684,9 +722,18 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Else
 		SetLog("> Dark Elixir Storage detection not needed, skip", $COLOR_INFO)
 	EndIf
+	If $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or $g_bCSVLocateStorageDarkElixir Then
+		CSV_LogTiming("locate done", "storages")
+	EndIf
 
 	; Pre-fetch defense building locations in a single batch pass
-	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride)
+	Local $bSkipDefenseLocate = $g_bCSVPrecacheDone[$g_iMatchMode]
+	If $bSkipDefenseLocate Then SetDebugLog("CSV precache: skipping defense locate calls", $COLOR_DEBUG)
+	If Not $bSkipDefenseLocate Then
+		CSV_LogTiming("locate start", "defenses")
+		AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride)
+		CSV_LogTiming("locate done", "defenses")
+	EndIf
 
 	; 06 - EAGLE ARTILLERY ------------------------------------------------------------------------
 
@@ -694,7 +741,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	If $g_bCSVLocateEagle = True Then ; eagle find required?
 		If $g_iSearchTH = "-" Or $g_iSearchTH > 10 Then ; TH level where eagle exists?
-			If _ObjSearch($g_oBldgAttackInfo, $eBldgEagle & "_LOCATION") = False Then ; get data if not already exist?
+			If _ObjSearch($g_oBldgAttackInfo, $eBldgEagle & "_LOCATION") = False And Not $bSkipDefenseLocate Then ; get data if not already exist?
 				$aResult = GetLocationBuilding($eBldgEagle, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgEagle], $COLOR_ERROR)
 			EndIf
@@ -718,7 +765,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	If $g_bCSVLocateScatter Then
 		If $g_iSearchTH = "-" Or $g_iSearchTH > 10 Then
-			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgScatter & "_LOCATION") Then ; get data if not already exist?
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgScatter & "_LOCATION") And Not $bSkipDefenseLocate Then ; get data if not already exist?
 				$aResult = GetLocationBuilding($eBldgScatter, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgScatter], $COLOR_ERROR)
 			EndIf
@@ -742,7 +789,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	If $g_bCSVLocateInferno Then
 		If $g_iSearchTH = "-" Or $g_iSearchTH > 9 Then
-			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgInferno & "_LOCATION") Then
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgInferno & "_LOCATION") And Not $bSkipDefenseLocate Then
 				$aResult = GetLocationBuilding($eBldgInferno, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgInferno], $COLOR_ERROR)
 			EndIf
@@ -766,7 +813,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	If $g_bCSVLocateXBow Then
 		If $g_iSearchTH = "-" Or $g_iSearchTH > 8 Then
-			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgXBow & "_LOCATION") Then
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgXBow & "_LOCATION") And Not $bSkipDefenseLocate Then
 				$aResult = GetLocationBuilding($eBldgXBow, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgXBow], $COLOR_ERROR)
 			EndIf
@@ -790,7 +837,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVWizTowerPos = "" ; reset location array?
 
 	If $g_bCSVLocateWizTower Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgWizTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgWizTower], $COLOR_ERROR)
 		EndIf
@@ -810,7 +857,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVMortarPos = "" ; reset location array?
 
 	If $g_bCSVLocateMortar Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMortar & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMortar & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgMortar, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMortar], $COLOR_ERROR)
 		EndIf
@@ -830,7 +877,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVAirDefensePos = "" ; reset location array?
 
 	If $g_bCSVLocateAirDefense Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgAirDefense & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgAirDefense & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgAirDefense, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgAirDefense], $COLOR_ERROR)
 		EndIf
@@ -850,7 +897,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVSweeperPos = "" ; reset location array?
 
 	If $g_bCSVLocateSweeper Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSweeper & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSweeper & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgSweeper, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgSweeper], $COLOR_ERROR)
 		EndIf
@@ -870,7 +917,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVMonolithPos = "" ; reset location array?
 
 	If $g_bCSVLocateMonolith Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMonolith & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMonolith & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgMonolith, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMonolith], $COLOR_ERROR)
 		EndIf
@@ -890,7 +937,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVFireSpitterPos = "" ; reset location array?
 
 	If $g_bCSVLocateFireSpitter Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgFireSpitter & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgFireSpitter & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgFireSpitter, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgFireSpitter], $COLOR_ERROR)
 		EndIf
@@ -910,7 +957,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVMultiArcherTowerPos = "" ; reset location array?
 
 	If $g_bCSVLocateMultiArcherTower Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiArcherTower & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiArcherTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgMultiArcherTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMultiArcherTower], $COLOR_ERROR)
 		EndIf
@@ -929,7 +976,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVMultiGearTowerPos = "" ; reset location array?
 
 	If $g_bCSVLocateMultiGearTower Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiGearTower & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgMultiGearTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgMultiGearTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgMultiGearTower], $COLOR_ERROR)
 		EndIf
@@ -949,7 +996,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVRicochetCannonPos = "" ; reset location array?
 
 	If $g_bCSVLocateRicochetCannon Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRicochetCannon & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRicochetCannon & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgRicochetCannon, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgRicochetCannon], $COLOR_ERROR)
 		EndIf
@@ -970,7 +1017,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	If $g_bCSVLocateSuperWizTower Then
 		If $g_bCSVUseWizTowerForSuperWiz Then
 			; Super Wizard Tower not unlocked/unknown TH: reuse Wizard Tower detection
-			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") Then
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgWizTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 				$aResult = GetLocationBuilding($eBldgWizTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgWizTower], $COLOR_ERROR)
 			EndIf
@@ -995,7 +1042,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 				EndIf
 			EndIf
 		Else
-			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION") Then
+			If Not _ObjSearch($g_oBldgAttackInfo, $eBldgSuperWizTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 				$aResult = GetLocationBuilding($eBldgSuperWizTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 				If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgSuperWizTower], $COLOR_ERROR)
 			EndIf
@@ -1016,7 +1063,7 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_aiCSVRevengeTowerPos = "" ; reset location array?
 
 	If $g_bCSVLocateRevengeTower Then
-		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRevengeTower & "_LOCATION") Then
+		If Not _ObjSearch($g_oBldgAttackInfo, $eBldgRevengeTower & "_LOCATION") And Not $bSkipDefenseLocate Then
 			$aResult = GetLocationBuilding($eBldgRevengeTower, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
 			If $aResult = -1 Then SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgRevengeTower], $COLOR_ERROR)
 		EndIf
@@ -1032,7 +1079,10 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	EndIf
 
 	; Calculate main attack side
+	If $g_sCSVMainSideEstimate <> "" Then SetDebugLog("CSV main side estimate (precache): " & $g_sCSVMainSideEstimate, $COLOR_DEBUG)
+	CSV_LogTiming("phase start", "main side")
 	Local $sMainSide = ParseAttackCSV_MainSide()
+	CSV_LogTiming("phase done", "main side")
 	; Re-scan MAKE usage after MAIN side mapping so droplines match the resolved sides
 	If AttackCSV_ScanMakeUsage($sMakeScript, $aMakeSidesUsed, $bAllMakeTargeted) Then
 		SetDebugLog("CSV MAKE sides: TL=" & $aMakeSidesUsed[0] & ", TR=" & $aMakeSidesUsed[1] & ", BL=" & $aMakeSidesUsed[2] & ", BR=" & $aMakeSidesUsed[3] & _
@@ -1045,7 +1095,9 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 		$aMakeSidesUsed[3] = True
 		$bAllMakeTargeted = False
 	EndIf
+	CSV_LogTiming("phase start", "droplines")
 	_CSVBuildDropLines($aMakeSidesUsed, $bAllMakeTargeted)
+	CSV_LogTiming("phase done", "droplines")
 
 	; 13 - Wall
 	If $g_bCSVLocateWall Then
@@ -1108,6 +1160,9 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	If $g_aiAttackAlgorithm[$iMode] <> 1 Then Return SetError(2, 0, 0)
 	If Not PrepareAttackCSV($iMode) Then Return SetError(3, 0, 0)
 
+	$g_bCSVPrecacheDone[$iMode] = False
+	$g_sCSVMainSideEstimate = ""
+
 	Local $sRedline = ""
 	If $g_sImglocRedline <> "" Then
 		$sRedline = $g_sImglocRedline
@@ -1116,6 +1171,7 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	EndIf
 	If $sRedline = "" Then
 		CSV_LogTiming("precache skipped", "redline missing")
+		$g_bCSVPrecacheDone[$iMode] = False
 		Return SetError(4, 0, 0)
 	EndIf
 
@@ -1136,11 +1192,7 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 		EndIf
 	EndIf
 
-	Local $bAnyLocate = ($g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Or $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or _
-			$g_bCSVLocateStorageDarkElixir Or $g_bCSVLocateStorageTownHall Or $g_bCSVLocateEagle Or $g_bCSVLocateScatter Or $g_bCSVLocateInferno Or _
-			$g_bCSVLocateXBow Or $g_bCSVLocateWizTower Or $g_bCSVLocateMortar Or $g_bCSVLocateAirDefense Or $g_bCSVLocateSweeper Or _
-			$g_bCSVLocateMonolith Or $g_bCSVLocateFireSpitter Or $g_bCSVLocateMultiArcherTower Or $g_bCSVLocateMultiGearTower Or _
-			$g_bCSVLocateRicochetCannon Or $g_bCSVLocateSuperWizTower Or $g_bCSVLocateRevengeTower Or $g_bCSVLocateWall)
+	Local $bAnyLocate = _CSVHasAnyLocateFlag($iMode, $g_iSearchTH)
 	If Not $bAnyLocate Then
 		CSV_LogTiming("precache skipped", "no locate flags")
 		Return 1
@@ -1149,6 +1201,15 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	CSV_LogTiming("capture", "precache search")
 	_CaptureRegion2()
 	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, $bForceRescan)
+	$g_bCSVPrecacheDone[$iMode] = True
+
+	If _ObjSearch($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION") Then
+		Local $aTHLoc = _ObjGetValue($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION")
+		If Not @error And IsArray($aTHLoc) Then
+			$g_sCSVMainSideEstimate = _CSVEstimateMainSide($aTHLoc[0], $aTHLoc[1])
+			SetDebugLog("CSV main side estimate: " & $g_sCSVMainSideEstimate, $COLOR_DEBUG)
+		EndIf
+	EndIf
 
 	If $g_abCSVPrepHasPrioMake[$iMode] Then
 		Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]

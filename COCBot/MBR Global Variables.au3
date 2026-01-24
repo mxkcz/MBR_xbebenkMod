@@ -1640,17 +1640,26 @@ Global Enum $eCSVLocateMine, $eCSVLocateElixir, $eCSVLocateDrill, $eCSVLocateSto
 		$eCSVLocateMonolith, $eCSVLocateFireSpitter, $eCSVLocateMultiArcherTower, $eCSVLocateMultiGearTower, $eCSVLocateRicochetCannon, $eCSVLocateSuperWizTower, _
 		$eCSVLocateRevengeTower, $eCSVLocateWall, $eCSVLocateCount
 Global $g_abCSVPrepLocate[$g_iModeCount][$eCSVLocateCount]
+Global $g_aCSVPrepLocateByTHWindow[$g_iModeCount][3][$eCSVLocateCount]
+Global $g_aCSVPrepTHWindow[3]
 Global $g_aiCSVPrepSideBWeights[$g_iModeCount][14]
 Global $g_abCSVPrepMakeSidesUsed[$g_iModeCount][4]
 Global $g_abCSVPrepAllMakeTargeted[$g_iModeCount]
 Global $g_abCSVPrepHasPrioMake[$g_iModeCount]
 Global $g_abCSVPrepValid[$g_iModeCount]
+Global $g_abCSVPrepTHWindowValid[$g_iModeCount]
 Global $g_asCSVPrepTargetEnums[$g_iModeCount]
 Global $g_aiCSVPrepTargetEnumToLocate[0]
 Global $g_asCSVPrepName[$g_iModeCount]
 Global $g_asCSVPrepMTime[$g_iModeCount]
 Global $g_sCSVPrioRedlineKey = ""
 Global $g_sCSVRedlineHash = ""
+Global $g_bCSVPrecacheDone[$g_iModeCount]
+Global $g_aPrioCandidateEnums[15]
+Global $g_aPrioCandidateNames[15]
+Global $g_aPrioCandidateWeightIdx[15]
+Global $g_bPrioCandidatesInit = False
+Global $g_sCSVMainSideEstimate = ""
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F
 Global $ATTACKVECTOR_G, $ATTACKVECTOR_H, $ATTACKVECTOR_I, $ATTACKVECTOR_J, $ATTACKVECTOR_K, $ATTACKVECTOR_L
