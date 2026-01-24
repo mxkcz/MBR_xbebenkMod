@@ -19,8 +19,9 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 	$g_bIsCGPointAlmostMax = False ;just to be sure, reset to False
 	$g_bisCGPointMaxed = False ;just to be sure, reset to False
 	$g_sCGCurrentEventName = ""
-	
+
 	Local $PurgeDayMinute = ($g_iCmbClanGamesPurgeDay + 1) * 1440
+	Local Const $iClanGamesMaxScore = 10000
 	; Check If this Feature is Enable on GUI.
 	If Not $g_bChkClanGamesEnabled Then Return
 	If $g_iTownHallLevel <= 5 Then
@@ -79,7 +80,21 @@ Func _ClanGames($test = False, $bOnlyPurge = False)
 			$sTimeCG = ConvertOCRTime("ClanGames()", StringLower($g_sClanGamesTimeRemaining), True)
 			Setlog("Clan Games Minute Remain: " & $sTimeCG)
 
-			If $aiScoreLimit[0] = $aiScoreLimit[1] Then
+			If $aiScoreLimit[1] <= 0 Then
+				SetLog("Invalid Clan Games score limit, skip Clan Games", $COLOR_ERROR)
+				CloseClangamesWindow()
+				Return False
+			EndIf
+
+			If $aiScoreLimit[0] >= $iClanGamesMaxScore Then
+				SetLog("Your score limit is reached! Congrats")
+				$g_bIsCGPointMaxed = True
+				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;max point, account will only purge now, so allow to attack on BB
+				CloseClangamesWindow()
+				Return False
+			EndIf
+
+			If $aiScoreLimit[0] >= $aiScoreLimit[1] Then
 				SetLog("Your score limit is reached! Congrats")
 				$g_bIsCGPointMaxed = True
 				If $g_bChkForceSwitchifNoCGEvent Then $g_bForceSwitchifNoCGEvent = False ;max point, account will only purge now, so allow to attack on BB
@@ -604,6 +619,8 @@ Func GetTimesAndScores()
 	For $i = 0 To 10
 		$sYourGameScore = getOcrYourCGScore(48, 560) ;  Read your Score
 		$sYourGameScore = StringReplace($sYourGameScore, "#", "/")
+		$sYourGameScore = StringReplace($sYourGameScore, " ", "")
+		$sYourGameScore = StringRegExpReplace($sYourGameScore, "[^0-9/]", "")
 		$aiScoreLimit = StringSplit($sYourGameScore, "/", $STR_NOCOUNT)
 		If UBound($aiScoreLimit, 1) > 1 Then
 			If $iRestScore = Int($aiScoreLimit[0]) Then ExitLoop
