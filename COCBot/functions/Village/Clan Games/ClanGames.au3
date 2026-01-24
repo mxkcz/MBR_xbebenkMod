@@ -525,7 +525,7 @@ Func SelectEvent(ByRef $aSelectChallenges)
 EndFunc
 
 Func WaitCGWindowOpen()
-	If _Sleep(1500) Then Return ; increase wait time to avoid reading wrong state
+	If _Sleep(3000) Then Return ; increase wait time to avoid reading wrong state
 	For $i = 1 To 10
 		If IsCGWindowOpen() Then Return True
 		If _Sleep(500) Then Return
