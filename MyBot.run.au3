@@ -682,6 +682,8 @@ EndFunc   ;==>MainLoop
 
 Func runBot() ;Bot that runs everything in order
 	Local $iWaitTime, $MainLoopTimer
+	Local Const $iClanGamesRecheckMs = 10 * 60 * 1000
+	Static $hClanGamesTimer = 0
 
 	If $g_bIsHidden Then
 		HideAndroidWindow(True, Default, Default, "btnHide")
@@ -715,6 +717,16 @@ Func runBot() ;Bot that runs everything in order
 			SetLogCentered(" Top MainLoop ", "=", $COLOR_DEBUG)
 			checkMainScreen(False, $g_bStayOnBuilderBase, "MainLoop")
 			VillageReport()
+
+			If $g_bChkClanGamesEnabled And Not $g_bisCGPointMaxed Then
+				If $hClanGamesTimer = 0 Then $hClanGamesTimer = TimerInit()
+				If TimerDiff($hClanGamesTimer) > $iClanGamesRecheckMs Then
+					SetLog("Periodic Clan Games check", $COLOR_INFO)
+					_ClanGames()
+					If _Sleep(50) Then Return
+					$hClanGamesTimer = TimerInit()
+				EndIf
+			EndIf
 
 			If BotCommand() Then btnStop()
 			If Not $g_bRunState Then Return
@@ -1367,6 +1379,7 @@ EndFunc
 
 Func BuilderBase()
 	Local $StarLabOn = False
+	Local $bSkipBBForNoCG = False
 	If Not $g_bRunState Then Return
 	If Number($g_iTotalBuilderCount) = 6 Then
 		$g_bIs6thBuilderUnlocked = True
@@ -1416,8 +1429,9 @@ Func BuilderBase()
 			SetLog("6th Builder Unlocked, attackBB disabled", $COLOR_DEBUG)
 		Else
 			SetLog("StopAttackBB6thBuilder: " & String($g_bChkStopAttackBB6thBuilder) & ", Is6thBuilderUnlocked: " & String($g_bIs6thBuilderUnlocked), $COLOR_DEBUG1)
-			If $g_bChkCGBBAttackOnly And Not $g_bIsCGEventRunning Then
-				SetLog("Clan Games BB-only enabled and no active CG event, skip BuilderBase attacks", $COLOR_INFO)
+			If $g_bChkClanGamesEnabled And ($g_bChkCGBBAttackOnly Or $g_bChkForceBBAttackOnClanGames) And Not $g_bIsBBevent Then
+				SetLog("Clan Games BB-focused enabled and no active BB CG event, skip BuilderBase attacks", $COLOR_INFO)
+				$bSkipBBForNoCG = True
 			Else
 				DoAttackBB()
 			EndIf
@@ -1445,6 +1459,10 @@ Func BuilderBase()
 		
 		$g_bStayOnBuilderBase = False
 		SwitchBetweenBases("Main")
+		If $bSkipBBForNoCG And Not $g_bisCGPointMaxed Then
+			_ClanGames()
+			If _Sleep(50) Then Return
+		EndIf
 	EndIf
 
 	If Not $g_bStayOnBuilderBase And IsOnBuilderBase() Then SwitchBetweenBases("Main")
