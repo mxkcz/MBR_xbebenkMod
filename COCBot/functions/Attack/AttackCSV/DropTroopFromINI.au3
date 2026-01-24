@@ -2,7 +2,7 @@
 ; Name ..........: DropTroopFromINI
 ; Description ...:
 ; Syntax ........: DropTroopFromINI($vectors, $iStartIndex, $iEndIndex, $iMinQuantity, $iMaxQuantity, $sTroopName, $delayPointmin,
-;                  $delayPointmax, $delayDropMin, $delayDropMax, $sleepafterMin, $sleepAfterMax[, $debug = False])
+;                  $delayPointmax, $delayDropMin, $delayDropMax, $sleepafterMin, $sleepAfterMax[, $debug = False[, $bAllowPreDropVerify = True]])
 ; Parameters ....: $vectors             -
 ;                  $iStartIndex         -
 ;                  $iEndIndex           -
@@ -16,6 +16,7 @@
 ;                  $sleepafterMin       -
 ;                  $sleepAfterMax       -
 ;                  $bDebug               - [optional] Default is False.
+;                  $bAllowPreDropVerify  - [optional] Default is True.
 ; Return values .: None
 ; Author ........: Sardo (2016)
 ; Modified ......: MonkeyHunter (03-2017)
@@ -30,7 +31,7 @@
 #include <Array.au3>
 #include <MsgBoxConstants.au3>
 
-Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $iMinQuantity, $iMaxQuantity, $sTroopName, $delayPointmin, $delayPointmax, $delayDropMin, $delayDropMax, $sleepafterMin, $sleepAfterMax, $bDebug = False)
+Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $iMinQuantity, $iMaxQuantity, $sTroopName, $delayPointmin, $delayPointmax, $delayDropMin, $delayDropMax, $sleepafterMin, $sleepAfterMax, $bDebug = False, $bAllowPreDropVerify = True)
 	If IsArray($aiIndexArray) = 0 Then
 		debugAttackCSV("drop using vectors " & $sDropVectors & " index " & $iStartIndex & "-" & $iEndIndex & " and using " & $iMinQuantity & "-" & $iMaxQuantity & " of " & $sTroopName)
 	Else
@@ -81,20 +82,31 @@ Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $i
 		Return
 	EndIf
 	Local $bHeroDrop = ($iTroopIndex = $eWarden ? True : False) ;set flag TRUE if Warden was dropped
+	Local $bCountedTroop = ($iTroopIndex >= $eBarb And $iTroopIndex <= $eFurn) Or ($iTroopIndex >= $eLSpell And $iTroopIndex <= $eOgSpell)
+	Local $iRemainingCount = -1
 
 	;_ArrayDisplay($g_avAttackTroops, "Index: " & $iTroopIndex)
 
 	;search slot where is the troop...
 	Local $troopPosition = -1
 	Local $troopSlotConst = -1 ; $troopSlotConst = xx/22 (the unique slot number of troop) - Slot11+
+	Local $fallbackSlotConst = -1
 	For $i = 0 To UBound($g_avAttackTroops) - 1
-		If $g_avAttackTroops[$i][0] = $iTroopIndex And $g_avAttackTroops[$i][1] > 0 Then
-			debugAttackCSV("Found troop position " & $i & ". " & $sTroopName & " x" & $g_avAttackTroops[$i][1])
-			$troopSlotConst = $i
-			$troopPosition = $troopSlotConst
-			ExitLoop
+		If $g_avAttackTroops[$i][0] = $iTroopIndex Then
+			If $fallbackSlotConst = -1 Then $fallbackSlotConst = $i
+			If $g_avAttackTroops[$i][1] > 0 Then
+				debugAttackCSV("Found troop position " & $i & ". " & $sTroopName & " x" & $g_avAttackTroops[$i][1])
+				$troopSlotConst = $i
+				$troopPosition = $troopSlotConst
+				ExitLoop
+			EndIf
 		EndIf
 	Next
+	If $troopSlotConst = -1 And $fallbackSlotConst <> -1 Then
+		$troopSlotConst = $fallbackSlotConst
+		$troopPosition = $troopSlotConst
+		debugAttackCSV("Fallback troop position " & $troopSlotConst & ". " & $sTroopName & " x" & $g_avAttackTroops[$troopSlotConst][1])
+	EndIf
 
 	; Slot11+
 	debugAttackCSV("Troop position / Total slots: " & $troopSlotConst & " / " & $g_iTotalAttackSlot)
@@ -153,6 +165,37 @@ Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $i
 
 		;Local $SuspendMode = SuspendAndroid()
 
+		If $bCountedTroop Then
+			$iRemainingCount = $g_avAttackTroops[$troopSlotConst][1]
+			Local $bSlotSelected = ($g_iCSVLastTroopPositionDropTroopFromINI = $troopSlotConst)
+			If $bAllowPreDropVerify And $g_bCSVPreDropVerify And $iRemainingCount <= $g_iCSVPreDropThreshold Then
+				If Not $bSlotSelected Or $iRemainingCount <= 0 Then
+					Local $iActualCount = ReadTroopQuantity($troopSlotConst, False, True)
+					If $iActualCount <= 0 And $iRemainingCount > 0 Then
+						debugAttackCSV("Troop count OCR returned 0, keeping cached: " & $iRemainingCount)
+					ElseIf $iActualCount <> $iRemainingCount Then
+						debugAttackCSV("Troop count mismatch - cached: " & $iRemainingCount & ", actual: " & $iActualCount)
+						$g_avAttackTroops[$troopSlotConst][1] = $iActualCount
+					EndIf
+					$iRemainingCount = $g_avAttackTroops[$troopSlotConst][1]
+				Else
+					debugAttackCSV("Skip OCR verify: slot already selected")
+				EndIf
+			EndIf
+
+			If $iRemainingCount <= 0 Then
+				SetLog("No " & GetTroopName($iTroopIndex) & " remaining, skip drop")
+				Return
+			EndIf
+
+			If $iRemainingCount < $qty Then
+				debugAttackCSV("Adjust qty to deploy: " & $qty & " -> " & $iRemainingCount)
+				$qty = $iRemainingCount
+				$qtyxpoint = Int($qty / ($iEndIndex - $iStartIndex + 1))
+				$extraunit = Mod($qty, ($iEndIndex - $iStartIndex + 1))
+			EndIf
+		EndIf
+
 		If $g_iCSVLastTroopPositionDropTroopFromINI <> $troopSlotConst Then
 			ReleaseClicks()
 			If $bSelectTroop Then
@@ -204,6 +247,13 @@ Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $i
 								SetLog("AttackClick( " & $pixel[0] & ", " & $pixel[1] & " , " & $qty2 & ", " & $delayPoint & ",#0668)")
 							Else
 								AttackClick($pixel[0], $pixel[1], $qty2, $delayPoint, $delayDropLast, "#0668")
+								If $g_bCSVTrackDropCounts Then
+									If UBound($g_avAttackTroops) > $troopSlotConst And $g_avAttackTroops[$troopSlotConst][1] > 0 And $qty2 > 0 Then
+										$g_avAttackTroops[$troopSlotConst][1] -= $qty2
+										If $g_avAttackTroops[$troopSlotConst][1] < 0 Then $g_avAttackTroops[$troopSlotConst][1] = 0
+										debugAttackCSV("Adjust quantity of troop use: " & $g_avAttackTroops[$troopSlotConst][0] & " x" & $g_avAttackTroops[$troopSlotConst][1])
+									EndIf
+								EndIf
 							EndIf
 						Case $eKing
 							If $bDebug Then
@@ -241,7 +291,7 @@ Func DropTroopFromINI($sDropVectors, $iStartIndex, $iEndIndex, $aiIndexArray, $i
 							Else
 								dropCC($pixel[0], $pixel[1], $troopPosition)
 							EndIf
-						Case $eLSpell To $eBtSpell
+						Case $eLSpell To $eOgSpell
 							If $bDebug Then
 								SetLog("Drop Spell AttackClick( " & $pixel[0] & ", " & $pixel[1] & " , " & $qty2 & ", " & $delayPoint & ",#0668)")
 							Else

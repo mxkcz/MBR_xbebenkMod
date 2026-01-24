@@ -1629,6 +1629,9 @@ Global $g_bCSVLocateRevengeTower = False
 Global $g_iCSVTargetedMaxReturnPoints = 4 ; CSV targeted MAKE: cap max return points (0=disable)
 Global $g_bCSVLocateWall = False
 Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
+Global $g_bCSVPreDropVerify = True ; CSV DROP: verify troop count when low before dropping
+Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= threshold
+Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
 Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
 
 ; CSV prep caches (per mode)

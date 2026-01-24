@@ -422,7 +422,7 @@ Func ParseAttackCSV($debug = False)
 									If $sShortName = "" Then ContinueLoop
 									Local $name = GetTroopName($iTroopIndex, $iTroopCount)
 									Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
-									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
+									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, False)
 									If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
 								Next
 							Else
@@ -693,6 +693,19 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	EndIf
 	If $iTroopIndex = $eCastle Then Return "Castle"
 	If $bIncludeHeroes And $iTroopIndex >= $eKing And $iTroopIndex <= $ePrince Then
+		; Skip already-deployed heroes whose ability is no longer available
+		Switch $iTroopIndex
+			Case $eKing
+				If $g_bDropKing And Not $g_bCheckKingPower Then Return ""
+			Case $eQueen
+				If $g_bDropQueen And Not $g_bCheckQueenPower Then Return ""
+			Case $eWarden
+				If $g_bDropWarden And Not $g_bCheckWardenPower Then Return ""
+			Case $eChampion
+				If $g_bDropChampion And Not $g_bCheckChampionPower Then Return ""
+			Case $ePrince
+				If $g_bDropPrince And Not $g_bCheckPrincePower Then Return ""
+		EndSwitch
 		Return $g_asHeroShortNames[$iTroopIndex - $eKing]
 	EndIf
 	If $bIncludeSpells And $iTroopIndex >= $eLSpell And $iTroopIndex <= $eIBSpell Then
