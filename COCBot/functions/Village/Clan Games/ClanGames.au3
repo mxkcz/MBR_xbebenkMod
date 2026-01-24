@@ -820,6 +820,11 @@ EndFunc   ;==>StartsEvent
 ;if startFirst = True --> will start first and then purge
 Func ForcePurgeEvent($bTest = False, $startFirst = True) 
 	Local $count1 = 0, $count2 = 0
+	If $g_bisCGPointMaxed Then
+		SetLog("ForcePurgeEvent skipped: Clan Games points maxed", $COLOR_INFO)
+		CloseClangamesWindow()
+		Return False
+	EndIf
 
 	Click(340, 215) ;Most Top Challenge
 	If _Sleep(1000) Then Return
@@ -864,6 +869,11 @@ EndFunc   ;==>ForcePurgeEvent
 
 Func StartAndPurgeEvent($bTest = False)
 	Local $count1 = 0, $count2 = 0
+	If $g_bisCGPointMaxed Then
+		SetLog("StartAndPurgeEvent skipped: Clan Games points maxed", $COLOR_INFO)
+		CloseClangamesWindow()
+		Return False
+	EndIf
 
 	If QuickMIS("BC1", $g_sImgStart, 220, 150, 830, 580, True, False) Then
 		Local $aTimer = GetEventTimeScore($g_iQuickMISX, $g_iQuickMISY)
