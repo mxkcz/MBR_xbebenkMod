@@ -693,13 +693,17 @@ Func debugCSVLocateBuildings()
 	Local $currentiMatchMode = $g_iMatchMode
 	Local $currentdebugsetlog = $g_bDebugSetlog
 	Local $currentDebugBuildingPos = $g_bDebugBuildingPos
+	Local $currentDebugGetLocation = $g_bDebugGetLocation
 	Local $currentScript = $g_sAttackScrScriptName[$g_iAttackCSVSettingsMode]
+	Local $currentTargetedOnly = $g_bCSVTargetedOnlyActive
+	Local $currentImglocRedline = $g_sImglocRedline
 
 	$g_bRunState = True
 	$g_bDebugAttackCSV = True
 	$g_bDebugMakeIMGCSV = True
 	$g_bDebugSetlog = True
 	$g_bDebugBuildingPos = True
+	$g_bDebugGetLocation = True
 
 	$g_iMatchMode = $g_iAttackCSVSettingsMode
 	$g_sAttackScrScriptName[$g_iMatchMode] = $sScript
@@ -709,12 +713,83 @@ Func debugCSVLocateBuildings()
 	ConvertInternalExternArea()
 
 	If Not CheckZoomOut("debugCSVLocateBuildings") Then
-		SetLog("CheckZoomOut failed", $COLOR_INFO)
+		SetLog("CheckZoomOut failed", $COLOR_ERROR)
+		EndImageTest() ; clear test image handle
+		$g_bRunState = $currentRunState
+		$g_bDebugAttackCSV = $currentDebugAttackCSV
+		$g_bDebugMakeIMGCSV = $currentMakeIMGCSV
+		$g_iMatchMode = $currentiMatchMode
+		$g_bDebugSetlog = $currentdebugsetlog
+		$g_bDebugBuildingPos = $currentDebugBuildingPos
+		$g_bDebugGetLocation = $currentDebugGetLocation
+		$g_sAttackScrScriptName[$g_iAttackCSVSettingsMode] = $currentScript
+		$g_bCSVTargetedOnlyActive = $currentTargetedOnly
+		$g_sImglocRedline = $currentImglocRedline
+		Return
 	EndIf
+
+	If IsObj($g_oBldgAttackInfo) Then _ObjDeleteKey($g_oBldgAttackInfo, "") ; clear stale locate data
+	$g_sImglocRedline = ""
 	ResetTHsearch()
+
 	SetLog("CSV locate debug: FindTownhall()", $COLOR_INFO)
 	SetLog("FindTownhall() = " & FindTownhall(True), $COLOR_INFO)
-	SetLog("$g_sImglocRedline = " & $g_sImglocRedline, $COLOR_INFO)
+
+	; Build redline and locate data similar to real CSV flow
+	_CaptureRegion2()
+	_GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
+	If Not PrepareAttackCSV($g_iMatchMode, True) Then SetLog("CSV locate debug: PrepareAttackCSV failed", $COLOR_WARNING)
+	AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
+	Local $aMakeSidesUsed[4] = [False, False, False, False]
+	Local $bAllMakeTargeted = False
+	Local $iCSVMaxReturnPointsOverride = Default
+	If AttackCSV_GetPreparedMakeUsage($g_iMatchMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
+		$g_bCSVTargetedOnlyActive = $bAllMakeTargeted
+		If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
+			$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+		EndIf
+	EndIf
+
+	; Locate Townhall if needed
+	If $g_bCSVLocateStorageTownHall Then
+		If $g_iSearchTH = "-" Or Not _ObjSearch($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION") Then
+			imglocTHSearch(True, False, False)
+		EndIf
+	EndIf
+
+	; Collectors
+	If $g_bCSVLocateMine Then
+		$g_aiPixelMine = GetLocationMine()
+		CleanRedArea($g_aiPixelMine)
+	EndIf
+	If $g_bCSVLocateElixir Then
+		$g_aiPixelElixir = GetLocationElixir()
+		CleanRedArea($g_aiPixelElixir)
+	EndIf
+	If $g_bCSVLocateDrill Then
+		$g_aiPixelDarkElixir = GetLocationDarkElixir()
+		CleanRedArea($g_aiPixelDarkElixir)
+	EndIf
+
+	; Storages
+	If $g_bCSVLocateStorageGold Then
+		GetLocationBuilding($eBldgGoldS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
+	EndIf
+	If $g_bCSVLocateStorageElixir Then
+		GetLocationBuilding($eBldgElixirS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
+	EndIf
+	If $g_bCSVLocateStorageDarkElixir Then
+		Local $g_aiPixelDarkElixirStorage = GetLocationDarkElixirStorageWithLevel()
+		CleanRedArea($g_aiPixelDarkElixirStorage)
+	EndIf
+
+	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, True)
+	If $g_bCSVLocateWall Then
+		Local $aCSVExternalWall[1], $aCSVInternalWall[1]
+		FindWallCSV($aCSVExternalWall, $aCSVInternalWall)
+	EndIf
+	_CSVBuildDropLines($aMakeSidesUsed, $bAllMakeTargeted)
+	AttackCSVDEBUGIMAGE(True)
 
 	If $g_bDebugMakeIMGCSV And TestCapture() = 0 Then
 		If $g_iSearchTH = "-" Then ; If TH is unknown, try again to find as it is needed for filename
@@ -722,6 +797,42 @@ Func debugCSVLocateBuildings()
 		EndIf
 		SaveDebugImage("clean", False, Default, "TH" & $g_iSearchTH & "-") ; make clean snapshot as well
 	EndIf
+	Local $iRedCount = 0
+	If IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT") Then
+		$iRedCount = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT")
+	ElseIf $g_sImglocRedline <> "" Then
+		$iRedCount = UBound(StringSplit($g_sImglocRedline, "|", $STR_NOCOUNT))
+	EndIf
+	SetLog("CSV debug summary: redline=" & $iRedCount & " outer=" & $OuterDiamondLeft & "," & $OuterDiamondTop & "," & $OuterDiamondRight & "," & $OuterDiamondBottom & _
+			" offset=" & $g_iVILLAGE_OFFSET[0] & "," & $g_iVILLAGE_OFFSET[1] & "," & $g_iVILLAGE_OFFSET[2], $COLOR_INFO)
+	SetLog("CSV debug summary: droplines TL=" & (IsArray($g_aiPixelTopLeftDropLine) ? UBound($g_aiPixelTopLeftDropLine) : 0) & _
+			" TR=" & (IsArray($g_aiPixelTopRightDropLine) ? UBound($g_aiPixelTopRightDropLine) : 0) & _
+			" BL=" & (IsArray($g_aiPixelBottomLeftDropLine) ? UBound($g_aiPixelBottomLeftDropLine) : 0) & _
+			" BR=" & (IsArray($g_aiPixelBottomRightDropLine) ? UBound($g_aiPixelBottomRightDropLine) : 0), $COLOR_INFO)
+	SetLog("CSV debug summary: collectors mines=" & (IsArray($g_aiPixelMine) ? UBound($g_aiPixelMine) : 0) & _
+			" elixir=" & (IsArray($g_aiPixelElixir) ? UBound($g_aiPixelElixir) : 0) & _
+			" drill=" & (IsArray($g_aiPixelDarkElixir) ? UBound($g_aiPixelDarkElixir) : 0), $COLOR_INFO)
+	Local $iDES = 0
+	If IsArray($g_aiCSVDarkElixirStoragePos) And UBound($g_aiCSVDarkElixirStoragePos) >= 2 Then $iDES = 1
+	SetLog("CSV debug summary: storages gold=" & _CSVGetBldgCount($eBldgGoldS) & " elixir=" & _CSVGetBldgCount($eBldgElixirS) & _
+			" dark=" & $iDES & " th=" & _CSVGetBldgCount($eBldgTownHall), $COLOR_INFO)
+	Local $sDefenseSummary = "CSV debug summary: defenses"
+	If $g_bCSVLocateEagle Then $sDefenseSummary &= " Eagle=" & _CSVGetBldgCount($eBldgEagle)
+	If $g_bCSVLocateInferno Then $sDefenseSummary &= " Inferno=" & _CSVGetBldgCount($eBldgInferno)
+	If $g_bCSVLocateXBow Then $sDefenseSummary &= " XBow=" & _CSVGetBldgCount($eBldgXBow)
+	If $g_bCSVLocateWizTower Then $sDefenseSummary &= " Wiz=" & _CSVGetBldgCount($eBldgWizTower)
+	If $g_bCSVLocateSuperWizTower Then $sDefenseSummary &= " SuperWiz=" & _CSVGetBldgCount($eBldgSuperWizTower)
+	If $g_bCSVLocateMortar Then $sDefenseSummary &= " Mortar=" & _CSVGetBldgCount($eBldgMortar)
+	If $g_bCSVLocateAirDefense Then $sDefenseSummary &= " AirDef=" & _CSVGetBldgCount($eBldgAirDefense)
+	If $g_bCSVLocateSweeper Then $sDefenseSummary &= " Sweeper=" & _CSVGetBldgCount($eBldgSweeper)
+	If $g_bCSVLocateScatter Then $sDefenseSummary &= " Scatter=" & _CSVGetBldgCount($eBldgScatter)
+	If $g_bCSVLocateMonolith Then $sDefenseSummary &= " Monolith=" & _CSVGetBldgCount($eBldgMonolith)
+	If $g_bCSVLocateFireSpitter Then $sDefenseSummary &= " FireSpitter=" & _CSVGetBldgCount($eBldgFireSpitter)
+	If $g_bCSVLocateMultiArcherTower Then $sDefenseSummary &= " MultiArcher=" & _CSVGetBldgCount($eBldgMultiArcherTower)
+	If $g_bCSVLocateMultiGearTower Then $sDefenseSummary &= " MultiGear=" & _CSVGetBldgCount($eBldgMultiGearTower)
+	If $g_bCSVLocateRicochetCannon Then $sDefenseSummary &= " Ricochet=" & _CSVGetBldgCount($eBldgRicochetCannon)
+	If $g_bCSVLocateRevengeTower Then $sDefenseSummary &= " Revenge=" & _CSVGetBldgCount($eBldgRevengeTower)
+	SetLog($sDefenseSummary, $COLOR_INFO)
 	;~ SetLog("CSV locate debug: PrepareAttack()", $COLOR_INFO)
 	;~ PrepareAttack($g_iMatchMode)
 
@@ -737,8 +848,35 @@ Func debugCSVLocateBuildings()
 	$g_iMatchMode = $currentiMatchMode
 	$g_bDebugSetlog = $currentdebugsetlog
 	$g_bDebugBuildingPos = $currentDebugBuildingPos
+	$g_bDebugGetLocation = $currentDebugGetLocation
 	$g_sAttackScrScriptName[$g_iAttackCSVSettingsMode] = $currentScript
+	$g_bCSVTargetedOnlyActive = $currentTargetedOnly
+	$g_sImglocRedline = $currentImglocRedline
 EndFunc   ;==>debugCSVLocateBuildings
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVGetBldgCount
+; Description ...: Helper to read building count from attack info dictionary.
+; Syntax ........: _CSVGetBldgCount($iEnum)
+; Parameters ....: $iEnum             - building enum to read count for.
+; Return values .: Success: integer count, or 0 if missing.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVGetBldgCount($iEnum)
+	If Not IsObj($g_oBldgAttackInfo) Then Return 0
+	If _ObjSearch($g_oBldgAttackInfo, $iEnum & "_COUNT") Then Return Int(_ObjGetValue($g_oBldgAttackInfo, $iEnum & "_COUNT"))
+	If _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
+		Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iEnum & "_LOCATION")
+		If IsArray($aLoc) Then Return UBound($aLoc)
+	EndIf
+	Return 0
+EndFunc   ;==>_CSVGetBldgCount
 
 ; Side-effect: io (file read + logging)
 Func AttackCSVSettings_ValidateCSV()

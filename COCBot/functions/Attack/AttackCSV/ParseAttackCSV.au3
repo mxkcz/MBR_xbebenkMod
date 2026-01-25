@@ -45,6 +45,10 @@ Func ParseAttackCSV($debug = False)
 
 		; Read in lines of text until the EOF is reached
 		For $iLine = 0 To UBound($aLines) - 1
+			If $g_bCSVAbortAttack Then
+				SetLog("CSV attack aborted (PRIOSTRICT)", $COLOR_ERROR)
+				Return
+			EndIf
 			For $k = 1 To 15 ; reset values each row to avoid leftovers
 				Assign("value" & $k, "")
 			Next
@@ -75,6 +79,11 @@ Func ParseAttackCSV($debug = False)
 						ReleaseClicks()
 						If CheckCsvValues("MAKE", 2, $value2) Then
 							Local $sidex = StringReplace($value2, "-", "_")
+							Local $iPoints = (Int($value3) > 0 ? Int($value3) : 1)
+							Local $bVectorAssigned = False
+							Local $bTargetedUsed = False
+							Local $bFallback = False
+							Local $sFallbackReason = ""
 							If $sidex = "RANDOM" Then
 								Switch Random(1, 4, 1)
 									Case 1
@@ -108,7 +117,7 @@ Func ParseAttackCSV($debug = False)
 										Else
 											$sidex &= "BACK"
 										EndIf
-										$sides2drop[3] = True
+									$sides2drop[3] = True
 								EndSwitch
 							EndIf
 							Switch Eval($sidex)
@@ -121,6 +130,13 @@ Func ParseAttackCSV($debug = False)
 								Case StringInStr(Eval($sidex), "BOTTOM-RIGHT") > 0
 									$sides2drop[3] = True
 							EndSwitch
+							Local $sResolvedSide = Eval($sidex)
+							Local $sSideKey = ""
+							If $sResolvedSide <> "" Then
+								$sSideKey = _CSVPrioGetSideKey($sResolvedSide)
+								If @error Then $sSideKey = $sResolvedSide
+							EndIf
+							Local $iSideIdx = _CSVPrioSideIndex($sSideKey)
 							If CheckCsvValues("MAKE", 1, $value1) And CheckCsvValues("MAKE", 5, $value5) Then
 								$sTargetVectors = StringReplace($sTargetVectors, $value3, "", Default, $STR_NOCASESENSEBASIC) ; if re-making a vector, must remove from target vector string
 								If CheckCsvValues("MAKE", 8, $value8) Then ; Vector is targeted towards building
@@ -147,21 +163,36 @@ Func ParseAttackCSV($debug = False)
 									If $value3 = 1 Or $value3 = 5 Then ; check for valid number of drop points
 										SetLog(Eval($sidex) & ", " & $value3 & ", " & $value4 & ", " & $value8)
 										Local $tmpArray = 0
-										Local $bFallback = False
 										If $bPrio Then
 											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $sAddTiles, $value8)
 											If @error Then
 												$bFallback = True
+												$sFallbackReason = ($g_sCSVLastMakeFallbackReason <> "" ? $g_sCSVLastMakeFallbackReason : "PRIO_FAIL")
+												If $g_bCSVPrioStrict Then
+													SetLog("CSV PRIOSTRICT: PRIO target failed (" & $sFallbackReason & "), aborting attack", $COLOR_ERROR)
+													$g_bCSVAbortAttack = True
+													Return
+												EndIf
 												SetDebugLog("CSV PRIO: target unavailable, falling back to ADDTILES " & $sAddTiles, $COLOR_DEBUG)
 												$tmpArray = MakeDropPoints(Eval($sidex), $value3, $sAddTiles, $sVersus, $value6, $value7)
+											Else
+												$bTargetedUsed = True
 											EndIf
 										Else
 											$tmpArray = MakeTargetDropPoints(Eval($sidex), $value3, $value4, $value8)
 											Local $iTargetErr = @error
 											If $iTargetErr Then
 												$bFallback = True
+												$sFallbackReason = ($g_sCSVLastMakeFallbackReason <> "" ? $g_sCSVLastMakeFallbackReason : "TARGET_FAIL")
+												If $g_bCSVPrioStrict Then
+													SetLog("CSV PRIOSTRICT: target " & $value8 & " failed (" & $sFallbackReason & "), aborting attack", $COLOR_ERROR)
+													$g_bCSVAbortAttack = True
+													Return
+												EndIf
 												SetDebugLog("CSV target: " & $value8 & " unavailable on " & Eval($sidex) & " (err " & $iTargetErr & "), falling back to ADDTILES " & $value4, $COLOR_DEBUG)
 												$tmpArray = MakeDropPoints(Eval($sidex), $value3, $value4, $sVersus, $value6, $value7)
+											Else
+												$bTargetedUsed = True
 											EndIf
 										EndIf
 										If @error Or Not IsArray($tmpArray) Or UBound($tmpArray) = 0 Then
@@ -169,6 +200,18 @@ Func ParseAttackCSV($debug = False)
 										Else
 											Assign("ATTACKVECTOR_" & $value1, $tmpArray) ; assing vector
 											$sTargetVectors &= $value1 ; add letter of every vector using building target to string to error check DROP command
+											$bVectorAssigned = True
+											If $iSideIdx >= 0 Then
+												If $bTargetedUsed Then
+													$g_aiCSVTargetedMakeCount[$iSideIdx] += $iPoints
+												Else
+													$g_aiCSVRedlineMakeCount[$iSideIdx] += $iPoints
+												EndIf
+											EndIf
+											Local $sSource = ($bTargetedUsed ? "TARGETED" : "REDLINE")
+											Local $sDiag = "CSV MAKE wave " & ($iLine + 1) & ": side=" & $sSideKey & " vec=" & $value1 & " points=" & $iPoints & " source=" & $sSource & " target=" & StringUpper($value8)
+											If $bFallback Then $sDiag &= " fallback=" & $sFallbackReason
+											_CSVAddDiagnosticLine($sDiag)
 										EndIf
 									Else
 										$sErrorText = "value 3"
@@ -179,6 +222,10 @@ Func ParseAttackCSV($debug = False)
 										$sErrorText = "MakeDropPoints, err:" & (@error ? @error : "empty vector")
 									Else
 										Assign("ATTACKVECTOR_" & $value1, $tmpArray)
+										$bVectorAssigned = True
+										If $iSideIdx >= 0 Then $g_aiCSVRedlineMakeCount[$iSideIdx] += $iPoints
+										Local $sDiag = "CSV MAKE wave " & ($iLine + 1) & ": side=" & $sSideKey & " vec=" & $value1 & " points=" & $iPoints & " source=REDLINE target=NONE"
+										_CSVAddDiagnosticLine($sDiag)
 									EndIf
 								EndIf
 							Else
@@ -676,6 +723,14 @@ Func ParseAttackCSV($debug = False)
 		Next
 		For $i = 0 To 3
 			If $sides2drop[$i] Then $g_iSidesAttack += 1
+		Next
+		Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+		For $i = 0 To 3
+			If $g_aiCSVTargetedMakeCount[$i] > 0 Or $g_aiCSVRedlineMakeCount[$i] > 0 Then
+				Local $sDiag = "CSV MAKE summary: side=" & $aSideKeys[$i] & " targetedPts=" & $g_aiCSVTargetedMakeCount[$i] & _
+						" redlinePts=" & $g_aiCSVRedlineMakeCount[$i]
+				_CSVAddDiagnosticLine($sDiag)
+			EndIf
 		Next
 		ReleaseClicks()
 	Else

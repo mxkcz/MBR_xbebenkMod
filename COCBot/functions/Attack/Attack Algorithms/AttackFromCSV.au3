@@ -423,6 +423,8 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 
 	;00 read attack file SIDE row and valorize variables
 Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
+_CSVResetCSVDiagnostics()
+_CSVInitTHContext($g_iSearchTH, "attack", True)
 $g_iCSVLastTroopPositionDropTroopFromINI = -1
 If _Sleep($DELAYRESPOND) Then Return
 CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
@@ -436,6 +438,24 @@ CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
 		SetDebugLog("CSV MAKE pre-scan: targetedOnly=" & ($bAllMakeTargeted ? "yes" : "no"), $COLOR_DEBUG)
 	Else
 		SetDebugLog("CSV MAKE pre-scan failed", $COLOR_WARNING)
+	EndIf
+	$g_bCSVTargetedOnlyActive = $bAllMakeTargeted
+	If $bAllMakeTargeted Then
+		Local $bHasWeights = False
+		For $w = 0 To UBound($g_aiCSVSideBWeights) - 1
+			If $g_aiCSVSideBWeights[$w] > 0 Then
+				$bHasWeights = True
+				ExitLoop
+			EndIf
+		Next
+		Local $bHasTargets = ($g_asCSVPrepTargetEnums[$g_iMatchMode] <> "") Or ($g_abCSVPrepHasPrioMake[$g_iMatchMode] And $bHasWeights)
+		If Not $bHasTargets Then
+			Local $sDiag = "CSV targeted-only guard: no target enums/weights; forcing redline"
+			SetLog($sDiag, $COLOR_WARNING)
+			_CSVAddDiagnosticLine($sDiag)
+			$bAllMakeTargeted = False
+			$g_bCSVTargetedOnlyActive = False
+		EndIf
 	EndIf
 	If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
 		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
@@ -1078,6 +1098,45 @@ EndIf
 		SetDebugLog("> " & $g_sBldgNames[$eBldgRevengeTower] & " detection not needed, skipping", $COLOR_DEBUG)
 	EndIf
 
+	; Targeted-only guard: ensure targets exist before skipping to redline fallback
+	If $bAllMakeTargeted Then
+		Local $iTargetEnumsFound = 0
+		Local $sTargetEnums = $g_asCSVPrepTargetEnums[$g_iMatchMode]
+		If $sTargetEnums <> "" Then
+			Local $aTargetEnums = StringSplit($sTargetEnums, "|", $STR_NOCOUNT)
+			For $t = 0 To UBound($aTargetEnums) - 1
+				Local $iEnum = Int($aTargetEnums[$t])
+				If $iEnum <= 0 Then ContinueLoop
+				If _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
+					Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iEnum & "_LOCATION")
+					If Not @error And IsArray($aLoc) Then $iTargetEnumsFound += 1
+				EndIf
+			Next
+		EndIf
+
+		Local $iPrioTargets = 0
+		If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then
+			Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+			For $s = 0 To 3
+				Local $aTargets = _CSVPrioGetTargetsForSide($aSideKeys[$s])
+				If Not @error And IsArray($aTargets) Then $iPrioTargets += UBound($aTargets)
+			Next
+		EndIf
+
+		If ($iTargetEnumsFound + $iPrioTargets) <= 0 Then
+			Local $sDiag = "CSV targeted-only guard: zero targets located (explicit=" & $iTargetEnumsFound & ", prio=" & $iPrioTargets & "), falling back to redline"
+			SetLog($sDiag, $COLOR_WARNING)
+			_CSVAddDiagnosticLine($sDiag)
+			If $g_bCSVPrioStrict Then
+				SetLog("CSV PRIOSTRICT: aborting attack due to missing targets", $COLOR_ERROR)
+				$g_bCSVAbortAttack = True
+				Return
+			EndIf
+			$bAllMakeTargeted = False
+			$g_bCSVTargetedOnlyActive = False
+		EndIf
+	EndIf
+
 	; Calculate main attack side
 	If $g_sCSVMainSideEstimate <> "" Then SetDebugLog("CSV main side estimate (precache): " & $g_sCSVMainSideEstimate, $COLOR_DEBUG)
 	CSV_LogTiming("phase start", "main side")
@@ -1095,6 +1154,7 @@ EndIf
 		$aMakeSidesUsed[3] = True
 		$bAllMakeTargeted = False
 	EndIf
+	$g_bCSVTargetedOnlyActive = $bAllMakeTargeted
 	CSV_LogTiming("phase start", "droplines")
 	_CSVBuildDropLines($aMakeSidesUsed, $bAllMakeTargeted)
 	CSV_LogTiming("phase done", "droplines")

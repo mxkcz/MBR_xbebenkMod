@@ -1660,6 +1660,23 @@ Global $g_aPrioCandidateNames[15]
 Global $g_aPrioCandidateWeightIdx[15]
 Global $g_bPrioCandidatesInit = False
 Global $g_sCSVMainSideEstimate = ""
+Global Enum $eCSVPrioFailNone, $eCSVPrioFailNoWeighted, $eCSVPrioFailNoDetected, $eCSVPrioFailSideMismatch, $eCSVPrioFailEmptyPlan, $eCSVPrioFailNoRedline, $eCSVPrioFailBadSide
+Global $g_aiCSVPrioFailReason[4]
+Global $g_asCSVPrioFailDetail[4]
+Global $g_aiCSVTargetedMakeCount[4]
+Global $g_aiCSVRedlineMakeCount[4]
+Global $g_asCSVDiagnostics[0]
+Global $g_bCSVTargetedOnlyActive = False
+Global $g_bCSVPrioStrict = False
+Global $g_bCSVAbortAttack = False
+Global $g_sCSVLastMakeFallbackReason = ""
+Global $g_iCSVLastMakeFallbackCode = 0
+Global $g_sCSVLastMakeFallbackSide = ""
+Global $g_bCSVTHContextKnown = False
+Global $g_iCSVTHContextLevel = 0
+Global $g_sCSVTHContextSide = ""
+Global $g_sCSVTHContextSource = ""
+Global $g_sCSVTHContext = ""
 ; Assigned/Evaluated Attack vector variables
 Global $ATTACKVECTOR_A, $ATTACKVECTOR_B, $ATTACKVECTOR_C, $ATTACKVECTOR_D, $ATTACKVECTOR_E, $ATTACKVECTOR_F
 Global $ATTACKVECTOR_G, $ATTACKVECTOR_H, $ATTACKVECTOR_I, $ATTACKVECTOR_J, $ATTACKVECTOR_K, $ATTACKVECTOR_L

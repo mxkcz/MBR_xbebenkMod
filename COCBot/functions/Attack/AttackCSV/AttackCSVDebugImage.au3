@@ -85,6 +85,13 @@ Func AttackCSVDEBUGIMAGE($bOpenImage = False)
 		_GDIPlus_GraphicsDrawEllipse($hGraphic, $pixel[0], $pixel[1], 2, 2, $hPenRed)
 	Next
 
+	;-- DRAW LOCATED BUILDINGS (CSV/IMGLOC)
+	If $g_bDebugBuildingPos Or $g_bDebugAttackCSV Then
+		_CSVDrawCollectorPoints($hGraphic, $hPenYellow, $hPenMagenta, $hPenCyan)
+		_CSVDrawBldgLocations($hGraphic, $hPenWhite, $hPenRed, $hPenDkRed, $hPenBlue, $hPenLtBlue, $hPenPaleBlue, _
+				$hPenDkGreen, $hPenSteelBlue, $hPenNavyBlue, $hPenYellow, $hPenMagenta, $hPenCyan, $hPenLtGrey)
+	EndIf
+
 	;;DRAW FULL DROP LINES PATH
 	;
 	;For $i = 0 To UBound($g_aiPixelTopLeftDropLine) - 1
@@ -475,3 +482,215 @@ Func DrawStringA($hGraphics, $sString, $nX, $nY, $sFont = "Arial", $fSize = 10, 
 	_GDIPlus_StringFormatDispose($hFormat)
 	_GDIPlus_BrushDispose($hBrush)
 EndFunc
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVDrawCollectorPoints
+; Description ...: Draw mine/collector/drill points on the CSV debug image.
+; Syntax ........: _CSVDrawCollectorPoints($hGraphic, $hPenGold, $hPenElixir, $hPenDark)
+; Parameters ....: $hGraphic          - GDI+ graphics handle.
+;                  $hPenGold          - Pen for mines.
+;                  $hPenElixir        - Pen for collectors.
+;                  $hPenDark          - Pen for drills.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVDrawCollectorPoints($hGraphic, ByRef $hPenGold, ByRef $hPenElixir, ByRef $hPenDark)
+	_CSVDrawPointArray($hGraphic, $g_aiPixelMine, $hPenGold, 6, "M", 0xFFFFFFFF)
+	_CSVDrawPointArray($hGraphic, $g_aiPixelElixir, $hPenElixir, 6, "E", 0xFFFFFFFF)
+	_CSVDrawPointArray($hGraphic, $g_aiPixelDarkElixir, $hPenDark, 6, "D", 0xFFFFFFFF)
+EndFunc   ;==>_CSVDrawCollectorPoints
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVDrawBldgLocations
+; Description ...: Draw building locations from attack dictionary.
+; Syntax ........: _CSVDrawBldgLocations($hGraphic, $hPenDefault, $hPenEagle, $hPenInferno, $hPenXBow, $hPenWiz, $hPenSuperWiz, _
+;                                       $hPenAirDef, $hPenFireSpitter, $hPenMonolith, $hPenGold, $hPenElixir, $hPenDark, $hPenOther)
+; Parameters ....: $hGraphic          - GDI+ graphics handle.
+;                  $hPenDefault       - Default pen.
+;                  $hPenEagle         - Eagle Artillery pen.
+;                  $hPenInferno       - Inferno Tower pen.
+;                  $hPenXBow          - XBow pen.
+;                  $hPenWiz           - Wizard Tower pen.
+;                  $hPenSuperWiz      - Super Wizard Tower pen.
+;                  $hPenAirDef        - Air Defense pen.
+;                  $hPenFireSpitter   - Fire Spitter pen.
+;                  $hPenMonolith      - Monolith pen.
+;                  $hPenGold          - Gold Storage pen.
+;                  $hPenElixir        - Elixir Storage pen.
+;                  $hPenDark          - Dark Storage/TH pen.
+;                  $hPenOther         - Other defenses pen.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVDrawBldgLocations($hGraphic, ByRef $hPenDefault, ByRef $hPenEagle, ByRef $hPenInferno, ByRef $hPenXBow, ByRef $hPenWiz, _
+		ByRef $hPenSuperWiz, ByRef $hPenAirDef, ByRef $hPenFireSpitter, ByRef $hPenMonolith, ByRef $hPenGold, ByRef $hPenElixir, _
+		ByRef $hPenDark, ByRef $hPenOther)
+	If Not IsObj($g_oBldgAttackInfo) Then Return
+	Local $aKeys = $g_oBldgAttackInfo.Keys
+	For $sKey In $aKeys
+		If StringRight($sKey, 9) <> "_LOCATION" Then ContinueLoop
+		Local $aParts = StringSplit($sKey, "_", $STR_NOCOUNT)
+		If UBound($aParts) < 1 Then ContinueLoop
+		Local $iEnum = Int($aParts[0])
+		If $iEnum < 0 Or $iEnum >= UBound($g_sBldgNames) Then ContinueLoop
+		Local $aLoc = $g_oBldgAttackInfo.Item($sKey)
+		If Not IsArray($aLoc) Then ContinueLoop
+		Local $hPen = $hPenDefault
+		Local $sLabel = _CSVGetBldgLabel($iEnum)
+		Local $iLabelColor = 0xFFFFFFFF
+		Switch $iEnum
+			Case $eBldgTownHall
+				$hPen = $hPenDark
+				$iLabelColor = 0xFFFFFFFF
+			Case $eBldgEagle
+				$hPen = $hPenEagle
+			Case $eBldgInferno
+				$hPen = $hPenInferno
+			Case $eBldgXBow
+				$hPen = $hPenXBow
+			Case $eBldgWizTower
+				$hPen = $hPenWiz
+			Case $eBldgSuperWizTower
+				$hPen = $hPenSuperWiz
+			Case $eBldgAirDefense
+				$hPen = $hPenAirDef
+			Case $eBldgFireSpitter
+				$hPen = $hPenFireSpitter
+			Case $eBldgMonolith
+				$hPen = $hPenMonolith
+			Case $eBldgGoldS
+				$hPen = $hPenGold
+			Case $eBldgElixirS
+				$hPen = $hPenElixir
+			Case $eBldgDarkS
+				$hPen = $hPenDark
+			Case Else
+				$hPen = $hPenOther
+		EndSwitch
+		_CSVDrawPointArray($hGraphic, $aLoc, $hPen, 6, $sLabel, $iLabelColor)
+	Next
+EndFunc   ;==>_CSVDrawBldgLocations
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVDrawPointArray
+; Description ...: Draw a point array (single or multi) onto the CSV debug image.
+; Syntax ........: _CSVDrawPointArray($hGraphic, $aLoc, $hPen[, $iSize = 6])
+; Parameters ....: $hGraphic          - GDI+ graphics handle.
+;                  $aLoc              - Location array (single [x,y] or list of [x,y]).
+;                  $hPen              - Pen to draw with.
+;                  $iSize             - [optional] marker size. Default is 6.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVDrawPointArray($hGraphic, $aLoc, ByRef $hPen, $iSize = 6, $sLabel = "", $iLabelColor = 0xFFFFFFFF)
+	If Not IsArray($aLoc) Then Return
+	Local $iDims = UBound($aLoc, 0)
+	If @error Then Return
+	Switch $iDims
+		Case 2
+			Local $iRows = UBound($aLoc, 1)
+			Local $iCols = UBound($aLoc, 2)
+			If $iCols < 2 Then Return
+			For $i = 0 To $iRows - 1
+				Local $iX = $aLoc[$i][0]
+				Local $iY = $aLoc[$i][1]
+				_GDIPlus_GraphicsDrawEllipse($hGraphic, $iX - 1, $iY - 1, $iSize, $iSize, $hPen)
+				If $sLabel <> "" Then DrawStringA($hGraphic, $sLabel & ($i + 1), $iX + 4, $iY - 10, "Arial", 8, 0, $iLabelColor)
+			Next
+		Case Else
+			If UBound($aLoc) = 0 Then Return
+			If IsArray($aLoc[0]) Then
+				For $i = 0 To UBound($aLoc) - 1
+					Local $aPoint = $aLoc[$i]
+					If IsArray($aPoint) And UBound($aPoint) >= 2 Then
+						_GDIPlus_GraphicsDrawEllipse($hGraphic, $aPoint[0] - 1, $aPoint[1] - 1, $iSize, $iSize, $hPen)
+						If $sLabel <> "" Then DrawStringA($hGraphic, $sLabel & ($i + 1), $aPoint[0] + 4, $aPoint[1] - 10, "Arial", 8, 0, $iLabelColor)
+					EndIf
+				Next
+			ElseIf UBound($aLoc) >= 2 Then
+				_GDIPlus_GraphicsDrawEllipse($hGraphic, $aLoc[0] - 1, $aLoc[1] - 1, $iSize, $iSize, $hPen)
+				If $sLabel <> "" Then DrawStringA($hGraphic, $sLabel, $aLoc[0] + 4, $aLoc[1] - 10, "Arial", 8, 0, $iLabelColor)
+			EndIf
+	EndSwitch
+EndFunc   ;==>_CSVDrawPointArray
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVGetBldgLabel
+; Description ...: Short label for building enum used in CSV debug image.
+; Syntax ........: _CSVGetBldgLabel($iEnum)
+; Parameters ....: $iEnum             - building enum.
+; Return values .: Success: label string
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVGetBldgLabel($iEnum)
+	Switch $iEnum
+		Case $eBldgTownHall
+			Return "TH"
+		Case $eBldgEagle
+			Return "EA"
+		Case $eBldgInferno
+			Return "IT"
+		Case $eBldgXBow
+			Return "XB"
+		Case $eBldgWizTower
+			Return "WT"
+		Case $eBldgSuperWizTower
+			Return "SW"
+		Case $eBldgAirDefense
+			Return "AD"
+		Case $eBldgSweeper
+			Return "SWP"
+		Case $eBldgMonolith
+			Return "MO"
+		Case $eBldgFireSpitter
+			Return "FS"
+		Case $eBldgScatter
+			Return "SC"
+		Case $eBldgMortar
+			Return "MR"
+		Case $eBldgMultiArcherTower
+			Return "MA"
+		Case $eBldgMultiGearTower
+			Return "MG"
+		Case $eBldgRicochetCannon
+			Return "RC"
+		Case $eBldgRevengeTower
+			Return "RT"
+		Case $eBldgGoldS
+			Return "GS"
+		Case $eBldgElixirS
+			Return "ES"
+		Case $eBldgDarkS
+			Return "DS"
+	EndSwitch
+	If $iEnum >= 0 And $iEnum < UBound($g_sBldgNames) Then
+		Local $sName = StringUpper($g_sBldgNames[$iEnum])
+		If StringLen($sName) > 3 Then $sName = StringLeft($sName, 3)
+		Return $sName
+	EndIf
+	Return "B"
+EndFunc   ;==>_CSVGetBldgLabel

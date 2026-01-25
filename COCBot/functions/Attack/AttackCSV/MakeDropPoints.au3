@@ -22,6 +22,9 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	Local $Vector, $Output = ""
 	Local $rndx = Random(0, Abs(Int($randomx)), 1)
 	Local $rndy = Random(0, Abs(Int($randomy)), 1)
+	$g_sCSVLastMakeFallbackReason = ""
+	$g_iCSVLastMakeFallbackCode = 0
+	$g_sCSVLastMakeFallbackSide = ""
 	If $side = "RANDOM" Then
 	EndIf
 	Switch $side
@@ -46,6 +49,9 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	If $versus = "IGNORE" Then $versus = "EXT-INT" ; error proof use input if misuse targeted MAKE command
 	If Not IsArray($Vector) Or UBound($Vector) = 0 Then
 		SetLog("MakeDropPoints: empty vector for side " & $side, $COLOR_WARNING)
+		$g_sCSVLastMakeFallbackReason = "REDLINE_EMPTY_VECTOR"
+		$g_iCSVLastMakeFallbackCode = 1
+		$g_sCSVLastMakeFallbackSide = $side
 		Local $aEmpty[0]
 		Return SetError(1, 0, $aEmpty)
 	EndIf
@@ -163,6 +169,9 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	If StringLen($Output) > 0 Then $Output = StringLeft($Output, StringLen($Output) - 1)
 	If StringLen($Output) = 0 Then
 		SetLog("MakeDropPoints: no output generated for side " & $side & " (" & $versus & ")", $COLOR_WARNING)
+		$g_sCSVLastMakeFallbackReason = "REDLINE_NO_OUTPUT"
+		$g_iCSVLastMakeFallbackCode = 2
+		$g_sCSVLastMakeFallbackSide = $side
 		Local $aEmpty[0]
 		Return SetError(2, 0, $aEmpty)
 	EndIf
@@ -262,6 +271,127 @@ EndFunc   ;==>AttackCSV_ScanMakeUsage
 
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVResetCSVDiagnostics
+; Description ...: Reset CSV diagnostics counters and failure state for a new attack run.
+; Syntax ........: _CSVResetCSVDiagnostics()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates CSV diagnostics globals)
+Func _CSVResetCSVDiagnostics()
+	For $i = 0 To 3
+		$g_aiCSVTargetedMakeCount[$i] = 0
+		$g_aiCSVRedlineMakeCount[$i] = 0
+		$g_aiCSVPrioFailReason[$i] = $eCSVPrioFailNone
+		$g_asCSVPrioFailDetail[$i] = ""
+	Next
+	ReDim $g_asCSVDiagnostics[0]
+	$g_sCSVLastMakeFallbackReason = ""
+	$g_iCSVLastMakeFallbackCode = 0
+	$g_sCSVLastMakeFallbackSide = ""
+	$g_sCSVTHContext = ""
+	$g_bCSVTHContextKnown = False
+	$g_iCSVTHContextLevel = 0
+	$g_sCSVTHContextSide = ""
+	$g_sCSVTHContextSource = ""
+	$g_bCSVAbortAttack = False
+EndFunc   ;==>_CSVResetCSVDiagnostics
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVInitTHContext
+; Description ...: Initialize CSV TH context once per attack to keep PRIO behavior deterministic.
+; Syntax ........: _CSVInitTHContext($iTH, $sSource[, $bForce = False])
+; Parameters ....: $iTH               - Townhall level (may be "-").
+;                  $sSource           - Context source label (attack/precache/search).
+;                  $bForce            - [optional] Force update even if already set. Default is False.
+; Return values .: Success: 1
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates TH context globals)
+Func _CSVInitTHContext($iTH, $sSource, $bForce = False)
+	If $g_sCSVTHContext <> "" And Not $bForce Then Return 1
+	Local $bUnknownTH = False
+	Local $iTHLocal = _CSVNormalizeTH($iTH, $bUnknownTH)
+	$g_bCSVTHContextKnown = Not $bUnknownTH
+	$g_iCSVTHContextLevel = $iTHLocal
+	$g_sCSVTHContextSide = ($g_sCSVMainSideEstimate <> "" ? $g_sCSVMainSideEstimate : "UNKNOWN")
+	$g_sCSVTHContextSource = $sSource
+	$g_sCSVTHContext = "th=" & $g_iCSVTHContextLevel & ", known=" & ($g_bCSVTHContextKnown ? "yes" : "no") & ", main=" & $g_sCSVTHContextSide & ", src=" & $g_sCSVTHContextSource
+	If $bUnknownTH Then SetDebugLog("CSV TH context defaulted: " & $g_sCSVTHContext, $COLOR_WARNING)
+	Return 1
+EndFunc   ;==>_CSVInitTHContext
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVAddDiagnosticLine
+; Description ...: Append a line to CSV diagnostics cache and optional debug log.
+; Syntax ........: _CSVAddDiagnosticLine($sLine)
+; Parameters ....: $sLine             - Diagnostics line.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (mutates diagnostics cache)
+Func _CSVAddDiagnosticLine($sLine)
+	Local $iSize = UBound($g_asCSVDiagnostics)
+	ReDim $g_asCSVDiagnostics[$iSize + 1]
+	$g_asCSVDiagnostics[$iSize] = $sLine
+	If $g_bDebugAttackCSV Then debugAttackCSV($sLine)
+	If $g_bDebugSetlog Or $g_bDebugOcr Then SetDebugLog($sLine, $COLOR_DEBUG)
+EndFunc   ;==>_CSVAddDiagnosticLine
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioFailReasonName
+; Description ...: Convert PRIO failure code to human readable label.
+; Syntax ........: _CSVPrioFailReasonName($iReason)
+; Parameters ....: $iReason           - PRIO failure enum.
+; Return values .: Success: string label
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVPrioFailReasonName($iReason)
+	Switch $iReason
+		Case $eCSVPrioFailNoWeighted
+			Return "NO_WEIGHTED"
+		Case $eCSVPrioFailNoDetected
+			Return "NO_DETECTED"
+		Case $eCSVPrioFailSideMismatch
+			Return "SIDE_MISMATCH"
+		Case $eCSVPrioFailEmptyPlan
+			Return "EMPTY_PLAN"
+		Case $eCSVPrioFailNoRedline
+			Return "NO_REDLINE"
+		Case $eCSVPrioFailBadSide
+			Return "BAD_SIDE"
+		Case Else
+			Return "UNKNOWN"
+	EndSwitch
+EndFunc   ;==>_CSVPrioFailReasonName
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: MakeTargetDropPoints
 ; Description ...:
 ; Syntax ........: MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
@@ -292,6 +422,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 	Local $x, $y
 	Local $sLoc, $aLocation[2], $pixel[2], $BuildingEnum, $result, $array
 	Local $bPrioLocation = False
+	$g_sCSVLastMakeFallbackReason = ""
+	$g_iCSVLastMakeFallbackCode = 0
+	$g_sCSVLastMakeFallbackSide = ""
 
 	Switch $building ; translate CSV building name into building enum
 		Case "PRIO"
@@ -299,6 +432,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			$BuildingEnum = _CSVPrioResolveBuilding($side, $sResolved, $aLocation)
 			If @error Then
 				SetLog("PRIO target unavailable on " & $side & " (err " & @error & ")", $COLOR_WARNING)
+				$g_sCSVLastMakeFallbackReason = "PRIO_" & _CSVPrioFailReasonName(@error)
+				$g_iCSVLastMakeFallbackCode = @error
+				$g_sCSVLastMakeFallbackSide = $side
 				SetError(@error, 0, "")
 				Return
 			EndIf
@@ -342,6 +478,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			$BuildingEnum = $eBldgScatter
 		Case Else
 			SetLog("Defense name not understood", $COLOR_ERROR) ; impossible error as value is checked earlier
+			$g_sCSVLastMakeFallbackReason = "TARGET_INVALID"
+			$g_iCSVLastMakeFallbackCode = 1
+			$g_sCSVLastMakeFallbackSide = $side
 			SetError(1, 0, "")
 			Return
 	EndSwitch
@@ -351,6 +490,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 
 		If @error Then
 			_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$BuildingEnum] & " _LOCATION", @error) ; Log errors
+			$g_sCSVLastMakeFallbackReason = "TARGET_NO_LOCATION"
+			$g_iCSVLastMakeFallbackCode = 2
+			$g_sCSVLastMakeFallbackSide = $side
 			SetError(2, 0, "")
 			Return
 		EndIf
@@ -362,6 +504,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 					$array = $aBuildingLoc[$p] ; pull sub-array from inside location array
 					$result = IsPointOnSide($array, $side) ; Determine if target building on side specified
 					If @error Then ; not normal
+						$g_sCSVLastMakeFallbackReason = "TARGET_SIDE_ERROR"
+						$g_iCSVLastMakeFallbackCode = 4
+						$g_sCSVLastMakeFallbackSide = $side
 						Return SetError(4, 0, "")
 					EndIf
 					If $result = True Then
@@ -372,6 +517,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 				Next
 				If Not $bFoundLocation Then
 					SetLog($g_sBldgNames[$BuildingEnum] & " not in side:" & $side, $COLOR_ERROR)
+					$g_sCSVLastMakeFallbackReason = "TARGET_SIDE_MISMATCH"
+					$g_iCSVLastMakeFallbackCode = 3
+					$g_sCSVLastMakeFallbackSide = $side
 					Return SetError(3, 0, "")
 				EndIf
 			Else ; use only building found even if not on user chosen side?
@@ -379,10 +527,16 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			EndIf
 		Else
 			SetLog($g_sBldgNames[$BuildingEnum] & " _LOCATION not an array", $COLOR_ERROR)
+			$g_sCSVLastMakeFallbackReason = "TARGET_LOCATION_BAD"
+			$g_iCSVLastMakeFallbackCode = 3
+			$g_sCSVLastMakeFallbackSide = $side
 			Return SetError(3, 0, "")
 		EndIf
 	ElseIf Not IsArray($aLocation) Then
 		SetLog("PRIO target location not found for " & $g_sBldgNames[$BuildingEnum], $COLOR_ERROR)
+		$g_sCSVLastMakeFallbackReason = "PRIO_LOCATION_MISSING"
+		$g_iCSVLastMakeFallbackCode = 3
+		$g_sCSVLastMakeFallbackSide = $side
 		Return SetError(3, 0, "")
 	EndIf
 
@@ -412,6 +566,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 						$pixel[1] = $y + $l
 					Case Else
 						SetLog("Silly code monkey 'MAKE' TargetDropPoints mistake", $COLOR_ERROR)
+						$g_sCSVLastMakeFallbackReason = "TARGET_SIDE_INVALID"
+						$g_iCSVLastMakeFallbackCode = 5
+						$g_sCSVLastMakeFallbackSide = $side
 						SetError(5, 0, "")
 						Return
 				EndSwitch
@@ -428,6 +585,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			$Output = GetDeployableNextTo($sLoc, 10, $sRedline) ; Get 5 near points, 10 pixels outisde red line for drop
 			If StringLen($Output) = 0 Then
 				SetLog("MakeTargetDropPoints: no near points found for " & $g_sBldgNames[$BuildingEnum], $COLOR_WARNING)
+				$g_sCSVLastMakeFallbackReason = "TARGET_NEARPOINTS_EMPTY"
+				$g_iCSVLastMakeFallbackCode = 5
+				$g_sCSVLastMakeFallbackSide = $side
 				SetError(5, 0, "")
 				Return
 			EndIf
@@ -435,6 +595,9 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 		Case Else
 			; impossible?
 			SetLog("Strange MakeTargetDropPoint Error", $COLOR_ERROR)
+			$g_sCSVLastMakeFallbackReason = "TARGET_POINTS_INVALID"
+			$g_iCSVLastMakeFallbackCode = 6
+			$g_sCSVLastMakeFallbackSide = $side
 			Return SetError(6, 0, "")
 	EndSwitch
 
@@ -570,45 +733,117 @@ EndFunc   ;==>_CSVPrioResetCache
 ; Side-effect: impure-deterministic (reads weight and building location data)
 Func _CSVPrioResolveBuilding($side, ByRef $sResolved, ByRef $aLocation)
 	Local $sSideKey = _CSVPrioGetSideKey($side)
+	Local $bTargetedOnly = $g_bCSVTargetedOnlyActive
+	Local $iSideIdx = _CSVPrioSideIndex($sSideKey)
 	If @error Then
-		SetError(7, 0, "")
+		Local $sDiag = "CSV PRIO fail: side=" & $side & " scope=SIDE targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailBadSide) & _
+				" candidates=side:0 all:0 plan:0"
+		SetLog($sDiag, $COLOR_WARNING)
+		_CSVAddDiagnosticLine($sDiag)
+		If $iSideIdx >= 0 Then
+			$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailBadSide
+			$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+		EndIf
+		SetError($eCSVPrioFailBadSide, 0, "")
 		Return -1
 	EndIf
 
 	If _CSVPrioSyncRedlineCache() = 0 Then
-		SetError(7, 0, "")
+		Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=SIDE targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailNoRedline) & _
+				" candidates=side:0 all:0 plan:0"
+		SetLog($sDiag, $COLOR_WARNING)
+		_CSVAddDiagnosticLine($sDiag)
+		If $iSideIdx >= 0 Then
+			$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailNoRedline
+			$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+		EndIf
+		SetError($eCSVPrioFailNoRedline, 0, "")
 		Return -1
 	EndIf
 
 	Local $aTargets = _CSVPrioGetPlanTargets($sSideKey)
 	Local $iTargetsErr = @error
 	Local $bPlanExists = (IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Exists($sSideKey))
+	Local $iPlanCount = (IsArray($aTargets) ? UBound($aTargets) : 0)
 	If $bPlanExists Then
-		If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-			SetError(7, 0, "")
+		If $iTargetsErr Or Not IsArray($aTargets) Or $iPlanCount = 0 Then
+			Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=PLAN targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailEmptyPlan) & _
+					" candidates=side:0 all:0 plan:" & $iPlanCount
+			SetLog($sDiag, $COLOR_WARNING)
+			_CSVAddDiagnosticLine($sDiag)
+			If $iSideIdx >= 0 Then
+				$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailEmptyPlan
+				$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+			EndIf
+			SetError($eCSVPrioFailEmptyPlan, 0, "")
 			Return -1
 		EndIf
 	Else
-		If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+		If $iTargetsErr Or Not IsArray($aTargets) Or $iPlanCount = 0 Then
 			$aTargets = _CSVPrioGetTargetsForSide($sSideKey)
 			$iTargetsErr = @error
 			Local $sSideCheck = _CSVPrioGetSideCheck($sSideKey)
 			If @error Then
-				SetError(7, 0, "")
+				Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=SIDE targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailBadSide) & _
+						" candidates=side:0 all:0 plan:" & $iPlanCount
+				SetLog($sDiag, $COLOR_WARNING)
+				_CSVAddDiagnosticLine($sDiag)
+				If $iSideIdx >= 0 Then
+					$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailBadSide
+					$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+				EndIf
+				SetError($eCSVPrioFailBadSide, 0, "")
 				Return -1
 			EndIf
 
 			Local $aAllTargets = _CSVPrioBuildTargetsForSide($sSideKey, $sSideCheck, True)
 			If @error Then $aAllTargets = 0
+			Local $iSideCount = (IsArray($aTargets) ? UBound($aTargets) : 0)
+			Local $iAllCount = (IsArray($aAllTargets) ? UBound($aAllTargets) : 0)
+			Local $bHasWeights = False
+			For $w = 0 To UBound($g_aiCSVSideBWeights) - 1
+				If $g_aiCSVSideBWeights[$w] > 0 Then
+					$bHasWeights = True
+					ExitLoop
+				EndIf
+			Next
 
-			If $iTargetsErr Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
-				If IsArray($aAllTargets) And UBound($aAllTargets) > 0 Then
-					SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
-					$aTargets = $aAllTargets
-				Else
-					SetError(7, 0, "")
+			If $iTargetsErr Or $iSideCount = 0 Then
+				If Not $bHasWeights Then
+					Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=SIDE targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailNoWeighted) & _
+							" candidates=side:" & $iSideCount & " all:" & $iAllCount & " plan:" & $iPlanCount
+					SetLog($sDiag, $COLOR_WARNING)
+					_CSVAddDiagnosticLine($sDiag)
+					If $iSideIdx >= 0 Then
+						$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailNoWeighted
+						$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+					EndIf
+					SetError($eCSVPrioFailNoWeighted, 0, "")
 					Return -1
 				EndIf
+				If $iAllCount <= 0 Then
+					Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=ALL targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailNoDetected) & _
+							" candidates=side:" & $iSideCount & " all:" & $iAllCount & " plan:" & $iPlanCount
+					SetLog($sDiag, $COLOR_WARNING)
+					_CSVAddDiagnosticLine($sDiag)
+					If $iSideIdx >= 0 Then
+						$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailNoDetected
+						$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+					EndIf
+					SetError($eCSVPrioFailNoDetected, 0, "")
+					Return -1
+				EndIf
+
+				Local $sDiag = "CSV PRIO fail: side=" & $sSideKey & " scope=SIDE targetedOnly=" & ($bTargetedOnly ? "yes" : "no") & " reason=" & _CSVPrioFailReasonName($eCSVPrioFailSideMismatch) & _
+						" candidates=side:" & $iSideCount & " all:" & $iAllCount & " plan:" & $iPlanCount
+				SetLog($sDiag, $COLOR_WARNING)
+				_CSVAddDiagnosticLine($sDiag)
+				If $iSideIdx >= 0 Then
+					$g_aiCSVPrioFailReason[$iSideIdx] = $eCSVPrioFailSideMismatch
+					$g_asCSVPrioFailDetail[$iSideIdx] = $sDiag
+				EndIf
+				SetDebugLog("CSV PRIO fallback: no weighted defense on side " & $sSideKey & ", using previously detected buildings", $COLOR_WARNING)
+				$aTargets = $aAllTargets
 			Else
 				Local $iMaxSideWeight = _CSVPrioGetMaxWeight($aTargets)
 				Local $iMaxAllWeight = _CSVPrioGetMaxWeight($aAllTargets)
@@ -736,7 +971,14 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 
 	Local $bUnknownTH = False
 	Local $iTH = _CSVNormalizeTH($g_iSearchTH, $bUnknownTH)
-	If $bUnknownTH Then SetDebugLog("CSV PRIO plan using available counts; search TH unknown", $COLOR_WARNING)
+	If $g_sCSVTHContext <> "" Then
+		$bUnknownTH = Not $g_bCSVTHContextKnown
+		$iTH = $g_iCSVTHContextLevel
+	EndIf
+	If $bUnknownTH Then
+		Local $sContext = ($g_sCSVTHContext <> "" ? $g_sCSVTHContext : "search TH unknown")
+		SetDebugLog("CSV PRIO plan using available counts; " & $sContext, $COLOR_WARNING)
+	EndIf
 
 	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
 	For $s = 0 To 3
@@ -1020,7 +1262,11 @@ Func _CSVPrioSortTargets(ByRef $aTargets)
 		For $j = $i + 1 To UBound($aTargets) - 1
 			Local $iWeightJ = Int($aTargets[$j][4])
 			Local $iWeightI = Int($aTargets[$i][4])
-			If $iWeightJ > $iWeightI Or ($iWeightJ = $iWeightI And $aTargets[$j][5] < $aTargets[$i][5]) Then
+			Local $iDistJ = Int($aTargets[$j][5])
+			Local $iDistI = Int($aTargets[$i][5])
+			Local $iEnumJ = Int($aTargets[$j][0])
+			Local $iEnumI = Int($aTargets[$i][0])
+			If $iWeightJ > $iWeightI Or ($iWeightJ = $iWeightI And ($iDistJ < $iDistI Or ($iDistJ = $iDistI And $iEnumJ < $iEnumI))) Then
 				_CSVPrioSwapTargets($aTargets, $i, $j)
 			EndIf
 		Next
@@ -1089,9 +1335,11 @@ EndFunc   ;==>_CSVPrioTargetExists
 
 ; Side-effect: pure
 Func _CSVPrioIsWeaponizedTownHall()
-	If $g_iSearchTH = "-" Or $g_iSearchTH = "" Then Return False
-	If Not IsNumber($g_iSearchTH) Then Return False
-	Local $iLevel = Int($g_iSearchTH)
+	Local $iLevel = $g_iSearchTH
+	If $g_sCSVTHContext <> "" Then $iLevel = $g_iCSVTHContextLevel
+	If $iLevel = "-" Or $iLevel = "" Then Return False
+	If Not IsNumber($iLevel) Then Return False
+	$iLevel = Int($iLevel)
 	If $iLevel >= 12 And $iLevel <= 17 Then Return True
 	Return False
 EndFunc   ;==>_CSVPrioIsWeaponizedTownHall
