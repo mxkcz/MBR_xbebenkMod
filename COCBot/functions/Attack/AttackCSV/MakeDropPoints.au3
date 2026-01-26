@@ -1,7 +1,7 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: MakeDropPoints
 ; Description ...:
-; Syntax ........: MakeDropPoints($side, $pointsQty, $addtiles, $versus[, $randomx = 2[, $randomy = 2]])
+; Syntax ........: MakeDropPoints($side, $pointsQty, $addtiles, $versus[, $randomx = 2[, $randomy = 2[, $bAllowFallback = True]]])
 ; Parameters ....: $side                -
 ;                  $pointsQty           -
 ;                  $addtiles            -
@@ -17,7 +17,7 @@
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; ===============================================================================================================================
-Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $randomy = 2)
+Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $randomy = 2, $bAllowFallback = True)
 	debugAttackCSV("make for side " & $side)
 	Local $Vector, $Output = ""
 	Local $rndx = Random(0, Abs(Int($randomx)), 1)
@@ -52,6 +52,16 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 		$g_sCSVLastMakeFallbackReason = "REDLINE_EMPTY_VECTOR"
 		$g_iCSVLastMakeFallbackCode = 1
 		$g_sCSVLastMakeFallbackSide = $side
+		If $bAllowFallback Then
+			Local $sSafeSide = _CSVSelectSafeSide($side)
+			If $sSafeSide <> "" And $sSafeSide <> $side Then
+				SetLog("MakeDropPoints: empty vector on " & $side & ", using " & $sSafeSide, $COLOR_WARNING)
+				$g_sCSVLastMakeFallbackReason = "REDLINE_EMPTY_VECTOR"
+				$g_iCSVLastMakeFallbackCode = 1
+				$g_sCSVLastMakeFallbackSide = $sSafeSide
+				Return MakeDropPoints($sSafeSide, $pointsQty, $addtiles, $versus, $randomx, $randomy, False)
+			EndIf
+		EndIf
 		Local $aEmpty[0]
 		Return SetError(1, 0, $aEmpty)
 	EndIf
@@ -167,7 +177,19 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	EndSwitch
 
 	If StringLen($Output) > 0 Then $Output = StringLeft($Output, StringLen($Output) - 1)
+	Local $sValidated = _CSVValidateDropPoints($Output, $side)
+	If $sValidated <> "" Then $Output = $sValidated
 	If StringLen($Output) = 0 Then
+		If $bAllowFallback Then
+			Local $sSafeSide = _CSVSelectSafeSide($side)
+			If $sSafeSide <> "" And $sSafeSide <> $side Then
+				SetLog("MakeDropPoints: invalid droppoints on " & $side & ", using " & $sSafeSide, $COLOR_WARNING)
+				$g_sCSVLastMakeFallbackReason = "REDLINE_INVALID_POINTS"
+				$g_iCSVLastMakeFallbackCode = 3
+				$g_sCSVLastMakeFallbackSide = $sSafeSide
+				Return MakeDropPoints($sSafeSide, $pointsQty, $addtiles, $versus, $randomx, $randomy, False)
+			EndIf
+		EndIf
 		SetLog("MakeDropPoints: no output generated for side " & $side & " (" & $versus & ")", $COLOR_WARNING)
 		$g_sCSVLastMakeFallbackReason = "REDLINE_NO_OUTPUT"
 		$g_iCSVLastMakeFallbackCode = 2
@@ -177,6 +199,224 @@ Func MakeDropPoints($side, $pointsQty, $addtiles, $versus, $randomx = 2, $random
 	EndIf
 	Return GetListPixel($Output)
 EndFunc   ;==>MakeDropPoints
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVGetRedlineString
+; Description ...: Resolve current redline string (cached or live) for CSV validation.
+; Syntax ........: _CSVGetRedlineString()
+; Parameters ....:
+; Return values .: Success: redline string (may be empty)
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVGetRedlineString()
+	Local $sRedline = ""
+	If IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Then $sRedline = ""
+	EndIf
+	If $sRedline = "" And $g_sImglocRedline <> "" Then $sRedline = $g_sImglocRedline
+	Return $sRedline
+EndFunc   ;==>_CSVGetRedlineString
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParseRedline
+; Description ...: Parse redline string into array of points.
+; Syntax ........: _CSVParseRedline($sRedline)
+; Parameters ....: $sRedline - redline string "x,y|x,y|..."
+; Return values .: Success: [n][2] array of x,y
+;                  Failure: empty array
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVParseRedline($sRedline)
+	Local $aEmpty[0][2]
+	If $sRedline = "" Then Return $aEmpty
+	Local $aPoints = StringSplit($sRedline, "|", $STR_NOCOUNT)
+	If Not IsArray($aPoints) Or UBound($aPoints) = 0 Then Return $aEmpty
+	Local $aOut[UBound($aPoints)][2]
+	Local $iOut = 0
+	For $i = 0 To UBound($aPoints) - 1
+		Local $aPair = StringSplit($aPoints[$i], ",", 2)
+		If UBound($aPair) < 2 Then ContinueLoop
+		$aOut[$iOut][0] = Int($aPair[0])
+		$aOut[$iOut][1] = Int($aPair[1])
+		$iOut += 1
+	Next
+	If $iOut = 0 Then Return $aEmpty
+	ReDim $aOut[$iOut][2]
+	Return $aOut
+EndFunc   ;==>_CSVParseRedline
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVIsPointNearRedline
+; Description ...: Check whether a point is within a max distance of any redline point.
+; Syntax ........: _CSVIsPointNearRedline($x, $y, ByRef $aRedline, $iMaxDist)
+; Parameters ....: $x, $y        - point to test
+;                  $aRedline     - array [n][2] of redline points
+;                  $iMaxDist     - max distance in pixels
+; Return values .: True if within distance; otherwise False
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVIsPointNearRedline($x, $y, ByRef $aRedline, $iMaxDist)
+	Local $iMaxDist2 = $iMaxDist * $iMaxDist
+	For $i = 0 To UBound($aRedline) - 1
+		Local $dx = $aRedline[$i][0] - $x
+		Local $dy = $aRedline[$i][1] - $y
+		If ($dx * $dx + $dy * $dy) <= $iMaxDist2 Then Return True
+	Next
+	Return False
+EndFunc   ;==>_CSVIsPointNearRedline
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVValidateDropPoints
+; Description ...: Filter droppoints to ensure they are deployable and close to redline when available.
+; Syntax ........: _CSVValidateDropPoints($sOutput, $sSide)
+; Parameters ....: $sOutput - pipe-delimited "x-y" string
+;                  $sSide   - side label for logging
+; Return values .: Validated droppoint string or empty if invalid
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVValidateDropPoints($sOutput, $sSide)
+	If $sOutput = "" Then Return ""
+	Local $aPoints = StringSplit($sOutput, "|", $STR_NOCOUNT)
+	If Not IsArray($aPoints) Or UBound($aPoints) = 0 Then Return ""
+	Local $sRedline = _CSVGetRedlineString()
+	Local $aRedline = _CSVParseRedline($sRedline)
+	Local $bHasRedline = (IsArray($aRedline) And UBound($aRedline) > 0)
+	If Not $bHasRedline And $g_bDebugSetlog Then SetDebugLog("CSV drop validation: redline missing for " & $sSide, $COLOR_WARNING)
+
+	Local $iValid = 0
+	Local $iTotal = UBound($aPoints)
+	Local $sValid = ""
+	For $i = 0 To UBound($aPoints) - 1
+		Local $aPixel = StringSplit($aPoints[$i], "-", 2)
+		If UBound($aPixel) < 2 Then ContinueLoop
+		If Not isInsideDiamondRedArea($aPixel) Then ContinueLoop
+		If $bHasRedline Then
+			If Not _CSVIsPointNearRedline(Int($aPixel[0]), Int($aPixel[1]), $aRedline, $g_iCSVRedlineValidateDist) Then ContinueLoop
+		EndIf
+		$iValid += 1
+		$sValid &= $aPixel[0] & "-" & $aPixel[1] & "|"
+	Next
+
+	If $iValid = 0 Then Return ""
+	If $bHasRedline And $iTotal > 0 Then
+		Local $fRatio = $iValid / $iTotal
+		If $fRatio < $g_fCSVMinValidDropRatio Then
+			If $g_bDebugSetlog Then SetDebugLog("CSV drop validation: low ratio " & Round($fRatio, 2) & " for " & $sSide, $COLOR_WARNING)
+			Return ""
+		EndIf
+	EndIf
+	If StringLen($sValid) > 0 Then $sValid = StringLeft($sValid, StringLen($sValid) - 1)
+	Return $sValid
+EndFunc   ;==>_CSVValidateDropPoints
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVDropLineSize
+; Description ...: Safe size lookup for dropline arrays.
+; Syntax ........: _CSVDropLineSize(ByRef $aLine)
+; Parameters ....: $aLine - dropline array
+; Return values .: Count of points (0 if invalid)
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVDropLineSize(ByRef $aLine)
+	If IsArray($aLine) Then Return UBound($aLine)
+	Return 0
+EndFunc   ;==>_CSVDropLineSize
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVSelectSafeSide
+; Description ...: Select a safe side based on available dropline points.
+; Syntax ........: _CSVSelectSafeSide($sPreferredSide)
+; Parameters ....: $sPreferredSide - current requested side
+; Return values .: Side string or empty on failure
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVSelectSafeSide($sPreferredSide)
+	Local $aSides[8][2] = [ _
+			["TOP-LEFT-UP", _CSVDropLineSize($g_aiPixelTopLeftUPDropLine)], _
+			["TOP-LEFT-DOWN", _CSVDropLineSize($g_aiPixelTopLeftDOWNDropLine)], _
+			["TOP-RIGHT-UP", _CSVDropLineSize($g_aiPixelTopRightUPDropLine)], _
+			["TOP-RIGHT-DOWN", _CSVDropLineSize($g_aiPixelTopRightDOWNDropLine)], _
+			["BOTTOM-LEFT-UP", _CSVDropLineSize($g_aiPixelBottomLeftUPDropLine)], _
+			["BOTTOM-LEFT-DOWN", _CSVDropLineSize($g_aiPixelBottomLeftDOWNDropLine)], _
+			["BOTTOM-RIGHT-UP", _CSVDropLineSize($g_aiPixelBottomRightUPDropLine)], _
+			["BOTTOM-RIGHT-DOWN", _CSVDropLineSize($g_aiPixelBottomRightDOWNDropLine)] _
+			]
+	Local $sGroup = ""
+	If StringInStr($sPreferredSide, "TOP-LEFT") Then $sGroup = "TL"
+	If StringInStr($sPreferredSide, "TOP-RIGHT") Then $sGroup = "TR"
+	If StringInStr($sPreferredSide, "BOTTOM-LEFT") Then $sGroup = "BL"
+	If StringInStr($sPreferredSide, "BOTTOM-RIGHT") Then $sGroup = "BR"
+
+	Local $sBest = ""
+	Local $iBest = 0
+	For $i = 0 To UBound($aSides) - 1
+		Local $sSide = $aSides[$i][0]
+		Local $iSize = $aSides[$i][1]
+		If $sGroup <> "" Then
+			Switch $sGroup
+				Case "TL"
+					If StringInStr($sSide, "TOP-LEFT") = 0 Then ContinueLoop
+				Case "TR"
+					If StringInStr($sSide, "TOP-RIGHT") = 0 Then ContinueLoop
+				Case "BL"
+					If StringInStr($sSide, "BOTTOM-LEFT") = 0 Then ContinueLoop
+				Case "BR"
+					If StringInStr($sSide, "BOTTOM-RIGHT") = 0 Then ContinueLoop
+			EndSwitch
+		EndIf
+		If $iSize > $iBest Then
+			$iBest = $iSize
+			$sBest = $sSide
+		EndIf
+	Next
+	If $sBest <> "" And $iBest > 0 Then Return $sBest
+
+	For $i = 0 To UBound($aSides) - 1
+		If $aSides[$i][1] > $iBest Then
+			$iBest = $aSides[$i][1]
+			$sBest = $aSides[$i][0]
+		EndIf
+	Next
+	If $sBest <> "" And $iBest > 0 Then Return $sBest
+	Return ""
+EndFunc   ;==>_CSVSelectSafeSide
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_ScanMakeUsage
@@ -574,7 +814,22 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 				EndSwitch
 				If isInsideDiamondRedArea($pixel) Then ExitLoop
 			Next
-			If Not isInsideDiamondRedArea($pixel) Then SetDebugLog("MakeTargetDropPoints() ADDTILES error!")
+			Local $bInside = isInsideDiamondRedArea($pixel)
+			If Not $bInside Then
+				SetDebugLog("MakeTargetDropPoints() ADDTILES error! Using deployable fallback.")
+				Local $sFallbackLoc = $aLocation[0] & "," & $aLocation[1]
+				Local $sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+				If @error Or $sRedline = "" Then $sRedline = $g_sImglocRedline
+				Local $sNear = GetDeployableNextTo($sFallbackLoc, 10, $sRedline)
+				If StringLen($sNear) > 0 Then
+					Local $aNear = GetListPixel($sNear, ",", "MakeTargetDropPoints NEARPOINTS_FALLBACK")
+					If IsArray($aNear) And UBound($aNear) > 0 Then
+						$pixel = $aNear[0]
+						$bInside = True
+					EndIf
+				EndIf
+				If Not $bInside Then SetDebugLog("MakeTargetDropPoints() deployable fallback failed.")
+			EndIf
 			$sLoc = $pixel[0] & "-" & $pixel[1] ; make string for modified building location
 			SetLog("Target drop point for " &  $g_sBldgNames[$BuildingEnum] & " (adding " & $addtiles & " tiles): " & $sLoc)
 			Return GetListPixel($sLoc, "-", "MakeTargetDropPoints TARGET") ; return ADDTILES modified location array

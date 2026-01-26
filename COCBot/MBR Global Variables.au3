@@ -2153,49 +2153,187 @@ Global $g_aDailyAccount[16][Ubound($g_aiDailyFunction)] = [[0,0,0,0,0,0,0,0,0,0,
 														[0,0,0,0,0,0,0,0,0,0,0,0,0]]
 															
 ;Village Reference size, add info here for every scenery:
-;[stoneName, SceneryName, stone2tree distance, DiamondInnerXleft, DiamondInnerXRight, DiamondInnerYTop, DiamondInnerYBottom]
-Global $g_aVillageRefSize[44][7] = [["DS", "Default", 592.24, 87, 792, 52, 589], _ ;ok
-									["JS", "Jungle", 547, 99, 773, 58, 568], _ ;ok
-									["MS", "Magic", 619.82, 26, 820, 48, 643], _ ;ok
-									["BL", "BuilderBase Lower", 652.11, 131, 777, 102, 584], _ ;ok
-									["BH", "BuilderBase Higher", 563, 145, 764, 141, 600], _ ;ok
-									["CC", "Clashy Construction", 642.40, 50, 811, 60, 636], _ ;ok
-									["PC", "Pirate", 598.68, 50, 812, 63, 634], _ ;ok
-									["EW", "Winter", 576.41, 68, 794, 61, 607], _ ;ok
-									["HM", "Hog Mountain", 637.4, 52, 810, 62, 636], _ ;ok
-									["EP", "Epic Jungle", 636.8, 45, 815, 60, 636], _ ;ok
-									["9C", "9th Clashivery", 617.21, 76, 803, 64, 611], _ ;ok
-									["PG", "Pumpkin Graveyard", 567.01, 94, 784, 58, 581], _
-									["SD", "Snow Day", 569.2, 84, 789, 58, 584], _ ;ok
-									["TM", "Tiger Mountain", 616, 74, 805, 45, 594], _ ;ok
-									["PR", "Primal", 580.41, 74, 803, 64, 613], _ ;ok
-									["SH", "Shadow", 598.40, 81, 790, 61, 592], _ ;ok
-									["RY", "Royal", 610.20, 57, 799, 48, 603], _ ;ok
-									["SM", "Summer", 568, 85, 813, 56, 604], _ ;ok
-									["CA", "Clash A-Rama", 620, 66, 800, 48, 596], _ ;ok
-									["PS", "Pixel", 617, 56, 796, 61, 618], _ ;ok
-									["10", "10th Clasivery", 561, 92, 791, 47, 570], _ ;ok
-									["CF", "Clash Fest", 517.81, 119, 771, 112, 602], _ ;ok
-									["SP", "Spooky", 679.13, 65, 796, 53, 604], _ ;ok
-									["W1", "Scenery1", 553.3, 61, 813, 55, 619], _ ;ok
-									["W2", "Scenery2", 619.29, 61, 796, 64, 607], _ ;ok
-									["W3", "Scenery3", 585.42, 63, 765, 49, 578], _ ;ok
-									["W4", "Scenery4", 606.35, 64, 767, 44, 573], _ ;ok
-									["JL", "Jolly", 543.76, 86, 762, 93, 602], _
-									["MT", "Magic Theatre", 549.18, 78, 777, 103, 626], _ ;ok
-									["PT", "Painter", 504.06, 80, 774, 104, 625], _
-									["DA", "Dark Ages", 581.83, 78, 775, 109, 627], _
-									["BC", "Book of Clash", 532.42, 77, 773, 105, 626], _
-									["EM", "Epic Magic", 624.48, 41, 818, 34, 615], _
-									["FS", "Future", 604.51, 65, 793, 57, 604], _
-									["DP", "Dragon Palace", 626.14, 49, 797, 58, 614], _
-									["GH", "Ghost", 584.01, 59, 797, 55, 603], _
-									["GB", "GingerBread", 630.72, 53, 800, 54, 611], _
-									["DO", "Deep Dark Ocean", 620.68, 84, 802, 57, 596], _
-									["HP", "Heavenly Place", 633.73, 59, 808, 63, 624], _
-									["SC", "Space", 571.85, 73, 778, 61, 588], _
-									["TD", "Tang Dynasty", 579.24, 69, 778, 57, 588], _
-									["CH", "Chess", 643.24, 63, 793, 49, 601], _
-									["GC", "Goblin Cave", 590.33, 57, 786, 41, 577], _
-									["EG", "Egypt", 580.20, 96, 765, 104, 603]]
+;[stoneName, SceneryName, stone2tree distance, DiamondInnerXleft, DiamondInnerXRight, DiamondInnerYTop, DiamondInnerYBottom, EdgeDiffX, EdgeDiffY]
+Global $g_aVillageRefSize[44][9] = [["DS", "Default", 592.24, 87, 792, 52, 589, 70, 48], _ ;ok
+									["JS", "Jungle", 547, 99, 773, 58, 568, 70, 48], _ ;ok
+									["MS", "Magic", 619.82, 26, 820, 48, 643, 70, 48], _ ;ok
+									["BL", "BuilderBase Lower", 652.11, 131, 777, 102, 584, 70, 48], _ ;ok
+									["BH", "BuilderBase Higher", 563, 145, 764, 141, 600, 70, 48], _ ;ok
+									["CC", "Clashy Construction", 642.40, 50, 811, 60, 636, 70, 48], _ ;ok
+									["PC", "Pirate", 598.68, 50, 812, 63, 634, 70, 48], _ ;ok
+									["EW", "Winter", 576.41, 68, 794, 61, 607, 70, 48], _ ;ok
+									["HM", "Hog Mountain", 637.4, 52, 810, 62, 636, 70, 48], _ ;ok
+									["EP", "Epic Jungle", 636.8, 45, 815, 60, 636, 70, 48], _ ;ok
+									["9C", "9th Clashivery", 617.21, 76, 803, 64, 611, 70, 48], _ ;ok
+									["PG", "Pumpkin Graveyard", 567.01, 94, 784, 58, 581, 70, 48], _
+									["SD", "Snow Day", 569.2, 84, 789, 58, 584, 70, 48], _ ;ok
+									["TM", "Tiger Mountain", 616, 74, 805, 45, 594, 70, 48], _ ;ok
+									["PR", "Primal", 580.41, 74, 803, 64, 613, 70, 48], _ ;ok
+									["SH", "Shadow", 598.40, 81, 790, 61, 592, 70, 48], _ ;ok
+									["RY", "Royal", 610.20, 57, 799, 48, 603, 70, 48], _ ;ok
+									["SM", "Summer", 568, 85, 813, 56, 604, 70, 48], _ ;ok
+									["CA", "Clash A-Rama", 620, 66, 800, 48, 596, 70, 48], _ ;ok
+									["PS", "Pixel", 617, 56, 796, 61, 618, 70, 48], _ ;ok
+									["10", "10th Clasivery", 561, 92, 791, 47, 570, 70, 48], _ ;ok
+									["CF", "Clash Fest", 517.81, 119, 771, 112, 602, 70, 48], _ ;ok
+									["SP", "Spooky", 679.13, 65, 796, 53, 604, 70, 48], _ ;ok
+									["W1", "Scenery1", 553.3, 61, 813, 55, 619, 70, 48], _ ;ok
+									["W2", "Scenery2", 619.29, 61, 796, 64, 607, 70, 48], _ ;ok
+									["W3", "Scenery3", 585.42, 63, 765, 49, 578, 70, 48], _ ;ok
+									["W4", "Scenery4", 606.35, 64, 767, 44, 573, 70, 48], _ ;ok
+									["JL", "Jolly", 543.76, 86, 762, 93, 602, 70, 48], _
+									["MT", "Magic Theatre", 549.18, 78, 777, 103, 626, 70, 48], _ ;ok
+									["PT", "Painter", 504.06, 80, 774, 104, 625, 70, 48], _
+									["DA", "Dark Ages", 581.83, 78, 775, 109, 627, 70, 48], _
+									["BC", "Book of Clash", 532.42, 77, 773, 105, 626, 70, 48], _
+									["EM", "Epic Magic", 624.48, 41, 818, 34, 615, 70, 48], _
+									["FS", "Future", 604.51, 65, 793, 57, 604, 70, 48], _
+									["DP", "Dragon Palace", 626.14, 49, 797, 58, 614, 70, 48], _
+									["GH", "Ghost", 584.01, 59, 797, 55, 603, 70, 48], _
+									["GB", "GingerBread", 630.72, 53, 800, 54, 611, 70, 48], _
+									["DO", "Deep Dark Ocean", 620.68, 84, 802, 57, 596, 70, 48], _
+									["HP", "Heavenly Place", 633.73, 59, 808, 63, 624, 70, 48], _
+									["SC", "Space", 571.85, 73, 778, 61, 588, 70, 48], _
+									["TD", "Tang Dynasty", 579.24, 69, 778, 57, 588, 70, 48], _
+									["CH", "Chess", 643.24, 63, 793, 49, 601, 70, 48], _
+									["GC", "Goblin Cave", 590.33, 57, 786, 41, 577, 70, 48], _
+									["EG", "Egypt", 580.20, 96, 765, 104, 603, 70, 48]]
+
+; Optional per-scenery inner diamond adjustments: [code, dLeft, dRight, dTop, dBottom] (in pixels).
+Global $g_aSceneryInnerAdjust[14][5] = [ _
+		["DS", 0, 0, 4, -4], _
+		["SD", 0, 0, 0, 0], _
+		["PT", 0, 0, 0, 0], _
+		["JS", 0, 0, 0, 0], _
+		["HM", 0, 0, 0, 0], _
+		["MS", 0, 0, 0, 0], _
+		["EP", 0, 0, 0, 0], _
+		["PG", 0, 0, 0, 0], _
+		["SP", 0, 0, 0, 0], _
+		["PS", 0, 0, 0, 0], _
+		["W1", 0, 0, 0, 0], _
+		["W2", 0, 0, 0, 0], _
+		["W3", 0, 0, 0, 0], _
+		["W4", 0, 0, 0, 0] _
+		]
+
+Global Enum $eTreeDS, $eTreeCC, $eTreePS, $eTreeEW, $eTreeHM, $eTreeJS, $eTreeEJ, $eTree9C, _
+		$eTreePG, $eTreeSD, $eTreeTM, $eTreePR, $eTreeSH, $eTreeRS, $eTreeSM, $eTreePX, $eTreeXC, _
+		$eTreeCF, $eTreeMS, $eTreeEM, $eTreeJO, $eTreeMT, $eTreeDA, $eTreePA, $eTreeGC, $eTreeFS, _
+		$eTreeBK, $eTreeSP, $eTreeCH, $eTreeGH, $eTreeGB, $eTreeDP, $eTreeSC, $eTreeEG, $eTreeFO, _
+		$eTreeWW, $eTreeGS, $eTreeAN, $eTreeCD, $eTreeDO, $eTreeJU, $eTreeTW, $eTreeFI, $eTreeYS, _
+		$eTreeMI, $eTreeCM, $eTreeHS, $eTreeDD, $eTreeCO, $eTreeCY, $eTreeCL, $eTree13, $eTreeMR, _
+		$eTreeCI, $eTreeWS, _
+		$eTreeBB, $eTreeOO, $eTreeCR, $eTreeNS, $eTreeCount
+
+Global $g_asSceneryNames[$eTreeCount] = [ _
+		"Classic", "Clashy Construct", "Pirate Scenery", "Epic Winter", "Hog Mountain", "Jungle Scenery", "Epic Jungle", "9th Clashiversary", _
+		"Pumpkin Graveyard", "Snowy Day", "Tiger Mountain", "Primal Scenery", "Shadow Scenery", "Royale Scenery", "Summer Scenery", "Pixel Scenery", "10th Clashiversary", _
+		"Clash Fest", "Magic Scenery", "Epic Magic Scenery", "Jolly Scenery", "Magic Theater Scenery", "Dark Ages Scenery", "Painter Scenery", "Goblin Caves Scenery", _
+		"Future Scenery", "Books of Clash", "Spooky Scenery", "Chess Scenery", "Ghost Scenery", "GingerBread Scenery", "Dragon Palace Scenery", "Space Scenery", "Egypt Scenery", _
+		"Football Scenery", "Wild West Scenery", "Clash Game Stadium Scenery", "Anime Scenery", "Clash of Dragons Scenery", "Doomed Scenery", "Justice Scenery", "Toy Workshop Scenery", _
+		"Fire and Ice Scenery", "Year of the Snake Scenery", "Military Scenery", "ClashMania Scenery", "High Seas Scenery", "Dark Days Scenery", "Crossover Scenery", "Cyber Scenery", _
+		"Clash-a-Rama Scenery", "13th Clashiversary", "Mash-a-Rama Scenery", "Cosmic Scenery", "Wasteland Scenery", _
+		"Builder Base", "OTTO Outpost", "Crystal Caverns", "Of The North Scenery"]
+
+; village size, left, right, top, bottom, village size 2, AdjLeft, AdjRight, AdjTop, AdjBottom
+Global Const $g_afRefVillage[$eTreeCount][10] = [ _
+		[490.342383226835, 53, 809, 66, 630, 473.855432216678, 50, 50, 42, 42], _    ; DS complete
+		[463.064874687304, 56, 800, 68, 622, 473.183193210402, 50, 50, 42, 42], _    ; CC complete
+		[487.190577721375, 35, 809, 57, 632, 487.190577721375, 50, 50, 42, 42], _    ; PS partial
+		[485.292934467294, 35, 809, 57, 632, 485.292934467294, 50, 50, 42, 42], _    ; EW partial
+ 		[471.591177471711, 40, 795, 62, 626, 471.591177471711, 50, 50, 42, 42], _    ; HM partial
+ 		[469.503669847663, 46, 801, 65, 627, 469.503669847663, 50, 50, 42, 42], _    ; JS complete
+		[471.591177471711, 40, 795, 62, 626, 471.591177471711, 50, 50, 42, 42], _    ; EJ partial
+ 		[472.580445695883, 49, 803, 58, 625, 472.09836287867, 50, 50, 42, 42], _     ; 9C partial
+ 		[481.447425356988, 35, 809, 57, 632, 481.447425356988, 50, 50, 42, 42], _    ; PG partial
+ 		[482.492164166387, 35, 809, 57, 632, 482.492164166387, 50, 50, 42, 42], _    ; SD partial
+		[503.29315963308, 35, 809, 57, 632, 503.29315963308, 50, 50, 42, 42], _      ; TM partial
+		[481.049618717487, 35, 809, 57, 632, 481.049618717487, 50, 50, 42, 42], _    ; PR partial
+		[486.827142073514, 35, 809, 57, 632, 486.827142073514, 50, 50, 42, 42], _    ; SH partial
+		[474.160808435852, 46, 802, 61, 632, 474.160808435852, 50, 50, 42, 42], _    ; RS partial
+		[462.772740076871, 55, 795, 65, 619, 462.772740076871, 50, 50, 42, 42], _    ; SM partial
+		[472.211078091435, 48, 803, 66, 636, 472.211078091435, 50, 50, 42, 42], _    ; PX partial
+		[473.526226121564, 55, 795, 65, 619, 473.526226121564, 50, 50, 42, 42], _    ; XC partial
+		[477.718161770293, 38, 798, 60, 636, 477.718161770293, 50, 50, 42, 42], _    ; CF partial
+		[497.088225054308, 42, 829, 57, 642, 497.088225054308, 50, 50, 42, 42], _    ; MS partial
+		[527.91838832914, 35, 832, 58, 657, 527.91838832914, 50, 50, 42, 42], _      ; EM partial
+		[495.492313456579, 32, 808, 46, 628, 495.492313456579, 50, 50, 42, 42], _    ; JO Partial
+		[481.959033529279, 32, 820, 56, 646, 481.959033529279, 50, 50, 42, 42], _    ; MT Partial
+		[484.403614426064, 39, 825, 50, 639, 484.403614426064, 50, 50, 42, 42], _    ; DA Partial
+		[479.647517821756, 22, 820, 54, 650, 479.647517821756, 50, 50, 42, 42], _    ; PA partial
+		[556.047580246031, 26, 838, 45, 652, 556.047580246031, 50, 50, 42, 42], _    ; GC partial
+		[463.593357868925, 63, 802, 65, 622, 463.593357868925, 50, 50, 42, 42], _    ; FS partial
+		[504.518620302313, 61, 824, 61, 639, 504.518620302313, 50, 50, 42, 42], _    ; BK partial
+		[480.378842463205, 42, 822, 66, 654, 480.378842463205, 50, 50, 42, 42], _    ; SP partial
+		[525.959020068643, 24, 812, 66, 660, 525.959020068643, 50, 50, 42, 42], _    ; CH partial
+		[606.96375086645, 21, 838, 36, 650, 606.96375086645, 50, 50, 42, 42], _      ; GH partial
+		[524.998216861609, 16, 817, 61, 658, 524.998216861609, 50, 50, 42, 42], _    ; GB partial
+		[525.707398061038, 30, 826, 53, 655, 525.707398061038, 50, 50, 42, 42], _    ; DP partial
+		[481.05121550662, 28, 832, 50, 652, 481.05121550662, 50, 50, 42, 42], _      ; SC partial
+		[489.348532791742, 38, 834, 58, 656, 489.348532791742, 50, 50, 42, 42], _    ; EG partial
+		[513.480039587398, 37, 822, 55, 645, 513.480039587398, 50, 50, 42, 42], _    ; FO partial
+		[463.948923805267, 38, 800, 64, 640, 463.948923805267, 50, 50, 42, 42], _    ; WW partial
+		[526.323586426313, 37, 823, 52, 642, 526.323586426313, 50, 50, 42, 42], _    ; GS partial
+		[503.599873876659, 31, 825, 34, 631, 503.599873876659, 50, 50, 42, 42], _    ; AN partial
+		[498.174826439333, 38, 829, 47, 638, 498.174826439333, 50, 50, 42, 42], _    ; CD partial
+		[564.335102352584, 34, 834, 55, 655, 564.335102352584, 50, 50, 42, 42], _    ; DO partial
+		[565.691230559734, 36, 822, 55, 645, 565.691230559734, 50, 50, 42, 42], _    ; JU partial
+		[470.156228083852, 40, 826, 59, 648, 470.156228083852, 50, 50, 42, 42], _    ; TW partial
+		[591.184859764333, 48, 813, 66, 642, 591.184859764333, 50, 50, 42, 42], _    ; FI partial
+		[498.766631697753, 48, 834, 64, 658, 498.766631697753, 50, 50, 42, 42], _    ; YS partial
+		[488.698377630365, 36, 821, 51, 640, 488.698377630365, 50, 50, 42, 42], _    ; MI partial
+		[531.437084667657, 26, 811, 71, 662, 531.437084667657, 50, 50, 42, 42], _    ; CM partial
+		[460.479861635089, 58, 805, 54, 615, 460.479861635089, 50, 50, 42, 42], _    ; HS partial
+		[579.860943289268, 28, 816, 59, 652, 579.860943289268, 50, 50, 42, 42], _    ; DD partial
+		[542.890475118627, 34, 820, 52, 652, 542.890475118627, 50, 50, 42, 42], _    ; CO partial
+		[492.317631936992, 29, 814, 65, 654, 492.317631936992, 50, 50, 42, 42], _    ; CY partial
+		[515.727412508928, 30, 822, 35, 630, 515.727412508928, 50, 50, 42, 42], _    ; CL partial
+		[549.508171137723, 24, 806, 40, 625, 549.508171137723, 50, 50, 42, 42], _    ; 13 partial
+		[512.078577524594, 58, 803, 66, 625, 512.078577524594, 50, 50, 42, 42], _    ; MR partial
+		[509.099210907785, 30, 816, 58, 650, 509.099210907785, 50, 50, 42, 42], _    ; CI partial
+		[516.369186578227, 42, 819, 51, 634, 516.369186578227, 50, 50, 42, 42], _    ; WS partial
+		[374.998531943809, 104, 722, 149, 611, 374.998531943809, 50, 46, 38, 42], _  ; BB partial
+		[440.179472132523, 120, 732, 152, 608, 440.179472132523, 50, 46, 38, 42], _  ; OO partial
+		[379.741811787463, 130, 728, 162, 608, 379.741811787463, 50, 46, 38, 42], _  ; CR partial
+		[444.044042164249, 114, 739, 150, 615, 444.044042164249, 50, 46, 38, 42]]    ; NS partial
+
+; left, right, top, bottom, village size, $eTreeCount, Special Pos for Upper Buildings
+Global Const $g_afRefCustomMainVillage[8][7] = [ _
+ 		[88, 778, 112, 624, 439.489958643413, $eTreeMS, True], _ ; Magic Main Village
+ 		[38, 822, 48, 634, 496.873764541968, $eTreePG, False], _ ; Pumpkin Graveyard Main Village
+ 		[97, 760, 124, 614, 405.46550540893, $eTreeEG, True], _  ; Egypt Main Village
+ 		[40, 817, 48, 630, 478.721546634246, $eTreeSD, False], _ ; Snow Day Main Village
+ 		[111, 765, 102, 596, 556.323458536752, $eTreeJU, True], _ ; Justice Main Village
+ 		[79, 777, 92, 615, 451.608380250014, $eTreeCL, False], _ ; Clash-a-rama Main Village
+		[52, 806, 59, 620, 475.570994578075, $eTreeHM, False], _ ; Hog Mountain Main Village
+		[52, 806, 59, 620, 475.570994578075, $eTreeEJ, False]]   ; Epic Jungle Main Village
+
+Global $g_asSceneryCodes[$eTreeCount - 4] = [ _
+ 		"DS", "CC", "PS", "EW", "HM", "JS", "EJ", "9C", "PG", "SD", "TM", "PR", "SH", "RS", "SM", "PX", "XC", "CF", "MS", "EM", "JO", "MT", "DA", "PA", "GC", "FS", "BK", "SP", "CH", _
+		"GH", "GB", "DP", "SC", "EG", "FO", "WW", "GS", "AN", "CD", "DO", "JU", "TW", "FI", "YS", "MI", "CM", "HS", "DD", "CO", "CY", "CL", "13", "MR", "CI", "WS"]
+
+Global $g_iTree = $eTreeDS
+Global $g_bIsCustomMainVillage = False
+Global $g_fEdgeScaleX = 1.0
+Global $g_fEdgeScaleY = 1.0
+Global $g_aiRefDiamond[4] = [0, 0, 0, 0]
+Global $g_aiInnerDiamond[4] = [0, 0, 0, 0]
+Global $g_aiOuterDiamond[4] = [0, 0, 0, 0]
+Global Const $g_iEdgeTilePadding = 8
+Global Const $g_iInnerEdgePadding = 8
+Global Const $g_iOuterEdgePadding = $g_iEdgeTilePadding
+Global Const $g_iMinOuterExpansion = $g_iEdgeTilePadding * 2
+Global Const $g_iOuterConsistencyTolerance = $g_iEdgeTilePadding
+Global Const $g_iCSVRedlineValidateDist = 12
+Global Const $g_fCSVMinValidDropRatio = 0.5
+
 Global $g_sCurrentScenery = "", $g_sSceneryCode = "DS"
+Global Const $g_iDefaultInnerDiamondLeft = 53
+Global Const $g_iDefaultInnerDiamondRight = 809
+Global Const $g_iDefaultInnerDiamondTop = 66
+Global Const $g_iDefaultInnerDiamondBottom = 630
+Global Const $g_iDefaultEdgeDiffX = 50
+Global Const $g_iDefaultEdgeDiffY = 42
+Global $g_iSceneryEdgeDiffX = $g_iDefaultEdgeDiffX
+Global $g_iSceneryEdgeDiffY = $g_iDefaultEdgeDiffY

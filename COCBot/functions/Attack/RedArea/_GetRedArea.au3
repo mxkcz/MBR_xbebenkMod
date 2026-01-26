@@ -87,6 +87,7 @@ Func _GetRedArea($iMode = $REDLINE_IMGLOC, $iMaxAllowedPixelDistance = 25, $fMin
 	SetDebugLog("[" & UBound($g_aiPixelTopRight) & "] pixels TopRight", $COLOR_DEBUG)
 	SetDebugLog("[" & UBound($g_aiPixelBottomLeft) & "] pixels BottomLeft", $COLOR_DEBUG)
 	SetDebugLog("[" & UBound($g_aiPixelBottomRight) & "] pixels BottomRight", $COLOR_DEBUG)
+	_ValidateEdgeBoundaries()
 	If _Sleep($DELAYRESPOND) Then Return
 
 	;02.03 - MAKE FULL DROP LINE EDGE--------------------------------------------------------------------------------------------------------------------------
@@ -257,6 +258,53 @@ Func _GetRedArea($iMode = $REDLINE_IMGLOC, $iMaxAllowedPixelDistance = 25, $fMin
 
 	debugRedArea($nameFunc & " OUT ")
 EndFunc   ;==>_GetRedArea
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _ValidateEdgeBoundaries
+; Description ...:
+; Syntax ........: _ValidateEdgeBoundaries()
+; Parameters ....:
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _ValidateEdgeBoundaries()
+	Local $bWarning = False
+	Local $iMinPoints = 10
+	Local $iMaxX = $g_iGAME_WIDTH - 1
+	Local $iMaxY = $g_iGAME_HEIGHT - 1
+
+	If UBound($g_aiPixelTopLeft) < $iMinPoints Then
+		SetLog("Warning: TopLeft redline sparse (" & UBound($g_aiPixelTopLeft) & " points)", $COLOR_WARNING)
+		$bWarning = True
+	EndIf
+	If UBound($g_aiPixelTopRight) < $iMinPoints Then
+		SetLog("Warning: TopRight redline sparse (" & UBound($g_aiPixelTopRight) & " points)", $COLOR_WARNING)
+		$bWarning = True
+	EndIf
+	If UBound($g_aiPixelBottomLeft) < $iMinPoints Then
+		SetLog("Warning: BottomLeft redline sparse (" & UBound($g_aiPixelBottomLeft) & " points)", $COLOR_WARNING)
+		$bWarning = True
+	EndIf
+	If UBound($g_aiPixelBottomRight) < $iMinPoints Then
+		SetLog("Warning: BottomRight redline sparse (" & UBound($g_aiPixelBottomRight) & " points)", $COLOR_WARNING)
+		$bWarning = True
+	EndIf
+
+	If $ExternalArea[0][0] < 0 Or $ExternalArea[0][0] > $iMaxX Or $ExternalArea[0][1] < 0 Or $ExternalArea[0][1] > $iMaxY Then $bWarning = True
+	If $ExternalArea[1][0] < 0 Or $ExternalArea[1][0] > $iMaxX Or $ExternalArea[1][1] < 0 Or $ExternalArea[1][1] > $iMaxY Then $bWarning = True
+	If $ExternalArea[2][0] < 0 Or $ExternalArea[2][0] > $iMaxX Or $ExternalArea[2][1] < 0 Or $ExternalArea[2][1] > $iMaxY Then $bWarning = True
+	If $ExternalArea[3][0] < 0 Or $ExternalArea[3][0] > $iMaxX Or $ExternalArea[3][1] < 0 Or $ExternalArea[3][1] > $iMaxY Then $bWarning = True
+
+	If $g_bDebugSetlog Then SetDebugLog("Scenery: " & $g_sSceneryCode & " EdgeDiff: " & $g_iSceneryEdgeDiffX & "x" & $g_iSceneryEdgeDiffY, $COLOR_DEBUG1)
+	If $bWarning And $g_bDebugSetlog Then SetDebugLog("Edge boundary validation flagged warnings", $COLOR_WARNING)
+	Return Not $bWarning
+EndFunc   ;==>_ValidateEdgeBoundaries
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StoreRedlinePoints

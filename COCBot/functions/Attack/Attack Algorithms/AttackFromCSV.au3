@@ -38,12 +38,10 @@ Global $g_aiPixelBottomRightUPDropLine
 Global $g_aiPixelBottomRightDOWNDropLine
 
 Global $DeployableLRTB = [0, $g_iGAME_WIDTH - 1, 0, 556]
-Global $InnerDiamondLeft = 45
-Global $InnerDiamondRight = 815
-Global $InnerDiamondTop = 60
-Global $InnerDiamondBottom = 636
-Global $InnerDiamandDiffX = 70
-Global $InnerDiamandDiffY = 48
+Global $InnerDiamondLeft = $g_iDefaultInnerDiamondLeft
+Global $InnerDiamondRight = $g_iDefaultInnerDiamondRight
+Global $InnerDiamondTop = $g_iDefaultInnerDiamondTop
+Global $InnerDiamondBottom = $g_iDefaultInnerDiamondBottom
 
 Global $OuterDiamondLeft = 0
 Global $OuterDiamondRight = 0
@@ -52,14 +50,188 @@ Global $OuterDiamondBottom = 0
 
 ConvertInternalExternArea() ; initial layout so variables are not empty
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ConvertInternalExternArea
+; Description ...:
+; Syntax ........: ConvertInternalExternArea()
+; Parameters ....:
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func ConvertInternalExternArea()
 	Local $DiamondMiddleX = ($InnerDiamondLeft + $InnerDiamondRight) / 2
 	Local $DiamondMiddleY = ($InnerDiamondTop + $InnerDiamondBottom) / 2
+	Local $iRefLeft = $g_afRefVillage[$g_iTree][1]
+	Local $iRefRight = $g_afRefVillage[$g_iTree][2]
+	Local $iRefTop = $g_afRefVillage[$g_iTree][3]
+	Local $iRefBottom = $g_afRefVillage[$g_iTree][4]
+	If $g_bIsCustomMainVillage Then
+		For $i = 0 To UBound($g_afRefCustomMainVillage) - 1
+			If $g_iTree = $g_afRefCustomMainVillage[$i][5] Then
+				$iRefLeft = $g_afRefCustomMainVillage[$i][0]
+				$iRefRight = $g_afRefCustomMainVillage[$i][1]
+				$iRefTop = $g_afRefCustomMainVillage[$i][2]
+				$iRefBottom = $g_afRefCustomMainVillage[$i][3]
+				ExitLoop
+			EndIf
+		Next
+	EndIf
 
-	$OuterDiamondLeft = $InnerDiamondLeft - $InnerDiamandDiffX
-	$OuterDiamondRight = $InnerDiamondRight + $InnerDiamandDiffX
-	$OuterDiamondTop = $InnerDiamondTop - $InnerDiamandDiffY
-	$OuterDiamondBottom = $InnerDiamondBottom + $InnerDiamandDiffY
+	Local $iRefWidth = $iRefRight - $iRefLeft
+	Local $iRefHeight = $iRefBottom - $iRefTop
+	Local $iCurWidth = $InnerDiamondRight - $InnerDiamondLeft
+	Local $iCurHeight = $InnerDiamondBottom - $InnerDiamondTop
+	Local $fScaleX = 1
+	Local $fScaleY = 1
+	If $iRefWidth > 0 Then $fScaleX = $iCurWidth / $iRefWidth
+	If $iRefHeight > 0 Then $fScaleY = $iCurHeight / $iRefHeight
+	$g_fEdgeScaleX = $fScaleX
+	$g_fEdgeScaleY = $fScaleY
+	$g_aiRefDiamond[0] = $iRefLeft
+	$g_aiRefDiamond[1] = $iRefRight
+	$g_aiRefDiamond[2] = $iRefTop
+	$g_aiRefDiamond[3] = $iRefBottom
+	Local $iAdjLeft = Round($g_afRefVillage[$g_iTree][6] * $fScaleX)
+	Local $iAdjRight = Round($g_afRefVillage[$g_iTree][7] * $fScaleX)
+	Local $iAdjTop = Round($g_afRefVillage[$g_iTree][8] * $fScaleY)
+	Local $iAdjBottom = Round($g_afRefVillage[$g_iTree][9] * $fScaleY)
+	Local $bScaleWarn = (Abs($fScaleX - 1) > 0.2 Or Abs($fScaleY - 1) > 0.2)
+	If $bScaleWarn Then
+		SetLog("Warning: edge scale mismatch X/Y=" & Round($fScaleX, 3) & "/" & Round($fScaleY, 3) & " using default edge diff", $COLOR_WARNING)
+		$iAdjLeft = $g_iDefaultEdgeDiffX
+		$iAdjRight = $g_iDefaultEdgeDiffX
+		$iAdjTop = $g_iDefaultEdgeDiffY
+		$iAdjBottom = $g_iDefaultEdgeDiffY
+	EndIf
+	If $iAdjLeft <= 0 Then $iAdjLeft = $g_iDefaultEdgeDiffX
+	If $iAdjRight <= 0 Then $iAdjRight = $g_iDefaultEdgeDiffX
+	If $iAdjTop <= 0 Then $iAdjTop = $g_iDefaultEdgeDiffY
+	If $iAdjBottom <= 0 Then $iAdjBottom = $g_iDefaultEdgeDiffY
+	$g_iSceneryEdgeDiffX = Int(($iAdjLeft + $iAdjRight) / 2)
+	$g_iSceneryEdgeDiffY = Int(($iAdjTop + $iAdjBottom) / 2)
+
+	Local $iInnerPad = $g_iInnerEdgePadding
+	If $iInnerPad > 0 Then
+		$InnerDiamondLeft -= $iInnerPad
+		$InnerDiamondRight += $iInnerPad
+		$InnerDiamondTop -= $iInnerPad
+		$InnerDiamondBottom += $iInnerPad
+	EndIf
+
+	Local $iExpandLeft = $iAdjLeft
+	Local $iExpandRight = $iAdjRight
+	Local $iExpandTop = $iAdjTop
+	Local $iExpandBottom = $iAdjBottom
+	Local $bMinExpandForced = False
+	If $iExpandLeft < $g_iMinOuterExpansion Then
+		$iExpandLeft = $g_iMinOuterExpansion
+		$bMinExpandForced = True
+	EndIf
+	If $iExpandRight < $g_iMinOuterExpansion Then
+		$iExpandRight = $g_iMinOuterExpansion
+		$bMinExpandForced = True
+	EndIf
+	If $iExpandTop < $g_iMinOuterExpansion Then
+		$iExpandTop = $g_iMinOuterExpansion
+		$bMinExpandForced = True
+	EndIf
+	If $iExpandBottom < $g_iMinOuterExpansion Then
+		$iExpandBottom = $g_iMinOuterExpansion
+		$bMinExpandForced = True
+	EndIf
+	If $g_iOuterEdgePadding > 0 Then
+		$iExpandLeft += $g_iOuterEdgePadding
+		$iExpandRight += $g_iOuterEdgePadding
+		$iExpandTop += $g_iOuterEdgePadding
+		$iExpandBottom += $g_iOuterEdgePadding
+	EndIf
+
+	Local $bClamped = False
+	Local $bReduced = False
+	Local $iMaxX = $g_iGAME_WIDTH - 1
+	Local $iMaxY = $g_iGAME_HEIGHT - 1
+	Local $iMaxLeft = $InnerDiamondLeft
+	Local $iMaxRight = $iMaxX - $InnerDiamondRight
+	Local $iMaxTop = $InnerDiamondTop
+	Local $iMaxBottom = $iMaxY - $InnerDiamondBottom
+	If $iExpandLeft > $iMaxLeft Then
+		$iExpandLeft = $iMaxLeft
+		$bClamped = True
+		$bReduced = True
+	EndIf
+	If $iExpandRight > $iMaxRight Then
+		$iExpandRight = $iMaxRight
+		$bClamped = True
+		$bReduced = True
+	EndIf
+	If $iExpandTop > $iMaxTop Then
+		$iExpandTop = $iMaxTop
+		$bClamped = True
+		$bReduced = True
+	EndIf
+	If $iExpandBottom > $iMaxBottom Then
+		$iExpandBottom = $iMaxBottom
+		$bClamped = True
+		$bReduced = True
+	EndIf
+	If $iExpandLeft < 0 Then $iExpandLeft = 0
+	If $iExpandRight < 0 Then $iExpandRight = 0
+	If $iExpandTop < 0 Then $iExpandTop = 0
+	If $iExpandBottom < 0 Then $iExpandBottom = 0
+
+	$OuterDiamondLeft = $InnerDiamondLeft - $iExpandLeft
+	$OuterDiamondRight = $InnerDiamondRight + $iExpandRight
+	$OuterDiamondTop = $InnerDiamondTop - $iExpandTop
+	$OuterDiamondBottom = $InnerDiamondBottom + $iExpandBottom
+	If $OuterDiamondRight <= $OuterDiamondLeft Or $OuterDiamondBottom <= $OuterDiamondTop Then
+		SetLog("Warning: outer diamond invalid after expansion, using default edge diff", $COLOR_WARNING)
+		Local $iFallbackLeft = _Min($InnerDiamondLeft, $g_iDefaultEdgeDiffX + $g_iOuterEdgePadding)
+		Local $iFallbackRight = _Min($iMaxRight, $g_iDefaultEdgeDiffX + $g_iOuterEdgePadding)
+		Local $iFallbackTop = _Min($InnerDiamondTop, $g_iDefaultEdgeDiffY + $g_iOuterEdgePadding)
+		Local $iFallbackBottom = _Min($iMaxBottom, $g_iDefaultEdgeDiffY + $g_iOuterEdgePadding)
+		$OuterDiamondLeft = $InnerDiamondLeft - $iFallbackLeft
+		$OuterDiamondRight = $InnerDiamondRight + $iFallbackRight
+		$OuterDiamondTop = $InnerDiamondTop - $iFallbackTop
+		$OuterDiamondBottom = $InnerDiamondBottom + $iFallbackBottom
+		$bClamped = True
+	EndIf
+
+	$g_aiInnerDiamond[0] = $InnerDiamondLeft
+	$g_aiInnerDiamond[1] = $InnerDiamondRight
+	$g_aiInnerDiamond[2] = $InnerDiamondTop
+	$g_aiInnerDiamond[3] = $InnerDiamondBottom
+	$g_aiOuterDiamond[0] = $OuterDiamondLeft
+	$g_aiOuterDiamond[1] = $OuterDiamondRight
+	$g_aiOuterDiamond[2] = $OuterDiamondTop
+	$g_aiOuterDiamond[3] = $OuterDiamondBottom
+	If $g_bDebugSetlog Then
+		SetDebugLog("EdgeScale X/Y: " & Round($fScaleX, 3) & "/" & Round($fScaleY, 3), $COLOR_DEBUG1)
+		SetDebugLog("Ref LRTB: " & $iRefLeft & "," & $iRefRight & "," & $iRefTop & "," & $iRefBottom, $COLOR_DEBUG1)
+		SetDebugLog("Inner LRTB: " & $InnerDiamondLeft & "," & $InnerDiamondRight & "," & $InnerDiamondTop & "," & $InnerDiamondBottom, $COLOR_DEBUG1)
+		SetDebugLog("Adj LRTB: " & $iAdjLeft & "," & $iAdjRight & "," & $iAdjTop & "," & $iAdjBottom, $COLOR_DEBUG1)
+		SetDebugLog("Outer LRTB: " & $OuterDiamondLeft & "," & $OuterDiamondRight & "," & $OuterDiamondTop & "," & $OuterDiamondBottom, $COLOR_DEBUG1)
+		If $iInnerPad > 0 Then SetDebugLog("Inner edge padding: " & $iInnerPad, $COLOR_DEBUG1)
+		If $g_iOuterEdgePadding > 0 Then SetDebugLog("Outer edge padding: " & $g_iOuterEdgePadding, $COLOR_DEBUG1)
+		If $g_iMinOuterExpansion > 0 Then SetDebugLog("Min outer expansion: " & $g_iMinOuterExpansion, $COLOR_DEBUG1)
+		Local $iExpectedX = Round($g_iDefaultEdgeDiffX * $fScaleX) + $g_iOuterEdgePadding
+		Local $iExpectedY = Round($g_iDefaultEdgeDiffY * $fScaleY) + $g_iOuterEdgePadding
+		If Abs($iExpandLeft - $iExpectedX) > $g_iOuterConsistencyTolerance Or Abs($iExpandRight - $iExpectedX) > $g_iOuterConsistencyTolerance Then
+			SetDebugLog("Outer edge X deviates from baseline: " & $iExpandLeft & "/" & $iExpandRight & " (exp " & $iExpectedX & ")", $COLOR_WARNING)
+		EndIf
+		If Abs($iExpandTop - $iExpectedY) > $g_iOuterConsistencyTolerance Or Abs($iExpandBottom - $iExpectedY) > $g_iOuterConsistencyTolerance Then
+			SetDebugLog("Outer edge Y deviates from baseline: " & $iExpandTop & "/" & $iExpandBottom & " (exp " & $iExpectedY & ")", $COLOR_WARNING)
+		EndIf
+	EndIf
+	If $bScaleWarn Then SetDebugLog("Edge scale fallback applied", $COLOR_WARNING)
+	If $bMinExpandForced Then SetDebugLog("Min outer expansion forced", $COLOR_WARNING)
+	If $bClamped Then SetDebugLog("Outer diamond clamped/fallback applied", $COLOR_WARNING)
+	If $bReduced Then SetDebugLog("Outer expansion reduced due to screen bounds", $COLOR_WARNING)
 
 	Local $ExternalAreaRef[8][3] = [ _
 			[$OuterDiamondLeft, $DiamondMiddleY, "LEFT"], _
@@ -97,21 +269,21 @@ Func ConvertInternalExternArea()
 	; Full ECD Diamond $CocDiamondECD
 	; Top
 	$x = $ExternalAreaRef[2][0]
-	$y = $ExternalAreaRef[2][1] + $InnerDiamandDiffY
+	$y = $ExternalAreaRef[2][1]
 	ConvertToVillagePos($x, $y)
 	$CocDiamondECD = $x & "," & $y
 	; Right
-	$x = $ExternalAreaRef[1][0] - $InnerDiamandDiffX
+	$x = $ExternalAreaRef[1][0]
 	$y = $ExternalAreaRef[1][1]
 	ConvertToVillagePos($x, $y)
 	$CocDiamondECD &= "|" & $x & "," & $y
 	; Bottom
 	$x = $ExternalAreaRef[3][0]
-	$y = $ExternalAreaRef[3][1] - $InnerDiamandDiffX
+	$y = $ExternalAreaRef[3][1]
 	ConvertToVillagePos($x, $y)
 	$CocDiamondECD &= "|" & $x & "," & $y
 	; Left
-	$x = $ExternalAreaRef[0][0] + $InnerDiamandDiffX
+	$x = $ExternalAreaRef[0][0]
 	$y = $ExternalAreaRef[0][1]
 	ConvertToVillagePos($x, $y)
 	$CocDiamondECD &= "|" & $x & "," & $y

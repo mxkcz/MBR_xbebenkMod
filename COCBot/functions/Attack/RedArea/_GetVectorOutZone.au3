@@ -17,27 +17,28 @@ Func _GetVectorOutZone($eVectorType)
 	debugRedArea("_GetVectorOutZone IN")
 	Local $vectorOutZone[0]
 	Local $iSteps = 100
+	Local $iSafetyMargin = 10
 	Local $xMin, $yMin, $xMax, $yMax
 
 	If ($eVectorType = $eVectorLeftTop) Then
-		$xMin = $ExternalArea[0][0] + 2
+		$xMin = $ExternalArea[0][0] + $iSafetyMargin
 		$yMin = $ExternalArea[0][1]
 		$xMax = $ExternalArea[2][0]
-		$yMax = $ExternalArea[2][1] + 2
+		$yMax = $ExternalArea[2][1] + $iSafetyMargin
 	ElseIf ($eVectorType = $eVectorRightTop) Then
 		$xMin = $ExternalArea[2][0]
-		$yMin = $ExternalArea[2][1] + 2
-		$xMax = $ExternalArea[1][0] - 2
+		$yMin = $ExternalArea[2][1] + $iSafetyMargin
+		$xMax = $ExternalArea[1][0] - $iSafetyMargin
 		$yMax = $ExternalArea[1][1]
 	ElseIf ($eVectorType = $eVectorLeftBottom) Then
-		$xMin = $ExternalArea[0][0] + 2
+		$xMin = $ExternalArea[0][0] + $iSafetyMargin
 		$yMin = $ExternalArea[0][1]
 		$xMax = $ExternalArea[3][0]
-		$yMax = $ExternalArea[3][1] - 2
+		$yMax = $ExternalArea[3][1] - $iSafetyMargin
 	Else ; bottom right
 		$xMin = $ExternalArea[3][0]
-		$yMin = $ExternalArea[3][1] - 2
-		$xMax = $ExternalArea[1][0] - 2
+		$yMin = $ExternalArea[3][1] - $iSafetyMargin
+		$xMax = $ExternalArea[1][0] - $iSafetyMargin
 		$yMax = $ExternalArea[1][1]
 	EndIf
 

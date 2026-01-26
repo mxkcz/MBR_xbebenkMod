@@ -790,10 +790,27 @@ Func GetPixelSectionMod($aX, $aY)
 	Return $sRet
 EndFunc   ;==>GetPixelSectionMod
 
-Func RedlineOffSetMod($sXY, $iOffset = 6, $iDistance = 10)
+; #FUNCTION# ====================================================================================================================
+; Name ..........: RedlineOffSetMod
+; Description ...:
+; Syntax ........: RedlineOffSetMod($sXY[, $iOffset = Default[, $iDistance = 10]])
+; Parameters ....: $sXY                - a string value.
+;                  $iOffset            - [optional] an integer value. Default is Default.
+;                  $iDistance          - [optional] an integer value. Default is 10.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func RedlineOffSetMod($sXY, $iOffset = Default, $iDistance = 10)
 	Local $sRet = "", $iXOffset = 0, $iYOffset = 0, $sArea = ""
 	Local $aTmpXYTL[2] = [0, 0], $aTmpXYBL[2] = [0, 0], $aTmpXYBR[2] = [0, 0], $aTmpXYTR[2] = [0, 0]
 	Local $aRet = StringSplit($sXY, "|", $STR_NOCOUNT)
+	If $iOffset = Default Then $iOffset = GetSceneryRedlineOffset()
 	;SetLog("aRet = " & _ArrayToString($aRet))
 	If IsArray($aRet) And Ubound($aRet) > 0 Then
 		_ArraySort($aRet, 0, 0, 0, 0) ;sort by x
@@ -853,6 +870,31 @@ Func RedlineOffSetMod($sXY, $iOffset = 6, $iDistance = 10)
 	If $g_bDebugSetlog Then SetLog("sRet = " & $sRet, $COLOR_ACTION)
 	Return $sRet
 EndFunc ;==>RedlineOffSetMod
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: GetSceneryRedlineOffset
+; Description ...:
+; Syntax ........: GetSceneryRedlineOffset()
+; Parameters ....:
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func GetSceneryRedlineOffset()
+	Local $iDefaultOffset = 6
+	Local $iCornerOffset = 10
+	Switch $g_sSceneryCode
+		Case "CF", "MT", "PT"
+			Return $iCornerOffset
+		Case Else
+			Return $iDefaultOffset
+	EndSwitch
+EndFunc ;==>GetSceneryRedlineOffset
 
 Func SearchRedLinesMod($sCocDiamond = "ECD")
 	Local $sImageDir = $g_sImgRedLineMod
