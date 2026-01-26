@@ -67,6 +67,14 @@ Func AttackCSVDEBUGIMAGE($bOpenImage = False)
 	_GDIPlus_GraphicsDrawLine($hGraphic, $ExternalArea[4][0], $ExternalArea[4][1], $ExternalArea[7][0], $ExternalArea[7][1], $hPenLtGreen)
 	_GDIPlus_GraphicsDrawLine($hGraphic, $ExternalArea[5][0], $ExternalArea[5][1], $ExternalArea[6][0], $ExternalArea[6][1], $hPenLtGreen)
 
+	;-- DRAW INNER/OUTER DIAMOND OVERLAY (scenery validation)
+	If IsArray($g_aiInnerDiamond) And UBound($g_aiInnerDiamond) >= 4 Then
+		_DrawDiamondOverlay($hGraphic, $g_aiInnerDiamond[0], $g_aiInnerDiamond[1], $g_aiInnerDiamond[2], $g_aiInnerDiamond[3], $hPenBlue)
+	EndIf
+	If IsArray($g_aiOuterDiamond) And UBound($g_aiOuterDiamond) >= 4 Then
+		_DrawDiamondOverlay($hGraphic, $g_aiOuterDiamond[0], $g_aiOuterDiamond[1], $g_aiOuterDiamond[2], $g_aiOuterDiamond[3], $hPenCyan)
+	EndIf
+
 	;-- DRAW REDAREA PATH
 	For $i = 0 To UBound($g_aiPixelTopLeft) - 1
 		$pixel = $g_aiPixelTopLeft[$i]
@@ -482,6 +490,34 @@ Func DrawStringA($hGraphics, $sString, $nX, $nY, $sFont = "Arial", $fSize = 10, 
 	_GDIPlus_StringFormatDispose($hFormat)
 	_GDIPlus_BrushDispose($hBrush)
 EndFunc
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _DrawDiamondOverlay
+; Description ...: Draw a diamond overlay from bounding LRTB coordinates.
+; Syntax ........: _DrawDiamondOverlay($hGraphic, $iLeft, $iRight, $iTop, $iBottom, $hPen)
+; Parameters ....: $hGraphic - GDI+ graphics handle
+;                  $iLeft    - left bound
+;                  $iRight   - right bound
+;                  $iTop     - top bound
+;                  $iBottom  - bottom bound
+;                  $hPen     - GDI+ pen handle
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _DrawDiamondOverlay($hGraphic, $iLeft, $iRight, $iTop, $iBottom, ByRef $hPen)
+	Local $iMidX = Int(($iLeft + $iRight) / 2)
+	Local $iMidY = Int(($iTop + $iBottom) / 2)
+	_GDIPlus_GraphicsDrawLine($hGraphic, $iLeft, $iMidY, $iMidX, $iTop, $hPen)
+	_GDIPlus_GraphicsDrawLine($hGraphic, $iMidX, $iTop, $iRight, $iMidY, $hPen)
+	_GDIPlus_GraphicsDrawLine($hGraphic, $iRight, $iMidY, $iMidX, $iBottom, $hPen)
+	_GDIPlus_GraphicsDrawLine($hGraphic, $iMidX, $iBottom, $iLeft, $iMidY, $hPen)
+EndFunc   ;==>_DrawDiamondOverlay
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVDrawCollectorPoints
