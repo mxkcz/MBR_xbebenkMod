@@ -1634,6 +1634,13 @@ Global $g_bCSVPreDropVerify = True ; CSV DROP: verify troop count when low befor
 Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= threshold
 Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
 Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
+Global Const $g_iCSVPrecacheConservative = 0
+Global Const $g_iCSVPrecacheAggressive = 1
+Global $g_iCSVPrecacheMode = $g_iCSVPrecacheConservative
+Global Const $g_iCSVPrecalcBudgetMsDefault = 30000
+Global $g_iCSVPrecalcBudgetMs = $g_iCSVPrecalcBudgetMsDefault
+Global $g_iCSVLastPrecalcMs = 0
+Global $g_sCSVLastPrecalcTime = ""
 
 ; CSV prep caches (per mode)
 Global Enum $eCSVLocateMine, $eCSVLocateElixir, $eCSVLocateDrill, $eCSVLocateStorageGold, $eCSVLocateStorageElixir, $eCSVLocateStorageDarkElixir, $eCSVLocateStorageTownHall, _

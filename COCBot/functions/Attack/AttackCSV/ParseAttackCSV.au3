@@ -74,6 +74,11 @@ Func ParseAttackCSV($debug = False)
 					If $g_bDebugSetlog Then SetLog("value" & Number($i - 1) & " = " & StringStripWS(StringUpper($acommand[$i]), $STR_STRIPTRAILING), $COLOR_DEBUG1)
 				Next
 
+				If $debug And $command <> "MAKE" Then
+					debugAttackCSV("dry-run skip: " & $command)
+					ContinueLoop
+				EndIf
+
 				Switch $command
 					Case "MAKE"
 						ReleaseClicks()

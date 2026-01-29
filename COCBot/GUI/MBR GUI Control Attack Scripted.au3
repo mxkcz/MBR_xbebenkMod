@@ -676,6 +676,468 @@ Func AttackCSVSettings_AttackNowDB()
 	$g_bRunState = $tempbRunState
 EndFunc   ;==>AttackCSVSettings_AttackNowDB
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_TestAttackLive
+; Description ...: Run a live CSV test attack for the selected mode.
+; Syntax ........: AttackCSVSettings_TestAttackLive()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: automation (triggers test attack flow)
+Func AttackCSVSettings_TestAttackLive()
+	_AttackCSVSettings_RunTest(False)
+EndFunc   ;==>AttackCSVSettings_TestAttackLive
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_TestAttackDry
+; Description ...: Run a dry CSV test pass (parse + precalc only).
+; Syntax ........: AttackCSVSettings_TestAttackDry()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: automation (parses CSV with no live actions)
+Func AttackCSVSettings_TestAttackDry()
+	_AttackCSVSettings_RunTest(True)
+EndFunc   ;==>AttackCSVSettings_TestAttackDry
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _AttackCSVSettings_RunTest
+; Description ...: Shared runner for live/dry CSV tests.
+; Syntax ........: _AttackCSVSettings_RunTest($bDryRun)
+; Parameters ....: $bDryRun          - True for dry-run (no live actions).
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: automation (runs CSV pipeline)
+Func _AttackCSVSettings_RunTest($bDryRun)
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $iMode = $g_iAttackCSVSettingsMode
+	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
+	If $sScript = "" Then
+		SetLog("CSV settings test: no script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+
+	Local $sModeLabel = ($iMode >= 0 And $iMode < UBound($g_asModeText) ? $g_asModeText[$iMode] : "mode " & $iMode)
+	SetLog("CSV settings test (" & ($bDryRun ? "dry" : "live") & "): " & $sScript & " (" & $sModeLabel & ")", $COLOR_INFO)
+
+	Local $tempbRunState = $g_bRunState
+	Local $tempSieges = $g_aiCurrentSiegeMachines
+	Local $tempMatchMode = $g_iMatchMode
+	Local $tempScript = $g_sAttackScrScriptName[$iMode]
+	Local $tempAlgorithm = $g_aiAttackAlgorithm[$iMode]
+
+	$g_aiCurrentSiegeMachines[$eSiegeWallWrecker] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeBattleBlimp] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeStoneSlammer] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeBarracks] = 1
+	$g_aiCurrentSiegeMachines[$eSiegeLogLauncher] = 1
+	$g_aiAttackAlgorithm[$iMode] = 1
+	$g_sAttackScrScriptName[$iMode] = $sScript
+	$g_iMatchMode = $iMode
+	$g_bRunState = True
+
+	If Not PrepareAttackCSV($g_iMatchMode, True) Then
+		SetDebugLog("CSV settings test: precalc failed, continuing", $COLOR_WARNING)
+	EndIf
+	PrepareAttack($g_iMatchMode)
+	If $bDryRun Then
+		Algorithm_AttackCSV(True, False)
+	Else
+		Algorithm_AttackCSV()
+	EndIf
+
+	$g_aiCurrentSiegeMachines = $tempSieges
+	$g_bRunState = $tempbRunState
+	$g_iMatchMode = $tempMatchMode
+	$g_sAttackScrScriptName[$iMode] = $tempScript
+	$g_aiAttackAlgorithm[$iMode] = $tempAlgorithm
+
+	AttackCSVSettings_UpdateDiagnostics()
+	AttackCSVSettings_UpdatePrioPreview()
+	AttackCSVSettings_UpdatePrecalcStatus()
+EndFunc   ;==>_AttackCSVSettings_RunTest
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_RebuildPrecalc
+; Description ...: Force PrepareAttackCSV refresh and update GUI status panels.
+; Syntax ........: AttackCSVSettings_RebuildPrecalc()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (reads CSV, updates diagnostics)
+Func AttackCSVSettings_RebuildPrecalc()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	Local $iMode = $g_iAttackCSVSettingsMode
+	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
+	If $sScript = "" Then
+		SetLog("CSV precalc: no script selected.", $COLOR_ERROR)
+		Return
+	EndIf
+
+	Local $hTimer = __timerinit()
+	Local $bOk = PrepareAttackCSV($iMode, True)
+	$g_iCSVLastPrecalcMs = Round(__timerdiff($hTimer))
+	$g_sCSVLastPrecalcTime = @YEAR & "-" & StringFormat("%02d", @MON) & "-" & StringFormat("%02d", @MDAY) & " " & _
+			StringFormat("%02d", @HOUR) & ":" & StringFormat("%02d", @MIN) & ":" & StringFormat("%02d", @SEC)
+
+	If Not $bOk Then SetLog("CSV precalc: PrepareAttackCSV failed", $COLOR_WARNING)
+	AttackCSVSettings_ValidateCSV()
+	If AttackCSV_PreparePrioPlan($sScript) = 0 Then
+		SetLog("CSV precalc: no PRIO candidates built", $COLOR_WARNING)
+	ElseIf $g_abCSVPrepHasPrioMake[$iMode] And IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Count = 0 Then
+		SetLog("CSV precalc: PRIO plan empty", $COLOR_WARNING)
+	EndIf
+
+	AttackCSVSettings_UpdatePrecalcStatus()
+	AttackCSVSettings_UpdateDiagnostics()
+	AttackCSVSettings_UpdatePrioPreview()
+	AttackCSVSettings_UpdateDebugPanel()
+EndFunc   ;==>AttackCSVSettings_RebuildPrecalc
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVSettings_SetPrecacheMode
+; Description ...: Set CSV precache aggressiveness mode from GUI.
+; Syntax ........: CSVSettings_SetPrecacheMode()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (GUI state updates)
+Func CSVSettings_SetPrecacheMode()
+	Switch @GUI_CtrlId
+		Case $g_hRadCSVPrecacheAggressive
+			$g_iCSVPrecacheMode = $g_iCSVPrecacheAggressive
+		Case $g_hRadCSVPrecacheConservative
+			$g_iCSVPrecacheMode = $g_iCSVPrecacheConservative
+		Case Else
+			Return
+	EndSwitch
+
+	If $g_hRadCSVPrecacheConservative <> 0 Then
+		GUICtrlSetState($g_hRadCSVPrecacheConservative, ($g_iCSVPrecacheMode = $g_iCSVPrecacheConservative) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	EndIf
+	If $g_hRadCSVPrecacheAggressive <> 0 Then
+		GUICtrlSetState($g_hRadCSVPrecacheAggressive, ($g_iCSVPrecacheMode = $g_iCSVPrecacheAggressive) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	EndIf
+	AttackCSVSettings_UpdatePrecalcStatus()
+EndFunc   ;==>CSVSettings_SetPrecacheMode
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVSettings_ToggleDebugFlag
+; Description ...: Toggle CSV-related debug flags and sync UI.
+; Syntax ........: CSVSettings_ToggleDebugFlag()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (mutates debug globals + GUI state)
+Func CSVSettings_ToggleDebugFlag()
+	Switch @GUI_CtrlId
+		Case $g_hChkCSVDbgSetlog
+			$g_bDebugSetlog = Not $g_bDebugSetlog
+		Case $g_hChkCSVDbgClick
+			$g_bDebugClick = Not $g_bDebugClick
+		Case $g_hChkCSVDbgRedArea
+			$g_bDebugRedArea = Not $g_bDebugRedArea
+		Case $g_hChkCSVDbgOcr
+			$g_bDebugOcr = Not $g_bDebugOcr
+		Case $g_hChkCSVDbgAttackCSV
+			$g_bDebugAttackCSV = Not $g_bDebugAttackCSV
+		Case $g_hChkCSVDbgMakeImg
+			$g_bDebugMakeIMGCSV = Not $g_bDebugMakeIMGCSV
+		Case Else
+			Return
+	EndSwitch
+
+	AttackCSVSettings_UpdateDebugPanel()
+EndFunc   ;==>CSVSettings_ToggleDebugFlag
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_UpdatePrecalcStatus
+; Description ...: Refresh precalc status panel and budget labels.
+; Syntax ........: AttackCSVSettings_UpdatePrecalcStatus()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_UpdatePrecalcStatus()
+	If $g_hLblCSVPrecacheBudget <> 0 Then
+		GUICtrlSetData($g_hLblCSVPrecacheBudget, "Precalc budget: " & Round($g_iCSVPrecalcBudgetMs / 1000, 1) & "s")
+	EndIf
+	If $g_hLblCSVPrecacheLast <> 0 Then
+		Local $sLast = ($g_sCSVLastPrecalcTime <> "" ? $g_sCSVLastPrecalcTime : "-")
+		GUICtrlSetData($g_hLblCSVPrecacheLast, "Last precalc: " & $sLast & " (" & $g_iCSVLastPrecalcMs & " ms)")
+	EndIf
+	If $g_hRadCSVPrecacheConservative <> 0 Then
+		GUICtrlSetState($g_hRadCSVPrecacheConservative, ($g_iCSVPrecacheMode = $g_iCSVPrecacheConservative) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	EndIf
+	If $g_hRadCSVPrecacheAggressive <> 0 Then
+		GUICtrlSetState($g_hRadCSVPrecacheAggressive, ($g_iCSVPrecacheMode = $g_iCSVPrecacheAggressive) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	EndIf
+
+	If $g_hTxtCSVPrecalcStatus = 0 Then Return
+
+	Local $iMode = $g_iAttackCSVSettingsMode
+	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
+	If $sScript = "" Then
+		GUICtrlSetData($g_hTxtCSVPrecalcStatus, "No CSV script selected.")
+		Return
+	EndIf
+
+	Local $sStatus = "Script: " & $sScript & @CRLF
+	Local $bPrepValid = ($g_abCSVPrepValid[$iMode] And $g_asCSVPrepName[$iMode] = $sScript)
+	$sStatus &= "Precalc cache: " & ($bPrepValid ? "valid" : "stale") & @CRLF
+
+	Local $aMakeSidesUsed[4] = [False, False, False, False]
+	Local $bAllMakeTargeted = False
+	If $bPrepValid And AttackCSV_GetPreparedMakeUsage($iMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
+		$sStatus &= "Targeted-only: " & ($bAllMakeTargeted ? "yes" : "no") & @CRLF
+	Else
+		$sStatus &= "Targeted-only: unknown" & @CRLF
+	EndIf
+
+	Local $bRedline = ($g_sImglocRedline <> "")
+	If Not $bRedline And IsObj($g_oBldgAttackInfo) Then
+		$bRedline = _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+	EndIf
+	$sStatus &= "Redline cache: " & ($bRedline ? "available" : "missing") & @CRLF
+
+	Local $iCap = $g_iCSVTargetedMaxReturnPoints
+	Local $iOverride = Default
+	If $bAllMakeTargeted And $iCap > 0 Then
+		$iOverride = AttackCSV_GetTargetMaxReturnPoints($iMode, $g_iSearchTH, $iCap)
+	EndIf
+	If $iOverride <> Default Then
+		$sStatus &= "MaxReturnPoints cap: " & $iOverride & " (base " & $iCap & ")" & @CRLF
+	Else
+		$sStatus &= "MaxReturnPoints cap: " & $iCap & @CRLF
+	EndIf
+
+	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+	Local $aSideShort[4] = ["TL", "TR", "BL", "BR"]
+	Local $sPrio = "PRIO plan counts:"
+	If IsObj($g_oCSVPrioPlan) Then
+		For $i = 0 To 3
+			Local $iCount = ($g_oCSVPrioPlan.Exists($aSideKeys[$i]) ? UBound($g_oCSVPrioPlan.Item($aSideKeys[$i])) : 0)
+			$sPrio &= " " & $aSideShort[$i] & "=" & $iCount
+		Next
+	Else
+		$sPrio &= " n/a"
+	EndIf
+	$sStatus &= $sPrio & @CRLF
+
+	GUICtrlSetData($g_hTxtCSVPrecalcStatus, $sStatus)
+EndFunc   ;==>AttackCSVSettings_UpdatePrecalcStatus
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_UpdateDiagnostics
+; Description ...: Refresh CSV diagnostics pane with counts and warnings.
+; Syntax ........: AttackCSVSettings_UpdateDiagnostics()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (reads CSV + GUI state updates)
+Func AttackCSVSettings_UpdateDiagnostics()
+	If $g_hTxtCSVDiagnostics = 0 Then Return
+	Local $iMode = $g_iAttackCSVSettingsMode
+	Local $sScript = AttackCSVSettings_GetScriptName($iMode)
+	If $sScript = "" Then
+		GUICtrlSetData($g_hTxtCSVDiagnostics, "No CSV script selected.")
+		Return
+	EndIf
+	Local $sPath = $g_sCSVAttacksPath & "\" & $sScript & ".csv"
+	Local $aLines = AttackCSVSettings_ReadLines($sPath)
+	If @error Then
+		GUICtrlSetData($g_hTxtCSVDiagnostics, "Failed to read CSV: " & $sPath)
+		Return
+	EndIf
+
+	Local $iMake = 0, $iSide = 0, $iSideB = 0, $iWait = 0
+	For $iLine = 0 To UBound($aLines) - 1
+		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
+		Local $sCmd = AttackCSVSettings_GetCommand($aCols)
+		Switch $sCmd
+			Case "MAKE"
+				$iMake += 1
+			Case "SIDE"
+				$iSide += 1
+			Case "SIDEB"
+				$iSideB += 1
+			Case "WAIT"
+				$iWait += 1
+		EndSwitch
+	Next
+
+	Local $sDiag = "Script: " & $sScript & @CRLF & _
+			"Counts: MAKE=" & $iMake & " SIDE=" & $iSide & " SIDEB=" & $iSideB & " WAIT=" & $iWait & @CRLF
+
+	Local $aMakeSidesUsed[4] = [False, False, False, False]
+	Local $bAllMakeTargeted = False
+	If $g_abCSVPrepValid[$iMode] And AttackCSV_GetPreparedMakeUsage($iMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
+		$sDiag &= "Targeted-only: " & ($bAllMakeTargeted ? "yes" : "no") & @CRLF
+		Local $bAnyLocate = _CSVHasAnyLocateFlag($iMode, $g_iSearchTH)
+		If $bAllMakeTargeted And Not $bAnyLocate Then
+			$sDiag &= "Warning: targeted-only with zero locate flags (fallback to redline)." & @CRLF
+		EndIf
+	Else
+		$sDiag &= "Targeted-only: unknown (precalc stale)" & @CRLF
+	EndIf
+
+	If UBound($g_asCSVDiagnostics) > 0 Then
+		$sDiag &= @CRLF & "Diagnostics (last lines):" & @CRLF
+		Local $iStart = UBound($g_asCSVDiagnostics) - 5
+		If $iStart < 0 Then $iStart = 0
+		For $i = $iStart To UBound($g_asCSVDiagnostics) - 1
+			$sDiag &= $g_asCSVDiagnostics[$i] & @CRLF
+		Next
+	EndIf
+
+	GUICtrlSetData($g_hTxtCSVDiagnostics, $sDiag)
+EndFunc   ;==>AttackCSVSettings_UpdateDiagnostics
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_UpdatePrioPreview
+; Description ...: Refresh PRIO preview list using cached locate data.
+; Syntax ........: AttackCSVSettings_UpdatePrioPreview()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_UpdatePrioPreview()
+	If $g_hTxtCSVPrioPreview = 0 Then Return
+	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+	Local $aSideShort[4] = ["TL", "TR", "BL", "BR"]
+	Local $sPreview = ""
+
+	For $s = 0 To 3
+		Local $sSideKey = $aSideKeys[$s]
+		$sPreview &= $aSideShort[$s] & ": "
+		Local $aTargets = _CSVPrioGetTargetsForSide($sSideKey)
+		If @error Or Not IsArray($aTargets) Or UBound($aTargets) = 0 Then
+			$sPreview &= "no targets" & @CRLF
+			ContinueLoop
+		EndIf
+
+		Local $iMax = (UBound($aTargets) > 3 ? 3 : UBound($aTargets))
+		For $i = 0 To $iMax - 1
+			If $i > 0 Then $sPreview &= "; "
+			$sPreview &= $aTargets[$i][1] & " w" & $aTargets[$i][4] & " d" & $aTargets[$i][5]
+		Next
+
+		Local $iPlanCount = 0
+		If IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Exists($sSideKey) Then
+			$iPlanCount = UBound($g_oCSVPrioPlan.Item($sSideKey))
+		EndIf
+		$sPreview &= " (plan " & $iPlanCount & "/" & UBound($aTargets) & ")" & @CRLF
+	Next
+
+	GUICtrlSetData($g_hTxtCSVPrioPreview, $sPreview)
+EndFunc   ;==>AttackCSVSettings_UpdatePrioPreview
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_UpdateDebugPanel
+; Description ...: Sync debug flags and show last diagnostics lines.
+; Syntax ........: AttackCSVSettings_UpdateDebugPanel()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_UpdateDebugPanel()
+	If $g_hChkCSVDbgSetlog <> 0 Then GUICtrlSetState($g_hChkCSVDbgSetlog, $g_bDebugSetlog ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgClick <> 0 Then GUICtrlSetState($g_hChkCSVDbgClick, $g_bDebugClick ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgRedArea <> 0 Then GUICtrlSetState($g_hChkCSVDbgRedArea, $g_bDebugRedArea ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgOcr <> 0 Then GUICtrlSetState($g_hChkCSVDbgOcr, $g_bDebugOcr ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgAttackCSV <> 0 Then GUICtrlSetState($g_hChkCSVDbgAttackCSV, $g_bDebugAttackCSV ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgMakeImg <> 0 Then GUICtrlSetState($g_hChkCSVDbgMakeImg, $g_bDebugMakeIMGCSV ? $GUI_CHECKED : $GUI_UNCHECKED)
+
+	If $g_hLblCSVDbgSummary <> 0 Then
+		Local $sSummary = "Debug summary: setlog=" & ($g_bDebugSetlog ? "on" : "off") & _
+				" click=" & ($g_bDebugClick ? "on" : "off") & _
+				" red=" & ($g_bDebugRedArea ? "on" : "off") & _
+				" ocr=" & ($g_bDebugOcr ? "on" : "off") & _
+				" csv=" & ($g_bDebugAttackCSV ? "on" : "off")
+		GUICtrlSetData($g_hLblCSVDbgSummary, $sSummary)
+	EndIf
+
+	If $g_hTxtCSVDebugLines <> 0 Then
+		Local $sLines = ""
+		Local $iStart = UBound($g_asCSVDiagnostics) - 5
+		If $iStart < 0 Then $iStart = 0
+		For $i = $iStart To UBound($g_asCSVDiagnostics) - 1
+			$sLines &= $g_asCSVDiagnostics[$i] & @CRLF
+		Next
+		GUICtrlSetData($g_hTxtCSVDebugLines, $sLines)
+	EndIf
+EndFunc   ;==>AttackCSVSettings_UpdateDebugPanel
+
 ; Side-effect: automation (debug CSV building locate pass with test image support)
 Func debugCSVLocateBuildings()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
@@ -990,6 +1452,7 @@ Func AttackCSVSettings_ValidateCSV()
 	Else
 		SetLog("Attack CSV validation: " & $iErrors & " error(s), " & $iWarnings & " warning(s).", $COLOR_WARNING)
 	EndIf
+	AttackCSVSettings_UpdateDiagnostics()
 EndFunc   ;==>AttackCSVSettings_ValidateCSV
 
 ; Side-effect: io (GUI state updates)
@@ -1261,6 +1724,10 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 
 	AttackCSVSettings_LoadVectorFromLines($aLines)
 	CSVSettings_SetDirty(False)
+	AttackCSVSettings_UpdatePrecalcStatus()
+	AttackCSVSettings_UpdateDiagnostics()
+	AttackCSVSettings_UpdatePrioPreview()
+	AttackCSVSettings_UpdateDebugPanel()
 EndFunc   ;==>AttackCSVSettings_LoadFromCSV
 
 ; Side-effect: io (file read + GUI state updates)

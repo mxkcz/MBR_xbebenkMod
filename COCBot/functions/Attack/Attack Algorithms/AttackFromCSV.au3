@@ -1392,6 +1392,8 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	If $g_aiAttackAlgorithm[$iMode] <> 1 Then Return SetError(2, 0, 0)
 	If Not PrepareAttackCSV($iMode) Then Return SetError(3, 0, 0)
 
+	Local $hPrecacheTimer = __timerinit()
+	Local $bForceRescanLocal = ($bForceRescan Or ($g_iCSVPrecacheMode = $g_iCSVPrecacheAggressive))
 	$g_bCSVPrecacheDone[$iMode] = False
 	$g_sCSVMainSideEstimate = ""
 
@@ -1404,6 +1406,9 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	If $sRedline = "" Then
 		CSV_LogTiming("precache skipped", "redline missing")
 		$g_bCSVPrecacheDone[$iMode] = False
+		$g_iCSVLastPrecalcMs = Round(__timerdiff($hPrecacheTimer))
+		$g_sCSVLastPrecalcTime = @YEAR & "-" & StringFormat("%02d", @MON) & "-" & StringFormat("%02d", @MDAY) & " " & _
+				StringFormat("%02d", @HOUR) & ":" & StringFormat("%02d", @MIN) & ":" & StringFormat("%02d", @SEC)
 		Return SetError(4, 0, 0)
 	EndIf
 
@@ -1427,12 +1432,15 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	Local $bAnyLocate = _CSVHasAnyLocateFlag($iMode, $g_iSearchTH)
 	If Not $bAnyLocate Then
 		CSV_LogTiming("precache skipped", "no locate flags")
+		$g_iCSVLastPrecalcMs = Round(__timerdiff($hPrecacheTimer))
+		$g_sCSVLastPrecalcTime = @YEAR & "-" & StringFormat("%02d", @MON) & "-" & StringFormat("%02d", @MDAY) & " " & _
+				StringFormat("%02d", @HOUR) & ":" & StringFormat("%02d", @MIN) & ":" & StringFormat("%02d", @SEC)
 		Return 1
 	EndIf
 
 	CSV_LogTiming("capture", "precache search")
 	_CaptureRegion2()
-	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, $bForceRescan)
+	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, $bForceRescanLocal)
 	$g_bCSVPrecacheDone[$iMode] = True
 
 	If _ObjSearch($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION") Then
@@ -1452,6 +1460,9 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	EndIf
 
 	CSV_LogTiming("precache done", "mode=" & $g_asModeText[$iMode])
+	$g_iCSVLastPrecalcMs = Round(__timerdiff($hPrecacheTimer))
+	$g_sCSVLastPrecalcTime = @YEAR & "-" & StringFormat("%02d", @MON) & "-" & StringFormat("%02d", @MDAY) & " " & _
+			StringFormat("%02d", @HOUR) & ":" & StringFormat("%02d", @MIN) & ":" & StringFormat("%02d", @SEC)
 	Return 1
 EndFunc   ;==>AttackCSV_PrecacheBuildingsFromSearch
 

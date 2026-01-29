@@ -48,10 +48,18 @@ Global $g_hBtnCSVSideZero = 0, $g_hBtnCSVSideEqual = 0, $g_hBtnCSVSideBZero = 0,
 Global $g_hCmbCSVFlexTroop = 0, $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0], $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
 Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0, $g_hTxtCSVCCRequest = 0, $g_hBtnCSVSettingsApply = 0
 Global $g_hLblCSVSettingsScript = 0, $g_hLblCSVSettingsPath = 0, $g_hLblCSVSettingsLoaded = 0, $g_hLblCSVSettingsVersion = 0, $g_hLblCSVSettingsDirty = 0
-Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsUpgrade = 0, $g_hBtnCSVSettingsTestDB = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsDebugLocate = 0
+Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsUpgrade = 0, $g_hBtnCSVSettingsTestDB = 0, $g_hBtnCSVSettingsTestDry = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsDebugLocate = 0
 Global $g_hLblCSVVectorEditInfo = 0, $g_hTxtCSVVectorRow = 0
 Global $g_hLblCSVSidePreview = 0
 Global $g_hBtnAttackCSVSettingsCloseTop = 0
+Global $g_hRadCSVPrecacheConservative = 0, $g_hRadCSVPrecacheAggressive = 0
+Global $g_hLblCSVPrecacheBudget = 0, $g_hLblCSVPrecacheLast = 0
+Global $g_hBtnCSVRebuildPrecalc = 0
+Global $g_hTxtCSVPrecalcStatus = 0
+Global $g_hTxtCSVPrioPreview = 0
+Global $g_hTxtCSVDiagnostics = 0, $g_hBtnCSVRefreshDiagnostics = 0
+Global $g_hChkCSVDbgSetlog = 0, $g_hChkCSVDbgClick = 0, $g_hChkCSVDbgRedArea = 0, $g_hChkCSVDbgOcr = 0, $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0
+Global $g_hLblCSVDbgSummary = 0, $g_hTxtCSVDebugLines = 0
 
 Func CreateAttackTab()
 	$g_hGUI_ATTACK = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $_GUI_CHILD_LEFT, $_GUI_CHILD_TOP, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hFrmBotEx)
@@ -190,9 +198,12 @@ Func CreateAttackCSVSettingsGUI()
 	$g_hBtnCSVSettingsDebugLocate = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_DebugLocate", "Debug Locate"), $iHeaderBtnDebugX, $iHeaderBtnY, $iHeaderBtnDebugW, $iHeaderBtnH)
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_DebugLocate_Info", "Run a CSV locate/building debug pass on the current base."))
 		GUICtrlSetOnEvent(-1, "debugCSVLocateBuildings")
-	$g_hBtnCSVSettingsTestDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDB", "Test DB"), $iHeaderBtnDebugX + $iHeaderBtnDebugW + $iHeaderBtnGap, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
-		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDB_Info", "Run a manual DB test attack using the selected Dead Base script (target must be selected)."))
-		GUICtrlSetOnEvent(-1, "AttackCSVSettings_AttackNowDB")
+	$g_hBtnCSVSettingsTestDB = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestLive", "Test Live"), $iHeaderBtnDebugX + $iHeaderBtnDebugW + $iHeaderBtnGap, $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
+		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestLive_Info", "Run a live test attack using the selected CSV script (target must be selected)."))
+		GUICtrlSetOnEvent(-1, "AttackCSVSettings_TestAttackLive")
+	$g_hBtnCSVSettingsTestDry = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDry", "Test Dry"), $iHeaderBtnDebugX + (($iHeaderBtnDebugW + $iHeaderBtnGap) * 2), $iHeaderBtnY, $iHeaderBtnW, $iHeaderBtnH)
+		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_TestDry_Info", "Run a dry CSV test (parse + precalc only). No live actions."))
+		GUICtrlSetOnEvent(-1, "AttackCSVSettings_TestAttackDry")
 	$g_hLblCSVSettingsScript = GUICtrlCreateLabel("Script: -", $iHeaderX, $iHeaderLabelY, $iHeaderLabelW, 16)
 	$g_hLblCSVSettingsPath = GUICtrlCreateLabel("Path: -", $iHeaderX, $iHeaderLabelY + $iHeaderLineGap, $iHeaderLabelW, 16)
 	$g_hLblCSVSettingsLoaded = GUICtrlCreateLabel("Loaded: -", $iHeaderX, $iHeaderLabelY + ($iHeaderLineGap * 2), 200, 16)
@@ -342,6 +353,13 @@ Func CreateAttackCSVSettingsGUI()
 		$g_hTxtCSVVectorRow = GUICtrlCreateInput("", $x + 70, $y + 78, $iTabInnerW - 90, 20, BitOR($ES_READONLY, $ES_AUTOHSCROLL))
 			GUICtrlSetState(-1, $GUI_ENABLE)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Txt_AttackCSVSettings_VectorRow_Info", "Raw MAKE line from CSV (read-only)."))
+		Local $iPrioGroupY = $y + 115
+		Local $iPrioGroupH = 120
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_PrioPreview", "PRIO preview (top 3 per side)"), $iGroupLeft, $iPrioGroupY, $iTabInnerW, $iPrioGroupH)
+			$g_hTxtCSVPrioPreview = GUICtrlCreateEdit("", $iGroupLeft + 10, $iPrioGroupY + 20, $iTabInnerW - 20, $iPrioGroupH - 30, BitOR($ES_READONLY, $WS_VSCROLL))
+				GUICtrlSetState(-1, $GUI_ENABLE)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Txt_AttackCSVSettings_PrioPreview_Info", "Shows current PRIO targets (weight/dist) using cached locate data."))
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	; ---- Tab 3: Drops & Wait ----
@@ -491,6 +509,85 @@ Func CreateAttackCSVSettingsGUI()
 			$g_hLblCSVSidePreview = GUICtrlCreateEdit($sPreview, $x + 5, $y, $iTabInnerW - 25, 210, BitOR($ES_MULTILINE, $WS_VSCROLL))
 				GUICtrlSetState(-1, $GUI_DISABLE)
 				GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_Preview", "Reference for MAKE/DROP vector names derived from MAINSIDE/forced side."), $x + 5, $y + 215, $iTabInnerW - 30, 18)
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	; ---- Tab 6: PRIO & Precalc ----
+	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Prio", "Prio"))
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iPrioSettingsW = $iTabInnerW
+		Local $iPrioSettingsH = 120
+		Local $iPrioSettingsX = $iGroupLeft
+		Local $iPrioSettingsY = $y - 20
+		Local $iPrioX = $iPrioSettingsX + 10
+		Local $iPrioY = $iPrioSettingsY + 20
+
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_PrioSettings", "PRIO settings"), $iPrioSettingsX, $iPrioSettingsY, $iPrioSettingsW, $iPrioSettingsH)
+			GUICtrlCreateLabel("Precache mode", $iPrioX, $iPrioY, 90, 18)
+			$g_hRadCSVPrecacheConservative = GUICtrlCreateRadio("Conservative", $iPrioX + 100, $iPrioY - 2, 110, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_SetPrecacheMode")
+			$g_hRadCSVPrecacheAggressive = GUICtrlCreateRadio("Aggressive", $iPrioX + 220, $iPrioY - 2, 100, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_SetPrecacheMode")
+			$g_hLblCSVPrecacheBudget = GUICtrlCreateLabel("Precalc budget: -", $iPrioX, $iPrioY + 30, 200, 18)
+			$g_hLblCSVPrecacheLast = GUICtrlCreateLabel("Last precalc: -", $iPrioX, $iPrioY + 50, $iTabInnerW - 40, 18)
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+		Local $iStatusGroupH = 200
+		Local $iStatusGroupY = $iPrioSettingsY + $iPrioSettingsH + $iGroupGap
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_PrecalcStatus", "CSV precalc status"), $iPrioSettingsX, $iStatusGroupY, $iPrioSettingsW, $iStatusGroupH)
+			Local $iStatusBtnW = 130
+			$g_hBtnCSVRebuildPrecalc = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_RebuildPrecalc", "Rebuild Precalc"), $iPrioSettingsX + $iPrioSettingsW - $iStatusBtnW - 10, $iStatusGroupY + 18, $iStatusBtnW, 22)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_RebuildPrecalc_Info", "Force PrepareAttackCSV(..., True) and update status/diagnostics."))
+				GUICtrlSetOnEvent(-1, "AttackCSVSettings_RebuildPrecalc")
+			$g_hTxtCSVPrecalcStatus = GUICtrlCreateEdit("", $iPrioSettingsX + 10, $iStatusGroupY + 45, $iPrioSettingsW - 20, $iStatusGroupH - 55, BitOR($ES_READONLY, $WS_VSCROLL))
+				GUICtrlSetState(-1, $GUI_ENABLE)
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	; ---- Tab 7: Diagnostics ----
+	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Diagnostics", "Diagnostics"))
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iDiagGroupX = $iGroupLeft
+		Local $iDiagGroupY = $y - 20
+		Local $iDiagGroupW = $iTabInnerW
+		Local $iDiagGroupH = 300
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_Diagnostics", "CSV diagnostics"), $iDiagGroupX, $iDiagGroupY, $iDiagGroupW, $iDiagGroupH)
+			$g_hBtnCSVRefreshDiagnostics = GUICtrlCreateButton(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Btn_AttackCSVSettings_RefreshDiag", "Refresh"), $iDiagGroupX + $iDiagGroupW - 90, $iDiagGroupY + 18, 80, 22)
+				GUICtrlSetOnEvent(-1, "AttackCSVSettings_UpdateDiagnostics")
+			$g_hTxtCSVDiagnostics = GUICtrlCreateEdit("", $iDiagGroupX + 10, $iDiagGroupY + 45, $iDiagGroupW - 20, $iDiagGroupH - 55, BitOR($ES_READONLY, $WS_VSCROLL))
+				GUICtrlSetState(-1, $GUI_ENABLE)
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	; ---- Tab 8: Debug ----
+	GUICtrlCreateTabItem(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Tab_AttackCSVSettings_Debug", "Debug"))
+		$x = $iTabLeft
+		$y = $iTabTop
+		Local $iDbgGroupX = $iGroupLeft
+		Local $iDbgGroupY = $y - 20
+		Local $iDbgGroupW = $iTabInnerW
+		Local $iDbgGroupH = 140
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_DebugFlags", "Debug flags"), $iDbgGroupX, $iDbgGroupY, $iDbgGroupW, $iDbgGroupH)
+			Local $iDbgX = $iDbgGroupX + 10
+			Local $iDbgY = $iDbgGroupY + 20
+			$g_hChkCSVDbgSetlog = GUICtrlCreateCheckbox("Log", $iDbgX, $iDbgY, 120, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgClick = GUICtrlCreateCheckbox("Click", $iDbgX + 140, $iDbgY, 120, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgRedArea = GUICtrlCreateCheckbox("RedArea", $iDbgX + 280, $iDbgY, 140, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgOcr = GUICtrlCreateCheckbox("OCR", $iDbgX + 440, $iDbgY, 120, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgAttackCSV = GUICtrlCreateCheckbox("AttackCSV", $iDbgX, $iDbgY + 25, 140, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgMakeImg = GUICtrlCreateCheckbox("Make IMG CSV", $iDbgX + 160, $iDbgY + 25, 150, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hLblCSVDbgSummary = GUICtrlCreateLabel("Debug summary: -", $iDbgX, $iDbgY + 55, $iDbgGroupW - 30, 18)
+		GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+		Local $iDbgLinesY = $iDbgGroupY + $iDbgGroupH + $iGroupGap
+		GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Group_AttackCSVSettings_DebugLines", "Diagnostics tail"), $iDbgGroupX, $iDbgLinesY, $iDbgGroupW, 150)
+			$g_hTxtCSVDebugLines = GUICtrlCreateEdit("", $iDbgGroupX + 10, $iDbgLinesY + 20, $iDbgGroupW - 20, 120, BitOR($ES_READONLY, $WS_VSCROLL))
+				GUICtrlSetState(-1, $GUI_ENABLE)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	GUICtrlCreateTabItem("")
