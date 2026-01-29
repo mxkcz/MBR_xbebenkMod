@@ -1,22 +1,25 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: GetAttackBar
-; Description ...: Detects Army in the Attackbar and Returns Name, Slot, Amount and X Coordinate
+; Description ...: Detects army in the attack bar and returns slot data (index, slot, amount, coords).
 ; Syntax ........: GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 ; Parameters ....: $bRemaining (First Check or for Remaining Troops), $pMatchMode (Attackmode that needs the Attackbar: $DB, $AB), $bDebug (Debug GetAttackbar)
 ; Return values .:
 ; Author ........: Trlopes (06-2016)
-; Modified ......: ProMac (12-2016), Fliegerfaust(12-2018)
-; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
-;                  MyBot is distributed under the terms of the GNU GPL
+; Modified ......: ProMac (12-2016), Fliegerfaust(12-2018), mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
-; ===============================================================================================================================
+; =====================================================================================================================
 Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	Local Static $aAttackBar[0][8]
+	Local Static $aSlotMap[0][3]
 	Local Static $bDoubleRow = False, $bCheckSlot12 = False
 	Local $sSearchDiamond = GetDiamondFromRect("0, 580, " & $g_iGAME_WIDTH & ", 660")
 	Local $iYBelowRowOne = 630, $aiOCRLocation[2] = [-1, -1], $aSlotAmountX[0][3]
+	Local $aEmptyUnknown[0][6]
+	$g_avAttackUnknownSlots = $aEmptyUnknown
 
 	If $g_bDraggedAttackBar Then DragAttackBar($g_iTotalAttackSlot, True)
 
@@ -84,9 +87,25 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 		_ArraySort($aSlotAmountX)
 		If $bDoubleRow Then $aSlotAmountX = SortDoubleRowXElements($aSlotAmountX)
 
+		Local Const $iSlotSpacing = 73
+		Local $iInsertedSlots = 0
+		Local $iAmountXSlots = UBound($aSlotAmountX, 1)
+		Local $aNormalizedSlots = BuildAttackBarSlotMap($aSlotAmountX, $bDoubleRow, $iSlotSpacing, $iInsertedSlots)
+		If IsArray($aNormalizedSlots) And UBound($aNormalizedSlots, 1) > 0 Then $aSlotAmountX = $aNormalizedSlots
+		$aSlotMap = $aSlotAmountX
+		If $g_bDebugSetlog Then SetDebugLog("GetAttackBar(): Slots=" & UBound($aSlotAmountX, 1) & ", AmountX=" & $iAmountXSlots & ", Inserted=" & $iInsertedSlots, $COLOR_DEBUG)
+
 		SetDebugLog("GetAttackBar(): Finished Image Search in: " & StringFormat("%.2f", __TimerDiff($iAttackbarStart)) & " ms")
 		$iAttackbarStart = __TimerInit()
 
+	EndIf
+
+	If $bRemaining And UBound($aSlotAmountX, 1) = 0 And UBound($aSlotMap, 1) > 0 Then
+		$aSlotAmountX = $aSlotMap
+	EndIf
+
+	If $bRemaining And UBound($aSlotAmountX, 1) = 0 And UBound($aSlotMap, 1) > 0 Then
+		$aSlotAmountX = $aSlotMap
 	EndIf
 
 	#comments-start
@@ -104,6 +123,9 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	Local $aFinalAttackBar[0][7]
 	Local $aiOCRY = [-1, -1]
 	If Not $bRemaining Then $aiOCRY = GetOCRYLocation($aSlotAmountX)
+	Local $iSlotCount = UBound($aSlotAmountX, 1)
+	Local $aSlotSeen[0]
+	If $iSlotCount > 0 Then ReDim $aSlotSeen[$iSlotCount]
 	Local $sKeepRemainTroops = "(King)|(Queen)|(Warden)|(Champion)|(Prince)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)"
 	Local $sKeepSieges = "(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)"
 
@@ -116,7 +138,13 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 			If $bRemaining Then
 				$aTroopIsDeployed[0] = $aAttackBar[$i][5] - 15
 				$aTroopIsDeployed[1] = $aAttackBar[$i][6]
-				If _CheckPixel($aTroopIsDeployed, True) Then
+				Local $bDeployed = _CheckPixel($aTroopIsDeployed, True)
+				If Not $bDeployed And StringRegExp($aAttackBar[$i][0], "(Castle)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)", 0) Then
+					$aTroopIsDeployed[0] = $aAttackBar[$i][1]
+					$aTroopIsDeployed[1] = $aAttackBar[$i][2]
+					$bDeployed = _CheckPixel($aTroopIsDeployed, True)
+				EndIf
+				If $bDeployed Then
 					; Troop got deployed already
 					$bRemoved = True
 					$aAttackBar[$i][4] = 0 ; set available troops to 0
@@ -156,21 +184,35 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 					If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
 				EndIf
 			EndIf
+			Local $iSlotIndex = $aAttackBar[$i][3]
+			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount Then
+				If $aSlotSeen[$iSlotIndex] Then
+					SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0], $COLOR_WARNING)
+					ContinueLoop
+				EndIf
+				$aSlotSeen[$iSlotIndex] = 1
+			EndIf
 			; 0: Index, 1: Slot, 2: Amount, 3: X-Coord, 4: Y-Coord, 5: OCR X-Coord, 6: OCR Y-Coord
 			Local $aTempFinalArray[1][7] = [[TroopIndexLookup($aAttackBar[$i][0]), $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
 			_ArrayAdd($aFinalAttackBar, $aTempFinalArray)
 		EndIf
 	Next
 
+	RecordUnknownSlots($aFinalAttackBar, $aSlotAmountX, $bRemaining, 0, "page1")
+
+	Local $iTotalSlots = $iSlotCount
 	; Drag left & checking extended troops from Slot11+ ONLY if not a smart attack
 	If ($pMatchMode <= $LB And $bCheckSlot12 And Not $bDoubleRow And UBound($aAttackBar) > 1 And $g_aiAttackAlgorithm[$pMatchMode] <> 2) Or ($bDebug And $bCheckSlot12) Then
 		DragAttackBar()
-		Local $aExtendedArray = ExtendedAttackBarCheck($aAttackBar, $bRemaining, $sSearchDiamond)
+		Local $iExtendedSlotCount = 0
+		Local $aExtendedArray = ExtendedAttackBarCheck($aAttackBar, $bRemaining, $sSearchDiamond, $iExtendedSlotCount)
 		_ArrayAdd($aFinalAttackBar, $aExtendedArray)
-		If Not $bRemaining Then
-			$g_iTotalAttackSlot = UBound($aFinalAttackBar, 1) - 1
-			DragAttackBar($g_iTotalAttackSlot, True) ; return drag
-		EndIf
+		If $iExtendedSlotCount > $iTotalSlots Then $iTotalSlots = $iExtendedSlotCount
+	EndIf
+
+	If Not $bRemaining And $iTotalSlots > 0 Then
+		$g_iTotalAttackSlot = $iTotalSlots - 1
+		If $g_bDraggedAttackBar Then DragAttackBar($g_iTotalAttackSlot, True) ; return drag
 	EndIf
 
 	_ArraySort($aFinalAttackBar, 0, 0, 0, 1) ; Sort Final Array by Slot Number
@@ -178,9 +220,24 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 
 EndFunc   ;==>GetBarCheck
 
-Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond)
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ExtendedAttackBarCheck
+; Description ...: Detects extended attack bar slots after drag and returns slot data.
+; Syntax ........: ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond, ByRef $iTotalSlots)
+; Parameters ....: $aAttackBarFirstSearch, $bRemaining, $sSearchDiamond, $iTotalSlots (out)
+; Return values .: Array of slot data
+; Author ........:
+; Modified ......: mxkcz
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond, ByRef $iTotalSlots)
 
 	Local Static $aAttackBar[0][8]
+	Local Static $aSlotMap[0][3]
 	Local $iLastSlotNumber = _ArrayMax($aAttackBarFirstSearch, 0, -1, -1, 3)
 	Local $sLastTroopName = $aAttackBarFirstSearch[_ArrayMaxIndex($aAttackBarFirstSearch, 0, -1, -1, 1)][0], $aiOCRLocation[2] = [-1, -1]
 	Local $aSlotAmountX[0][3]
@@ -233,6 +290,14 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 		_ArraySort($aAttackBar, 0, 0, 0, 1)
 		_ArraySort($aSlotAmountX)
 
+		Local Const $iSlotSpacing = 73
+		Local $iInsertedSlots = 0
+		Local $iAmountXSlots = UBound($aSlotAmountX, 1)
+		Local $aNormalizedSlots = BuildAttackBarSlotMap($aSlotAmountX, False, $iSlotSpacing, $iInsertedSlots)
+		If IsArray($aNormalizedSlots) And UBound($aNormalizedSlots, 1) > 0 Then $aSlotAmountX = $aNormalizedSlots
+		$aSlotMap = $aSlotAmountX
+		If $g_bDebugSetlog Then SetDebugLog("AttackBarCheck(): Slots=" & UBound($aSlotAmountX, 1) & ", AmountX=" & $iAmountXSlots & ", Inserted=" & $iInsertedSlots, $COLOR_DEBUG)
+
 		SetDebugLog("AttackBarCheck(): Finished Image Search in: " & StringFormat("%.2f", __TimerDiff($iAttackbarStart)) & " ms")
 		$iAttackbarStart = __TimerInit()
 	EndIf
@@ -258,7 +323,12 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 		Local $iLastTroopIndex = _ArraySearch($aAttackBar, $sLastTroopName, 0, 0, 0, 0, 1, 0) + 1
 		$aAttackBar = _ArrayExtract($aAttackBar, $iLastTroopIndex)
 		$aSlotAmountX = _ArrayExtract($aSlotAmountX, $iLastTroopIndex)
+		If UBound($aSlotAmountX, 1) > 0 Then $aSlotMap = $aSlotAmountX
 	EndIf
+
+	Local $iSlotCount = UBound($aSlotAmountX, 1)
+	Local $aSlotSeen[0]
+	If $iSlotCount > 0 Then ReDim $aSlotSeen[$iSlotCount]
 
 	For $i = 0 To UBound($aAttackBar, 1) - 1
 		If $aAttackBar[$i][1] > 0 Then
@@ -269,7 +339,13 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 			If $bRemaining Then
 				$aTroopIsDeployed[0] = $aAttackBar[$i][5] - 15
 				$aTroopIsDeployed[1] = $aAttackBar[$i][6]
-				If _CheckPixel($aTroopIsDeployed, True) Then
+				Local $bDeployed = _CheckPixel($aTroopIsDeployed, True)
+				If Not $bDeployed And StringRegExp($aAttackBar[$i][0], "(Castle)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)", 0) Then
+					$aTroopIsDeployed[0] = $aAttackBar[$i][1]
+					$aTroopIsDeployed[1] = $aAttackBar[$i][2]
+					$bDeployed = _CheckPixel($aTroopIsDeployed, True)
+				EndIf
+				If $bDeployed Then
 					; Troop got deployed already
 					$bRemoved = True
 					$aAttackBar[$i][4] = 0 ; set available troops to 0
@@ -304,11 +380,26 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 					If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
 				EndIf
 			EndIf
+			Local $iSlotIndex = $aAttackBar[$i][3]
+			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount + $iLastSlotNumber + 1 Then
+				Local $iLocalSlot = $iSlotIndex - ($iLastSlotNumber + 1)
+				If $iLocalSlot >= 0 And $iLocalSlot < $iSlotCount Then
+					If $aSlotSeen[$iLocalSlot] Then
+						SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0], $COLOR_WARNING)
+						ContinueLoop
+					EndIf
+					$aSlotSeen[$iLocalSlot] = 1
+				EndIf
+			EndIf
 			; 0: Index, 1: Slot, 2: Amount, 3: X-Coord, 4: Y-Coord, 5: OCR X-Coord, 6: OCR Y-Coord
 			Local $aTempFinalArray[1][7] = [[TroopIndexLookup($aAttackBar[$i][0]), $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
 			_ArrayAdd($aFinalAttackBar, $aTempFinalArray)
 		EndIf
 	Next
+
+	RecordUnknownSlots($aFinalAttackBar, $aSlotAmountX, $bRemaining, $iLastSlotNumber + 1, "page2")
+
+	If $iSlotCount > 0 Then $iTotalSlots = $iLastSlotNumber + 1 + $iSlotCount
 
 	_ArraySort($aFinalAttackBar, 0, 0, 0, 1) ; Sort Final Array by Slot Number
 
@@ -358,6 +449,145 @@ Func SortDoubleRowXElements($aArray)
 
 	Return $aNewSlotAmountX
 EndFunc   ;==>SortDoubleRowXElements
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: BuildAttackBarSlotMap
+; Description ...: Normalizes attack bar slot map by filling gaps based on expected spacing.
+; Syntax ........: BuildAttackBarSlotMap($aSlotAmountX, $bDoubleRow, $iSlotSpacing, ByRef $iInserted)
+; Parameters ....: $aSlotAmountX, $bDoubleRow, $iSlotSpacing, $iInserted (out)
+; Return values .: Normalized slot map array
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func BuildAttackBarSlotMap(ByRef $aSlotAmountX, $bDoubleRow, $iSlotSpacing, ByRef $iInserted)
+	$iInserted = 0
+	If UBound($aSlotAmountX, 0) <> 2 Or UBound($aSlotAmountX, 1) = 0 Then Return $aSlotAmountX
+
+	Local $aRow1[0][3], $aRow2[0][3]
+	For $i = 0 To UBound($aSlotAmountX, 1) - 1
+		If $aSlotAmountX[$i][2] = 2 Then
+			Local $aTempRow[1][3] = [[$aSlotAmountX[$i][0], $aSlotAmountX[$i][1], $aSlotAmountX[$i][2]]]
+			_ArrayAdd($aRow2, $aTempRow)
+		Else
+			Local $aTempRow[1][3] = [[$aSlotAmountX[$i][0], $aSlotAmountX[$i][1], $aSlotAmountX[$i][2]]]
+			_ArrayAdd($aRow1, $aTempRow)
+		EndIf
+	Next
+
+	If UBound($aRow1, 1) > 0 Then _ArraySort($aRow1, 0, 0, 0, 0)
+	If UBound($aRow2, 1) > 0 Then _ArraySort($aRow2, 0, 0, 0, 0)
+
+	Local $aFilled[0][3]
+	Local $aFilledRow1 = _FillAttackBarSlotRow($aRow1, $iSlotSpacing, $iInserted)
+	If IsArray($aFilledRow1) And UBound($aFilledRow1, 1) > 0 Then _ArrayAdd($aFilled, $aFilledRow1)
+	If $bDoubleRow Then
+		Local $aFilledRow2 = _FillAttackBarSlotRow($aRow2, $iSlotSpacing, $iInserted)
+		If IsArray($aFilledRow2) And UBound($aFilledRow2, 1) > 0 Then _ArrayAdd($aFilled, $aFilledRow2)
+	EndIf
+
+	Return $aFilled
+EndFunc   ;==>BuildAttackBarSlotMap
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _FillAttackBarSlotRow
+; Description ...: Inserts missing slots in a single row based on spacing.
+; Syntax ........: _FillAttackBarSlotRow($aRow, $iSlotSpacing, ByRef $iInserted)
+; Parameters ....: $aRow, $iSlotSpacing, $iInserted (in/out)
+; Return values .: Row with inserted slots
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _FillAttackBarSlotRow(ByRef $aRow, $iSlotSpacing, ByRef $iInserted)
+	Local $aFilled[0][3]
+	If UBound($aRow, 0) <> 2 Or UBound($aRow, 1) = 0 Then Return $aFilled
+
+	For $i = 0 To UBound($aRow, 1) - 1
+		Local $aTempRow[1][3] = [[$aRow[$i][0], $aRow[$i][1], $aRow[$i][2]]]
+		_ArrayAdd($aFilled, $aTempRow)
+		If $i >= UBound($aRow, 1) - 1 Then ContinueLoop
+
+		Local $iDeltaX = $aRow[$i + 1][0] - $aRow[$i][0]
+		Local $iSteps = Int((($iDeltaX + ($iSlotSpacing / 2)) / $iSlotSpacing))
+		If $iSteps > 1 Then
+			For $k = 1 To $iSteps - 1
+				Local $iInsertX = $aRow[$i][0] + ($iSlotSpacing * $k)
+				Local $aMissing[1][3] = [[$iInsertX, $aRow[$i][1], $aRow[$i][2]]]
+				_ArrayAdd($aFilled, $aMissing)
+				$iInserted += 1
+			Next
+		EndIf
+	Next
+
+	Return $aFilled
+EndFunc   ;==>_FillAttackBarSlotRow
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: RecordUnknownSlots
+; Description ...: Tracks slots without detected troop icons and records counts for REMAIN drops.
+; Syntax ........: RecordUnknownSlots($aFinalAttackBar, $aSlotAmountX, $bRemaining, $iSlotOffset = 0, $sContext = "")
+; Parameters ....: $aFinalAttackBar, $aSlotAmountX, $bRemaining, $iSlotOffset, $sContext
+; Return values .: Number of unknown slots detected
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func RecordUnknownSlots(ByRef $aFinalAttackBar, ByRef $aSlotAmountX, $bRemaining, $iSlotOffset = 0, $sContext = "")
+	If UBound($aSlotAmountX, 0) <> 2 Or UBound($aSlotAmountX, 1) = 0 Then Return 0
+
+	Local Const $iOcrEdgeGuard = 60
+	Local Const $iOcrEdgeX = 53
+	Local Const $iOcrXOffset = 15
+	Local Const $iOcrYOffset = 7
+	Local Const $iClickXOffset = 10
+	Local Const $iClickYOffset = 22
+
+	Local $iSlotCount = UBound($aSlotAmountX, 1)
+	Local $aUsed[$iSlotCount]
+	For $i = 0 To UBound($aFinalAttackBar, 1) - 1
+		If $aFinalAttackBar[$i][0] >= 0 Then
+			Local $iSlot = $aFinalAttackBar[$i][1] - $iSlotOffset
+			If $iSlot >= 0 And $iSlot < $iSlotCount Then $aUsed[$iSlot] = 1
+		EndIf
+	Next
+
+	Local $iUnknown = 0
+	For $i = 0 To $iSlotCount - 1
+		If $aUsed[$i] Then ContinueLoop
+		$iUnknown += 1
+		If $bRemaining Then
+			Local $iSlotIndex = $i + $iSlotOffset
+			Local $iX = $aSlotAmountX[$i][0]
+			Local $iY = $aSlotAmountX[$i][1]
+			Local $iOcrX = ($i = $iSlotCount - 1 And $iX >= ($g_iGAME_WIDTH - $iOcrEdgeGuard)) ? $g_iGAME_WIDTH - $iOcrEdgeX : $iX - $iOcrXOffset
+			Local $iOcrY = $iY - $iOcrYOffset
+			Local $iCount = Number(getTroopCount($iOcrX, $iOcrY))
+			If $iCount > 0 Then
+				Local $iClickX = $iX - $iClickXOffset
+				Local $iClickY = $iY + $iClickYOffset
+				Local $aUnknown[1][6] = [[$iSlotIndex, $iClickX, $iClickY, $iOcrX, $iOcrY, $iCount]]
+				_ArrayAdd($g_avAttackUnknownSlots, $aUnknown)
+				If $g_bDebugSetlog Then SetDebugLog("Unknown slot " & $iSlotIndex & " x" & $iCount & " (" & $sContext & ")", $COLOR_DEBUG)
+			EndIf
+		EndIf
+	Next
+	If $g_bDebugSetlog Then SetDebugLog("GetAttackBar(): Unknown slots(" & $sContext & ")=" & $iUnknown, $COLOR_DEBUG)
+
+	Return $iUnknown
+EndFunc   ;==>RecordUnknownSlots
 
 Func DragAttackBar($iTotalSlot = 20, $bBack = False)
 	If $g_iTotalAttackSlot > 10 Then $iTotalSlot = $g_iTotalAttackSlot

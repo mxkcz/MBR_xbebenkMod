@@ -1,18 +1,18 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: PrepareAttack
-; Description ...: Checks the troops when in battle, checks for type, slot, and quantity.  Saved in $g_avAttackTroops[SLOT][TYPE/QUANTITY] variable
+; Description ...: Checks troops during battle and populates $g_avAttackTroops slot data.
 ; Syntax ........: PrepareAttack($pMatchMode[, $Remaining = False])
-; Parameters ....: $pMatchMode          - a pointer value.
-;                  $Remaining           - [optional] Flag for when checking remaining troops. Default is False.
+; Parameters ....: $pMatchMode - match mode pointer value.
+;                  $Remaining  - [optional] Flag for remaining troop check. Default is False.
 ; Return values .: None
 ; Author ........:
-; Modified ......:
-; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
-;                  MyBot is distributed under the terms of the GNU GPL
+; Modified ......: mxkcz
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
-; Link ..........: https://github.com/MyBotRun/MyBot/wiki
-; Example .......: No
-; ===============================================================================================================================
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 	
 	If ($pMatchMode = $DB And $g_aiAttackAlgorithm[$DB] = 1) Or ($pMatchMode = $LB And $g_aiAttackAlgorithm[$LB] = 1) Then
@@ -151,6 +151,15 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 		EndIf
 	Next
 	If Not $bRemaining Then SetSlotSpecialTroops()
+
+	If $bRemaining And $g_bDebugSetlog Then
+		For $i = 0 To UBound($g_avAttackTroops, 1) - 1
+			If $g_avAttackTroops[$i][0] = -1 And $g_avAttackTroops[$i][1] <= 0 Then ContinueLoop
+			SetDebugLog("Remain Slot[" & $i & "] idx=" & $g_avAttackTroops[$i][0] & _
+					" qty=" & $g_avAttackTroops[$i][1] & _
+					" ocr=(" & $g_avAttackTroops[$i][4] & "," & $g_avAttackTroops[$i][5] & ")", $COLOR_DEBUG)
+		Next
+	EndIf
 
 	Return $iTroopNumber
 EndFunc   ;==>PrepareAttack

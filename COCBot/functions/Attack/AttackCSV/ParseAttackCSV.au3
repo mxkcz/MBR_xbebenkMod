@@ -1,17 +1,17 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: ParseAttackCSV
-; Description ...:
+; Description ...: Executes CSV attack script commands.
 ; Syntax ........: ParseAttackCSV([$debug = False])
-; Parameters ....: $debug               - [optional]
+; Parameters ....: $debug - [optional]
 ; Return values .: None
 ; Author ........: Sardo (2016)
-; Modified ......: MMHK (07/2017)(01/2018), TripleM (03/2019)
-; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
-;                  MyBot is distributed under the terms of the GNU GPL
+; Modified ......: MMHK (07/2017)(01/2018), TripleM (03/2019), mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
-; Link ..........: https://github.com/MyBotRun/MyBot/wiki
-; Example .......: No
-; ===============================================================================================================================
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func ParseAttackCSV($debug = False)
 
 	Local $bForceSideExist = False
@@ -451,10 +451,12 @@ Func ParseAttackCSV($debug = False)
 								SetLog("Drop|Remain: Dropping left over troops" & $sRemainNote, $COLOR_BLUE)
 								If $sUnknownRemainFlags <> "" Then SetLog("Drop|Remain: Unknown flags [" & $sUnknownRemainFlags & "]", $COLOR_WARNING)
 								Local $aRemainBackup = $g_avAttackTroops
+								Local $aUnknownBackup = $g_avAttackUnknownSlots
 								Local $iRemainTroops = PrepareAttack($g_iMatchMode, True)
 								If $iRemainTroops <= 0 Then
 									SetLog("Drop|Remain: attack bar refresh failed, using cached troop data", $COLOR_WARNING)
 									$g_avAttackTroops = $aRemainBackup
+									$g_avAttackUnknownSlots = $aUnknownBackup
 								Else
 									Local $iRestored = AttackCSV_MergeRemainTroops($g_avAttackTroops, $aRemainBackup)
 									If $iRestored > 0 Then SetLog("Drop|Remain: restored " & $iRestored & " cached troop slots", $COLOR_WARNING)
@@ -468,10 +470,16 @@ Func ParseAttackCSV($debug = False)
 									Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
 									If $sShortName = "" Then ContinueLoop
 									Local $name = GetTroopName($iTroopIndex, $iTroopCount)
+									Local $iOverDrop = 0
+									If $iTroopIndex >= $eBarb And $iTroopIndex <= $eIWiza Then
+										$iOverDrop = ($iTroopCount >= 10) ? 2 : 1
+									EndIf
 									Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
-									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, False)
+									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, False, $iOverDrop, True)
 									If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
 								Next
+
+								AttackCSV_DropUnknownSlots($value1, $index1, $index2, $indexArray, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, $bIncludeSpells)
 							Else
 								DropTroopFromINI($value1, $index1, $index2, $indexArray, $qty1, $qty2, $value4, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
 							EndIf
@@ -768,6 +776,45 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	EndIf
 	Return ""
 EndFunc   ;==>AttackCSV_GetRemainTroopShortName
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_DropUnknownSlots
+; Description ...: Drops remaining troops from unknown/misread slots during REMAIN.
+; Syntax ........: AttackCSV_DropUnknownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax[, $bDebug = False[, $bIncludeSpells = False]])
+; Parameters ....: $sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, $bIncludeSpells
+; Return values .: Number of unknown slots dropped
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_DropUnknownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug = False, $bIncludeSpells = False)
+	If Not IsArray($g_avAttackUnknownSlots) Or UBound($g_avAttackUnknownSlots, 1) = 0 Then Return 0
+
+	Local $iDropped = 0
+	For $i = 0 To UBound($g_avAttackUnknownSlots, 1) - 1
+		Local $iSlotIndex = $g_avAttackUnknownSlots[$i][0]
+		Local $iClickX = $g_avAttackUnknownSlots[$i][1]
+		Local $iClickY = $g_avAttackUnknownSlots[$i][2]
+		Local $iCount = $g_avAttackUnknownSlots[$i][5]
+		If $iCount <= 0 Then ContinueLoop
+
+		Local $iOverDrop = 0
+		If Not $bIncludeSpells Then
+			$iOverDrop = ($iCount >= 10) ? 2 : 1
+		EndIf
+		Local $iDropCount = $iCount + $iOverDrop
+		SetLog("Drop Remaining Unknown slot[" & $iSlotIndex & "] x" & $iDropCount, $COLOR_DEBUG)
+		DropTroopFromSlot($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $iDropCount, $iDropCount, $iSlotIndex, $iClickX, $iClickY, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug)
+		$iDropped += 1
+		If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return $iDropped
+	Next
+
+	Return $iDropped
+EndFunc   ;==>AttackCSV_DropUnknownSlots
 
 ; Side-effect: pure (array merge)
 Func AttackCSV_MergeRemainTroops(ByRef $aCurrent, ByRef $aBackup)
