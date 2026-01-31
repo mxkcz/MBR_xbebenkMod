@@ -1,8 +1,8 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: GetAttackBar
 ; Description ...: Detects army in the attack bar and returns slot data (index, slot, amount, coords).
-; Syntax ........: GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
-; Parameters ....: $bRemaining (First Check or for Remaining Troops), $pMatchMode (Attackmode that needs the Attackbar: $DB, $AB), $bDebug (Debug GetAttackbar)
+; Syntax ........: GetAttackBar($bRemaining = False, $pMatchMode = $Battle, $bDebug = False)
+; Parameters ....: $bRemaining (First Check or for Remaining Troops), $pMatchMode (Attackmode that needs the Attackbar: $Battle, $RANKEDBATTLE), $bDebug (Debug GetAttackbar)
 ; Return values .:
 ; Author ........: Trlopes (06-2016)
 ; Modified ......: ProMac (12-2016), Fliegerfaust(12-2018), mxkcz (2026)
@@ -12,7 +12,7 @@
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; =====================================================================================================================
-Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
+Func GetAttackBar($bRemaining = False, $pMatchMode = $Battle, $bDebug = False)
 	Local Static $aAttackBar[0][8]
 	Local Static $aSlotMap[0][3]
 	Local Static $bDoubleRow = False, $bCheckSlot12 = False
@@ -202,7 +202,7 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 
 	Local $iTotalSlots = $iSlotCount
 	; Drag left & checking extended troops from Slot11+ ONLY if not a smart attack
-	If ($pMatchMode <= $LB And $bCheckSlot12 And Not $bDoubleRow And UBound($aAttackBar) > 1 And $g_aiAttackAlgorithm[$pMatchMode] <> 2) Or ($bDebug And $bCheckSlot12) Then
+	If ($pMatchMode <= $RankedBattle And $bCheckSlot12 And Not $bDoubleRow And UBound($aAttackBar) > 1 And $g_aiAttackAlgorithm[$pMatchMode] <> 2) Or ($bDebug And $bCheckSlot12) Then
 		DragAttackBar()
 		Local $iExtendedSlotCount = 0
 		Local $aExtendedArray = ExtendedAttackBarCheck($aAttackBar, $bRemaining, $sSearchDiamond, $iExtendedSlotCount)

@@ -163,7 +163,7 @@ Func IsFullClanCastle($bOpenArmyWindow = False, $bCloseArmyWindow = False)
 	Local $bFullClanCastle = True
 	If Not $g_bRunState Then Return False
 
-	If Not $g_abSearchCastleWaitEnable[$DB] And Not $g_abSearchCastleWaitEnable[$LB] Then
+	If Not $g_abSearchCastleWaitEnable[$Battle] And Not $g_abSearchCastleWaitEnable[$RankedBattle] Then
 		$g_bFullArmyCC = True
 		Return True
 	EndIf
@@ -176,7 +176,7 @@ Func IsFullClanCastle($bOpenArmyWindow = False, $bCloseArmyWindow = False)
 		If _Sleep($DELAYCHECKARMYCAMP5) Then Return False
 	EndIf
 
-	If ($g_abAttackTypeEnable[$DB] And $g_abSearchCastleWaitEnable[$DB]) Or ($g_abAttackTypeEnable[$LB] And $g_abSearchCastleWaitEnable[$LB]) Then
+	If ($g_abAttackTypeEnable[$Battle] And $g_abSearchCastleWaitEnable[$Battle]) Or ($g_abAttackTypeEnable[$RankedBattle] And $g_abSearchCastleWaitEnable[$RankedBattle]) Then
 		CheckCCArmy()
 		For $i = 0 To 2
 			If Not IsFullClanCastleType($i) Then

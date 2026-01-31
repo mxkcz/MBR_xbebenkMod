@@ -174,9 +174,9 @@ Func AttackReport()
 	;---
 	Local $sMatchMode
 	Switch $g_iMatchMode
-		Case $DB
+		Case $Battle
 			$sMatchMode = "DB" ;Deadbase
-		Case $LB
+		Case $RankedBattle
 			$sMatchMode = "LB" ;Livebase
 		Case $TB
 			$sMatchMode = "TB" ;TH Bully

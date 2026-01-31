@@ -602,7 +602,8 @@ If _Sleep($DELAYRESPOND) Then Return
 CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
 
 	; Pre-scan MAKE usage for targeted-only optimizations
-	Local $sMakeScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
+	Local $sMakeScript = ($g_iMatchMode = $Battle ? $g_sAttackScrScriptName[$Battle] : $g_sAttackScrScriptName[$RankedBattle])
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then $sMakeScript = $g_sAttackScrScriptNameRankedBattle
 	Local $aMakeSidesUsed[4] = [False, False, False, False] ; TL, TR, BL, BR
 	Local $bAllMakeTargeted = False
 	Local $iCSVMaxReturnPointsOverride = Default
@@ -1375,7 +1376,7 @@ EndFunc   ;==>Algorithm_AttackCSV
 ; Name ..........: AttackCSV_PrecacheBuildingsFromSearch
 ; Description ...: Pre-cache CSV building locations once redline is available during search.
 ; Syntax ........: AttackCSV_PrecacheBuildingsFromSearch($iMode[, $bForceRescan = False])
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $bForceRescan      - [optional] Force rescan of cached locations. Default is False.
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
@@ -1735,8 +1736,9 @@ Func resetEdge()
 	$g_aiPixelBottomRight = 0
 EndFunc
 
-Func TestCSV($iMatchMode = $LB)
+Func TestCSV($iMatchMode = $RankedBattle)
 	Local $filename = $g_sAttackScrScriptName[$iMatchMode]
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then $filename = $g_sAttackScrScriptNameRankedBattle
 	$g_iMatchMode = $iMatchMode
 	SetLog("will use script : " & $filename, $COLOR_INFO)
 	CheckZoomOut("TestCSV")
@@ -1746,7 +1748,8 @@ Func TestCSV($iMatchMode = $LB)
 EndFunc
 
 Func CSVLoop($iCountLoop = 1, $bStopWhenResourceFull = False)
-	Local $filename = $g_sAttackScrScriptName[$LB]
+	Local $filename = $g_sAttackScrScriptName[$RankedBattle]
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then $filename = $g_sAttackScrScriptNameRankedBattle
 	ZoomOut()
 	For $i = 1 To $iCountLoop
 		SetLog("TestCSVLoop #" & $i, $COLOR_ACTION)
@@ -1756,7 +1759,7 @@ Func CSVLoop($iCountLoop = 1, $bStopWhenResourceFull = False)
 		If Not $g_bRunState Then Return
 		SetLog("will use script : " & $filename, $COLOR_INFO)
 		CheckZoomOut("TestCSV")
-		PrepareAttack($LB)
+		PrepareAttack($RankedBattle)
 		Algorithm_AttackCSV()
 		ReturnHome()
 		If Not $g_bRunState Then Return

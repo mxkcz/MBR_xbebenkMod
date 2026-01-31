@@ -16,12 +16,12 @@
 
 Func chkSmartAttackRedAreaAB()
 	If GUICtrlRead($g_hChkSmartAttackRedAreaAB) = $GUI_CHECKED Then
-		$g_abAttackStdSmartAttack[$LB] = 1
+		$g_abAttackStdSmartAttack[$RankedBattle] = 1
 		For $i = $g_hLblSmartDeployAB To $g_hPicAttackNearDarkElixirDrillAB
 			GUICtrlSetState($i, $GUI_SHOW)
 		Next
 	Else
-		$g_abAttackStdSmartAttack[$LB] = 0
+		$g_abAttackStdSmartAttack[$RankedBattle] = 0
 		For $i = $g_hLblSmartDeployAB To $g_hPicAttackNearDarkElixirDrillAB
 			GUICtrlSetState($i, $GUI_HIDE)
 		Next
@@ -30,12 +30,12 @@ EndFunc   ;==>chkSmartAttackRedAreaAB
 
 Func chkSmartAttackRedAreaDB()
 	If GUICtrlRead($g_hChkSmartAttackRedAreaDB) = $GUI_CHECKED Then
-		$g_abAttackStdSmartAttack[$DB] = 1
+		$g_abAttackStdSmartAttack[$Battle] = 1
 		For $i = $g_hLblSmartDeployDB To $g_hPicAttackNearDarkElixirDrillDB
 			GUICtrlSetState($i, $GUI_SHOW)
 		Next
 	Else
-		$g_abAttackStdSmartAttack[$DB] = 0
+		$g_abAttackStdSmartAttack[$Battle] = 0
 		For $i = $g_hLblSmartDeployDB To $g_hPicAttackNearDarkElixirDrillDB
 			GUICtrlSetState($i, $GUI_HIDE)
 		Next

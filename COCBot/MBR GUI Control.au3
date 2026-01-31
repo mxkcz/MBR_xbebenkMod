@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: GkevinOD (2014)
-; Modified ......: Hervidero (2015), kaganus (08-2015), CodeSlinger69 (01-2017)
+; Modified ......: Hervidero (2015), kaganus (08-2015), CodeSlinger69 (01-2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -37,7 +37,7 @@ Global $g_hFrmBot_WNDPROC_ptr = 0
 #include "GUI\MBR GUI Control Tab Stats.au3"
 #include "GUI\MBR GUI Control Collectors.au3"
 #include "GUI\MBR GUI Control Attack Standard.au3"
-#include "GUI\MBR GUI Control Attack Scripted.au3"
+#include "GUI\MBR GUI Control Attack CSV Mod.au3"
 #include "GUI\MBR GUI Control Achievements.au3"
 #include "GUI\MBR GUI Control Notify.au3"
 #include "GUI\MBR GUI Control Child Upgrade.au3"
@@ -91,7 +91,6 @@ Func InitializeMainGUI($bGuiModeUpdate = False)
 		GUICtrlSetState($g_hChkMakeIMGCSV, $GUI_SHOW + $GUI_ENABLE)
 		GUICtrlSetState($g_hChkdebugAttackCSV, $GUI_SHOW + $GUI_ENABLE)
 		GUICtrlSetState($g_hChkDebugSmartZap, $GUI_SHOW + $GUI_ENABLE)
-		GUICtrlSetState($g_hbtnAttNow, $GUI_SHOW + $GUI_ENABLE)
 	EndIf
 
 	; GUI events and messages
@@ -607,14 +606,14 @@ Func GUIControl_WM_COMMAND($hWind, $iMsg, $wParam, $lParam)
 			Local $RuntimeA = $g_bRunState
 			$g_bRunState = True
 			Setlog("Prepare Attack test")
-			PrepareAttack($DB, False)
+			PrepareAttack($Battle, False)
 			$g_bRunState = $RuntimeA
 		Case $g_hBtnTestQuickTrainsimgloc
 
 			Local $RuntimeA = $g_bRunState
 			$g_bRunState = True
 			Setlog("Prepare Attack test - Remaining troops")
-			PrepareAttack($DB, True)
+			PrepareAttack($Battle, True)
 			$g_bRunState = $RuntimeA
 	EndSwitch
 
@@ -1135,6 +1134,7 @@ Func BotGuiModeToggle()
 			GUICtrlDelete($g_hTabLog)
 			GUICtrlDelete($g_hTabVillage)
 			GUICtrlDelete($g_hTabAttack)
+			GUICtrlDelete($g_hTabCSVMod)
 			GUICtrlDelete($g_hGUI_BB)
 			GUICtrlDelete($g_hTabBot)
 			GUICtrlDelete($g_hTabAbout)
@@ -1154,6 +1154,7 @@ Func BotGuiModeToggle()
 			GUICtrlDelete($g_hGUI_ACTIVEBASE_TAB)
 			GUICtrlDelete($g_hGUI_ATTACKOPTION_TAB)
 			GUICtrlDelete($g_hGUI_STRATEGIES_TAB)
+			GUICtrlDelete($g_hGUI_CSVMOD)
 			GUICtrlDelete($g_hGUI_BOT_TAB)
 			GUICtrlDelete($g_hGUI_LOG_SA)
 			GUICtrlDelete($g_hGUI_STATS_TAB)
@@ -1669,6 +1670,7 @@ Func tabMain()
 		Case $tabidx = 0 ; Log
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
@@ -1677,6 +1679,7 @@ Func tabMain()
 		Case $tabidx = 1 ; Village
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
@@ -1686,34 +1689,47 @@ Func tabMain()
 		Case $tabidx = 2 ; Attack
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ATTACK)
 			tabAttack()
 
-		Case $tabidx = 3 ; BuilderBase
+		Case $tabidx = 3 ; CSV Mod
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_BOT)
+			GUISetState(@SW_HIDE, $g_hGUI_BB)
+			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
+			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD)
+
+		Case $tabidx = 4 ; BuilderBase
+			GUISetState(@SW_HIDE, $g_hGUI_LOG)
+			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
+			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_BB)
 			tabBuilderBase()
 
-		Case $tabidx = 4 ; Bot
+		Case $tabidx = 5 ; Bot
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_BOT)
 			tabBot()
 
-		Case $tabidx = 5 ; About
+		Case $tabidx = 6 ; About
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ABOUT)
@@ -1722,6 +1738,7 @@ Func tabMain()
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
 			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 	EndSelect
@@ -1770,12 +1787,7 @@ Func tabAttack()
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_TRAINARMY)
 			GUISetState(@SW_HIDE, $g_hGUI_SEARCH)
 			tabARMY()
-		Case $tabidx = 1 ; SEARCH tab
-			GUISetState(@SW_HIDE, $g_hGUI_STRATEGIES)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_SEARCH)
-			tabSEARCH()
-		Case $tabidx = 2 ; NewSmartZap tab
+		Case $tabidx = 1 ; STRATEGIES tab
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_STRATEGIES)
 			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY)
 			GUISetState(@SW_HIDE, $g_hGUI_SEARCH)
@@ -1960,7 +1972,6 @@ Func tabDeadbase()
 
 		Case Else
 			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
 			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SMARTFARM)
 	EndSelect
 
@@ -1979,7 +1990,6 @@ Func tabActivebase()
 
 		Case Else
 			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_STANDARD)
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED)
 
 	EndSelect
 
@@ -2002,7 +2012,7 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 	Switch $nCtrl
 		Case $g_hTabMain
 			; the icons for main tab
-			Local $aIconIndex = [$eIcnHourGlass, $eIcnTH14, $eIcnAttack, $eIcnBuilderHall, $eIcnGUI, $eIcnInfo]
+			Local $aIconIndex = [$eIcnHourGlass, $eIcnTH14, $eIcnAttack, $eIcnEdit, $eIcnBuilderHall, $eIcnGUI, $eIcnInfo]
 
 		Case $g_hGUI_VILLAGE_TAB
 			; the icons for village tab

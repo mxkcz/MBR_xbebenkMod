@@ -14,8 +14,8 @@
 ; ===============================================================================================================================
 #include-once
 
-Global $g_hChkDBDisableCollectorsFilter = 0
-Global $g_ahChkDBCollectorLevel[15] = [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0] ; elements 0 thru 5 are never referenced
+Global $g_hchkBattleDisableCollectorsFilter = 0
+Global $g_ahchkBattleCollectorLevel[15] = [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0] ; elements 0 thru 5 are never referenced
 Global $g_ahCmbDBCollectorLevel[15] = [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0] ; elements 0 thru 5 are never referenced
 Global $g_hCmbMinCollectorMatches = 0, $g_hSldCollectorTolerance = 0, $g_hLblCollectorWarning = 0
 
@@ -27,18 +27,18 @@ Func CreateAttackSearchDeadBaseCollectors()
 
 	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "Group_01", "Collectors"), $x - 5, $y - 20, $g_iSizeWGrpTab4, $g_iSizeHGrpTab4)
 		GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "LblCollectorLevel", "Choose which collectors to search for while looking for a dead base. Also, choose how full they must be."), $x, $y, 250, 28)
-		$g_hChkDBDisableCollectorsFilter = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "ChkDisableCollectorsFilter", "Disable Collector Filter"), $x + 250, $y + 60, 150, 18)
+		$g_hchkBattleDisableCollectorsFilter = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "ChkDisableCollectorsFilter", "Disable Collector Filter"), $x + 250, $y + 60, 150, 18)
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "ChkDisableCollectorsFilter_Info_01", "Disable Collector Filter CHANGES DeadBase into another ActiveBase search"))
 
 	$y += 15
 	For $i = 6 To 14
 		$y += 25
-			$g_ahChkDBCollectorLevel[$i] = GUICtrlCreateCheckbox("", $x, $y, 18, 18)
+			$g_ahchkBattleCollectorLevel[$i] = GUICtrlCreateCheckbox("", $x, $y, 18, 18)
 				$sTxtTip = $s_TxtTip1 & @CRLF & GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "ChkCollectorLevel" & $i & "_Info_01", "for level " & $i & " elixir collectors during dead base detection.")
 				_GUICtrlSetTip(-1, $sTxtTip)
 				GUICtrlSetState(-1, ($i = 6 ? GUICtrlSetState(-1, BitOR($GUI_UNCHECKED, $GUI_DISABLE)) : $GUI_CHECKED))
-				GUICtrlSetOnEvent(-1, "chkDBCollector")
+				GUICtrlSetOnEvent(-1, "chkBattleCollector")
 			_GUICtrlCreateIcon($g_sLibIconPath, $eIcnCollector, $x + 20, $y, 16, 16)
 				_GUICtrlSetTip(-1, $sTxtTip)
 			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Deadbase-Collectors", "LblCollectorLevel" & $i, "Lvl " & $i & ". Must be >"), $x + 40, $y + 3, -1, -1)

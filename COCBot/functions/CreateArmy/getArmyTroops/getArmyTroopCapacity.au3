@@ -154,8 +154,8 @@ Func getArmyTroopCapacity($bOpenArmyWindow = False, $bCloseArmyWindow = False, $
 		$g_bIsFullArmywithHeroesAndSpells = False
 	EndIf
 
-	If $g_CurrentCampUtilization >= $g_iTotalCampSpace * $g_aiSearchCampsPct[$DB] / 100 And $g_abSearchCampsEnable[$DB] And IsSearchModeActive($DB) Then $g_bFullArmy = True
-	If $g_CurrentCampUtilization >= $g_iTotalCampSpace * $g_aiSearchCampsPct[$LB] / 100 And $g_abSearchCampsEnable[$LB] And IsSearchModeActive($LB) Then $g_bFullArmy = True
+	If $g_CurrentCampUtilization >= $g_iTotalCampSpace * $g_aiSearchCampsPct[$Battle] / 100 And $g_abSearchCampsEnable[$Battle] And IsSearchModeActive($Battle) Then $g_bFullArmy = True
+	If $g_CurrentCampUtilization >= $g_iTotalCampSpace * $g_aiSearchCampsPct[$RankedBattle] / 100 And $g_abSearchCampsEnable[$RankedBattle] And IsSearchModeActive($RankedBattle) Then $g_bFullArmy = True
 
 	If $bCloseArmyWindow Then
 		ClickAway()

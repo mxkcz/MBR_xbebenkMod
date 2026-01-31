@@ -25,8 +25,8 @@ Func checkCollectors($log = False, $showLabel = True)
 	If $anyCollectorsEnabled = 0 Then
 		If $showLabel Then GUICtrlSetState($g_hLblCollectorWarning, $GUI_SHOW)
 		If $log Then
-			SetLog("Warning: Dead base is enabled, but no collectors are selected!", $COLOR_ERROR)
-			SetLog("Dead base will never be found!", $COLOR_ERROR)
+			SetLog("Warning: Battle is enabled, but no collectors are selected!", $COLOR_ERROR)
+			SetLog("Battle will never be found!", $COLOR_ERROR)
 			SetLog("Select some in Attack Plan-Search&Attack-DeadBase-Collectors", $COLOR_ERROR)
 			Return False
 		EndIf
@@ -37,21 +37,21 @@ Func checkCollectors($log = False, $showLabel = True)
 	Return False
 EndFunc   ;==>checkCollectors
 
-Func chkDBCollector()
+Func chkBattleCollector()
 	For $i = 6 To 14
-		If $g_ahChkDBCollectorLevel[$i] = @GUI_CtrlId Then
+		If $g_ahchkBattleCollectorLevel[$i] = @GUI_CtrlId Then
 			If $i = 6 Then
 				$g_abCollectorLevelEnabled[6] = False
 				GUICtrlSetState($g_ahCmbDBCollectorLevel[6], $GUI_DISABLE)
 			Else
-				$g_abCollectorLevelEnabled[$i] = (GUICtrlRead($g_ahChkDBCollectorLevel[$i]) = $GUI_CHECKED ? True : False)
-				GUICtrlSetState($g_ahCmbDBCollectorLevel[$i], GUICtrlRead($g_ahChkDBCollectorLevel[$i]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+				$g_abCollectorLevelEnabled[$i] = (GUICtrlRead($g_ahchkBattleCollectorLevel[$i]) = $GUI_CHECKED ? True : False)
+				GUICtrlSetState($g_ahCmbDBCollectorLevel[$i], GUICtrlRead($g_ahchkBattleCollectorLevel[$i]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
 			EndIf
 			ExitLoop
 		EndIf
 	Next
 	checkCollectors()
-EndFunc   ;==>chkDBCollector
+EndFunc   ;==>chkBattleCollector
 
 Func cmbDBCollector()
 	For $i = 6 To 14

@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: GkevinOD (2014)
-; Modified ......: Hervidero (2015), CodeSlinger69 (2017)
+; Modified ......: Hervidero (2015), CodeSlinger69 (2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -17,25 +17,21 @@
 Func cmbDBAlgorithm()
 	Local $iCmbValue = _GUICtrlComboBox_GetCurSel($g_hCmbDBAlgorithm)
 	; Algorithm Alltroops
-	_GUI_Value_STATE($iCmbValue = 1 ? "SHOW" : "HIDE", $g_aGroupAttackDBSpell & "#" & $groupIMGAttackDBSpell)
+	_GUI_Value_STATE($iCmbValue = 1 ? "SHOW" : "HIDE", $g_aGroupAttackBSpell & "#" & $groupIMGAttackDBSpell)
 
 	If BitAND(GUICtrlGetState($g_hGUI_DEADBASE), $GUI_SHOW) And GUICtrlRead($g_hGUI_DEADBASE_TAB) = 1 Then ; fix ghosting during control applyConfig
 		Select
 			Case $iCmbValue = 0 ; Standard Attack
 				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
 				GUISetState(@SW_HIDE,$g_hGUI_DEADBASE_ATTACK_SMARTFARM)
 			Case $iCmbValue = 1 ; Scripted Attack
 				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
 				GUISetState(@SW_HIDE,$g_hGUI_DEADBASE_ATTACK_SMARTFARM)
 			Case $iCmbValue = 2 ; Smart Farm Attack
 				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
 				GUISetState(@SW_SHOWNOACTIVATE,$g_hGUI_DEADBASE_ATTACK_SMARTFARM)
 			Case Else
 				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
 				GUISetState(@SW_HIDE,$g_hGUI_DEADBASE_ATTACK_SMARTFARM)
 		EndSelect
 	EndIf
@@ -49,48 +45,45 @@ Func cmbABAlgorithm()
 		Select
 			Case $iCmbValue = 0 ; Standard Attack
 				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ACTIVEBASE_ATTACK_STANDARD)
-				GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED)
 			Case $iCmbValue = 1 ; Scripted Attack
 				GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_STANDARD)
-				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED)
 			Case Else
 				GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_STANDARD)
-				GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED)
 		EndSelect
 	EndIf
 EndFunc   ;==>cmbABAlgorithm
 
-Func chkABWardenAttack()
-	If GUICtrlRead($g_hChkABWardenAttack) = $GUI_CHECKED Then
+Func chkRankedBattleWardenAttack()
+	If GUICtrlRead($g_hchkRankedBattleWardenAttack) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hCmbABWardenMode, $GUI_ENABLE)
 	Else
 		GUICtrlSetState($g_hCmbABWardenMode, $GUI_DISABLE)
 	EndIf
-EndFunc   ;==>chkABWardenAttack
+EndFunc   ;==>chkRankedBattleWardenAttack
 
-Func chkDBWardenAttack()
-	If GUICtrlRead($g_hChkDBWardenAttack) = $GUI_CHECKED Then
+Func chkBattleWardenAttack()
+	If GUICtrlRead($g_hchkBattleWardenAttack) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_ENABLE)
 	Else
 		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_DISABLE)
 	EndIf
-EndFunc   ;==>chkDBWardenAttack
+EndFunc   ;==>chkBattleWardenAttack
 
-Func chkABDropCC()
-	If GUICtrlRead($g_hChkABDropCC) = $GUI_CHECKED Then
+Func chkRankedBattleDropCC()
+	If GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hcmbABSiege, $GUI_ENABLE)
 	Else
 		GUICtrlSetState($g_hcmbABSiege, $GUI_DISABLE)
 	EndIf
-EndFunc   ;==>chkABDropCC
+EndFunc   ;==>chkRankedBattleDropCC
 
-Func chkDBDropCC()
-	If GUICtrlRead($g_hChkDBDropCC) = $GUI_CHECKED Then
+Func chkBattleDropCC()
+	If GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hcmbDBSiege, $GUI_ENABLE)
 	Else
 		GUICtrlSetState($g_hcmbDBSiege, $GUI_DISABLE)
 	EndIf
-EndFunc   ;==>chkDBDropCC
+EndFunc   ;==>chkBattleDropCC
 
 Func chkAttackNow()
 	If GUICtrlRead($g_hChkAttackNow) = $GUI_CHECKED Then
@@ -127,6 +120,11 @@ Func radHerosApply()
 	GUICtrlSetState($g_hRadManChampionAbility, $g_iActivateChampion = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
 	GUICtrlSetState($g_hRadBothChampionAbility, $g_iActivateChampion = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
 	GUICtrlSetData($g_hTxtManChampionAbility, ($g_iDelayActivateChampion / 1000))
+
+	GUICtrlSetState($g_hRadAutoPrinceAbility, $g_iActivatePrince = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	GUICtrlSetState($g_hRadManPrinceAbility, $g_iActivatePrince = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	GUICtrlSetState($g_hRadBothPrinceAbility, $g_iActivatePrince = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	GUICtrlSetData($g_hTxtManPrinceAbility, ($g_iDelayActivatePrince / 1000))
 EndFunc   ;==>radHerosApply
 
 Func chkattackHoursE1()
@@ -432,24 +430,24 @@ Func sldVSDelay()
 EndFunc   ;==>sldVSDelay
 
 Func dbCheck()
-	$g_abAttackTypeEnable[$DB] = (GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED)
+	$g_abAttackTypeEnable[$Battle] = (GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED)
 
 	If IsBotLaunched() Then _GUICtrlTab_SetCurFocus($g_hGUI_SEARCH_TAB, 0) ; activate deadbase tab
-	If BitAND(GUICtrlRead($g_hChkDBActivateSearches), GUICtrlRead($g_hChkDBActivateCamps)) = $GUI_UNCHECKED Then
-		GUICtrlSetState($g_hChkDBActivateSearches, $GUI_CHECKED)
-		chkDBActivateSearches() ; this includes a call to dbCheckall() -> tabSEARCH()
+	If BitAND(GUICtrlRead($g_hchkBattleActivateSearches), GUICtrlRead($g_hchkBattleActivateCamps)) = $GUI_UNCHECKED Then
+		GUICtrlSetState($g_hchkBattleActivateSearches, $GUI_CHECKED)
+		chkBattleActivateSearches() ; this includes a call to dbCheckall() -> tabSEARCH()
 	Else
 		tabSEARCH() ; just call tabSEARCH()
 	EndIf
 EndFunc   ;==>dbCheck
 
 Func abCheck()
-	$g_abAttackTypeEnable[$LB] = (GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED)
+	$g_abAttackTypeEnable[$RankedBattle] = (GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED)
 
 	If IsBotLaunched() Then _GUICtrlTab_SetCurFocus($g_hGUI_SEARCH_TAB, 1)
-	If BitAND(GUICtrlRead($g_hChkABActivateSearches), GUICtrlRead($g_hChkABActivateCamps)) = $GUI_UNCHECKED Then
-		GUICtrlSetState($g_hChkABActivateSearches, $GUI_CHECKED)
-		chkABActivateSearches() ; this includes a call to abCheckall() -> tabSEARCH()
+	If BitAND(GUICtrlRead($g_hchkRankedBattleActivateSearches), GUICtrlRead($g_hchkRankedBattleActivateCamps)) = $GUI_UNCHECKED Then
+		GUICtrlSetState($g_hchkRankedBattleActivateSearches, $GUI_CHECKED)
+		chkRankedBattleActivateSearches() ; this includes a call to abCheckall() -> tabSEARCH()
 	Else
 		tabSEARCH() ; just call tabSEARCH()
 	EndIf

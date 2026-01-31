@@ -26,11 +26,11 @@ Func dropHeroes($iX, $iY, $iKingSlotNumber = -1, $iQueenSlotNumber = -1, $iWarde
 	Local $bDropPrince = False
 
 	;use hero if  slot (detected ) and ( ($g_iMatchMode <>DB and <>LB  ) or (check user GUI settings) )
-	If $iKingSlotNumber <> -1 Then $bDropKing = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroKing) = $eHeroKing) Then $bDropKing = True
-	If $iQueenSlotNumber <> -1 Then $bDropQueen = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroQueen) = $eHeroQueen) Then $bDropQueen = True
-	If $iWardenSlotNumber <> -1 Then $bDropWarden = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroWarden) = $eHeroWarden) Then $bDropWarden = True
-	If $iChampionSlotNumber <> -1 Then $bDropChampion = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroChampion) = $eHeroChampion) Then $bDropChampion = True
-	If $iPrinceSlotNumber <> -1 Then $bDropPrince = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroMPrince = $eHeroMiPrinceThen $bDropPrince = True
+	If $iKingSlotNumber <> -1 Then $bDropKing = True ;And (($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroKing) = $eHeroKing) Then $bDropKing = True
+	If $iQueenSlotNumber <> -1 Then $bDropQueen = True ;And (($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroQueen) = $eHeroQueen) Then $bDropQueen = True
+	If $iWardenSlotNumber <> -1 Then $bDropWarden = True ;And (($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroWarden) = $eHeroWarden) Then $bDropWarden = True
+	If $iChampionSlotNumber <> -1 Then $bDropChampion = True ;And (($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroChampion) = $eHeroChampion) Then $bDropChampion = True
+	If $iPrinceSlotNumber <> -1 Then $bDropPrince = True ;And (($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroMPrince = $eHeroMiPrinceThen $bDropPrince = True
 	
 
 	SetDebugLog("drop KING = " & $bDropKing, $COLOR_DEBUG)

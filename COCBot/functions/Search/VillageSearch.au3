@@ -41,8 +41,8 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	Local $bLoggedRedline = False
 	Local $abHeroUse[$eHeroCount] = [False, False, False, False]
 	For $i = 0 To $eHeroCount - 1
-		$abHeroUse[$i] = ($g_abSearchSearchesEnable[$DB] ? IsUnitUsed($DB, $eKing + $i) : False) _
-							Or ($g_abSearchSearchesEnable[$LB] ? IsUnitUsed($LB, $eKing + $i) : False)
+		$abHeroUse[$i] = ($g_abSearchSearchesEnable[$Battle] ? IsUnitUsed($Battle, $eKing + $i) : False) _
+							Or ($g_abSearchSearchesEnable[$RankedBattle] ? IsUnitUsed($RankedBattle, $eKing + $i) : False)
 	Next
 
 	If $g_bDebugDeadBaseImage Or $g_aiSearchEnableDebugDeadBaseImage > 0 Then
@@ -77,8 +77,8 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	EndIf
 
 	If $g_bSearchAttackNowEnable Then
-		If $g_abSearchSearchesEnable[$DB] Then GUICtrlSetState($g_hBtnAttackNowDB, $GUI_SHOW)
-		If $g_abSearchSearchesEnable[$LB] Then GUICtrlSetState($g_hBtnAttackNowLB, $GUI_SHOW)
+		If $g_abSearchSearchesEnable[$Battle] Then GUICtrlSetState($g_hBtnAttackNowDB, $GUI_SHOW)
+		If $g_abSearchSearchesEnable[$RankedBattle] Then GUICtrlSetState($g_hBtnAttackNowLB, $GUI_SHOW)
 	EndIf
 
 	If $g_bIsClientSyncError = False And $g_bIsSearchLimit = False Then
@@ -91,8 +91,8 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	InitAndroidPageError()
 
 	; CSV prep before search to reduce post-match overhead
-	If $g_abAttackTypeEnable[$DB] And $g_aiAttackAlgorithm[$DB] = 1 Then PrepareAttackCSV($DB)
-	If $g_abAttackTypeEnable[$LB] And $g_aiAttackAlgorithm[$LB] = 1 Then PrepareAttackCSV($LB)
+	If $g_abAttackTypeEnable[$Battle] And $g_aiAttackAlgorithm[$Battle] = 1 Then PrepareAttackCSV($Battle)
+	If $g_abAttackTypeEnable[$RankedBattle] And $g_aiAttackAlgorithm[$RankedBattle] = 1 Then PrepareAttackCSV($RankedBattle)
 
 	While 1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;### Main Search Loop ###;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -151,10 +151,10 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		; $g_iSearchTH name of level of townhall (return "-" if no th found)
 		; $g_iTHx and $g_iTHy coordinates of townhall
 		Local $THString = ""
-		If $match[$DB] Or $match[$LB] Then ; make sure resource conditions are met
+		If $match[$Battle] Or $match[$RankedBattle] Then ; make sure resource conditions are met
 			$THString = FindTownhall(False, False) ;find TH, but only if TH condition is checked
-		ElseIf ($g_abFilterMeetOneConditionEnable[$DB] Or $g_abFilterMeetOneConditionEnable[$LB]) Then ; meet one then attack, do not need correct resources
-			If $g_abFilterMeetTH[$DB] Or $g_abFilterMeetTH[$LB] Then $THString = FindTownhall(True, False)
+		ElseIf ($g_abFilterMeetOneConditionEnable[$Battle] Or $g_abFilterMeetOneConditionEnable[$RankedBattle]) Then ; meet one then attack, do not need correct resources
+			If $g_abFilterMeetTH[$Battle] Or $g_abFilterMeetTH[$RankedBattle] Then $THString = FindTownhall(True, False)
 		ElseIf $g_abAttackTypeEnable[$TB] = 1 And ($g_iSearchCount >= $g_iAtkTBEnableCount) Then
 			; Check the TH for BullyMode
 			$THString = FindTownhall(True, False)
@@ -201,14 +201,14 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		; ----------------- CHECK DEAD BASE -------------------------------------------------
 		If Not $g_bRunState Then Return
 		; check deadbase
-		Local $checkDeadBase = $match[$DB] Or $match[$LB]
+		Local $checkDeadBase = $match[$Battle] Or $match[$RankedBattle]
 		If $checkDeadBase Then
 			$dbBase = checkDeadBase()
 		EndIf
 
 		; ----------------- CHECK WEAK BASE -------------------------------------------------
-		If (IsWeakBaseActive($DB) And $dbBase And ($match[$DB] Or $g_abFilterMeetOneConditionEnable[$DB])) Or _
-				(IsWeakBaseActive($LB) And ($match[$LB] Or $g_abFilterMeetOneConditionEnable[$LB])) Then
+		If (IsWeakBaseActive($Battle) And $dbBase And ($match[$Battle] Or $g_abFilterMeetOneConditionEnable[$Battle])) Or _
+				(IsWeakBaseActive($RankedBattle) And ($match[$RankedBattle] Or $g_abFilterMeetOneConditionEnable[$RankedBattle])) Then
 			; check twice if Eagle is active
 			Local $maxTry = 1
 			For $i = 0 To $g_iModeCount - 2
@@ -223,7 +223,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 				EndIf
 				Local $bIsWeak = False
 				For $i = 0 To $g_iModeCount - 2
-					If IsWeakBaseActive($i) And (($i = $DB And $dbBase) Or $i <> $DB) And ($match[$i] Or $g_abFilterMeetOneConditionEnable[$i]) Then
+					If IsWeakBaseActive($i) And (($i = $Battle And $dbBase) Or $i <> $Battle) And ($match[$i] Or $g_abFilterMeetOneConditionEnable[$i]) Then
 						If getIsWeak($weakBaseValues, $i) Then
 							$match[$i] = True
 							$bIsWeak = True
@@ -253,46 +253,46 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			SetLog("Tournament League Mode", $COLOR_SUCCESS)
 			Switch $g_iTournamentAttackType
 				Case 0 ;DeadBase
-					$match[$DB] = True
-					$match[$LB] = False
+					$match[$Battle] = True
+					$match[$RankedBattle] = False
 					$dbBase = True
 					SetLog("Force attacking Tournament League Dead Base", $COLOR_INFO)
-				Case 1 ;Active Base
-					$match[$DB] = False
-					$match[$LB] = True
+				Case 1 ;Ranked Battle
+					$match[$Battle] = False
+					$match[$RankedBattle] = True
 					$dbBase = False
 					SetLog("Force attacking Tournament League Live Base", $COLOR_INFO)
 			EndSwitch
 			
-			;If $dbBase And Not $match[$DB] Then
+			;If $dbBase And Not $match[$Battle] Then
 			;	SetLog("Force attacking League Dead Base")
-			;	$match[$DB] = True
-			;ElseIf Not $match[$LB] Then
+			;	$match[$Battle] = True
+			;ElseIf Not $match[$RankedBattle] Then
 			;	SetLog("Force attacking League Live Base")
-			;	$match[$LB] = True
+			;	$match[$RankedBattle] = True
 			;EndIf
 		EndIf
 
 		; ----------------- WRITE LOG VILLAGE FOUND AND ASSIGN VALUE AT $g_iMatchMode and exitloop  IF CONTITIONS MEET ---------------------------
-		If $match[$DB] And $dbBase Then
+		If $match[$Battle] And $dbBase Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Dead Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
-			$g_iMatchMode = $DB
+			$g_iMatchMode = $Battle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
-		ElseIf $match[$LB] And Not $dbBase Then
+		ElseIf $match[$RankedBattle] And Not $dbBase Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Live Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
-			$g_iMatchMode = $LB
+			$g_iMatchMode = $RankedBattle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
-		ElseIf $match[$LB] And $g_bCollectorFilterDisable Then
+		ElseIf $match[$RankedBattle] And $g_bCollectorFilterDisable Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Live Base Found!*", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
-			$g_iMatchMode = $LB
+			$g_iMatchMode = $RankedBattle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
 		ElseIf $g_abAttackTypeEnable[$TB] = 1 And ($g_iSearchCount >= $g_iAtkTBEnableCount) Then ; TH bully doesn't need the resources conditions
@@ -306,10 +306,10 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			EndIf
 		EndIf
 
-		If $match[$DB] And Not $dbBase Then
-			$noMatchTxt &= ", Not a " & $g_asModeText[$DB]
-		ElseIf $match[$LB] And $dbBase Then
-			$noMatchTxt &= ", Not a " & $g_asModeText[$LB]
+		If $match[$Battle] And Not $dbBase Then
+			$noMatchTxt &= ", Not a " & $g_asModeText[$Battle]
+		ElseIf $match[$RankedBattle] And $dbBase Then
+			$noMatchTxt &= ", Not a " & $g_asModeText[$RankedBattle]
 		EndIf
 
 		If $noMatchTxt <> "" Then
@@ -464,7 +464,7 @@ Func SearchLimit($iSkipped = 50)
 EndFunc   ;==>SearchLimit
 
 Func WriteLogVillageSearch($x)
-	;this function write in BOT LOG the values setting for each attack mode ($DB,$LB)
+	;this function write in BOT LOG the values setting for each attack mode ($Battle,$RankedBattle)
 	;example
 	;[18.07.30] ============== Searching For Dead Base ===============
 	;[18.07.30] Enable Dead Base search IF

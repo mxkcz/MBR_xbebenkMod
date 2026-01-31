@@ -20,7 +20,7 @@ Func FindTownHall($bCheck = True, $forceCaptureRegion = True)
 	$g_iTHx = 0
 	$g_iTHy = 0 ;if not check, find bully mode, always find				if deadbase enabled, and TH lvl or Outside checked, find          same with ActiveBase
 
-	If $bCheck Or ($isModeActive[$DB] And ($g_abFilterMeetTH[$DB] Or $g_abFilterMeetTHOutsideEnable[$DB])) Or ($isModeActive[$LB] And ($g_abFilterMeetTH[$LB] Or $g_abFilterMeetTHOutsideEnable[$LB])) Then
+	If $bCheck Or ($isModeActive[$Battle] And ($g_abFilterMeetTH[$Battle] Or $g_abFilterMeetTHOutsideEnable[$Battle])) Or ($isModeActive[$RankedBattle] And ($g_abFilterMeetTH[$RankedBattle] Or $g_abFilterMeetTHOutsideEnable[$RankedBattle])) Then
 
 		$g_iSearchTH = imgloccheckTownHallADV2(0, 0, $forceCaptureRegion)
 

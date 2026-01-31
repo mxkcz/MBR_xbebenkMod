@@ -16,7 +16,7 @@
 
 Global $g_hChkStopAtkABNoLoot1 = 0, $g_hTxtStopAtkABNoLoot1 = 0, $g_hChkStopAtkABNoLoot2 = 0, $g_hTxtStopAtkABNoLoot2 = 0, _
 	   $g_hTxtABMinGoldStopAtk2 = 0, $g_hTxtABMinElixirStopAtk2 = 0, $g_hTxtABMinDarkElixirStopAtk2 = 0, _
-	   $g_hChkABEndNoResources = 0, $g_hChkABEndOneStar = 0, $g_hChkABEndTwoStars = 0, $g_hChkABEndPercentHigher = 0, $g_hTxtABPercentHigher = 0, $g_hChkABEndPercentChange = 0, $g_hTxtABPercentChange = 0
+	   $g_hchkRankedBattleEndNoResources = 0, $g_hchkRankedBattleEndOneStar = 0, $g_hchkRankedBattleEndTwoStars = 0, $g_hchkRankedBattleEndPercentHigher = 0, $g_hTxtABPercentHigher = 0, $g_hchkRankedBattleEndPercentChange = 0, $g_hTxtABPercentChange = 0
 Global $g_hChkDESideEB = 0, $g_hTxtDELowEndMin = 0, $g_hChkDisableOtherEBO = 0, $g_hChkDEEndOneStar = 0, $g_hChkDEEndBk = 0, $g_hChkDEEndAq = 0
 
 Global $g_hGrpABEndBattle = 0, $g_hLblABTimeStopAtka = 0, $g_hLblABTimeStopAtk = 0, $g_hLblABTimeStopAtk2a = 0, $g_hLblABTimeStopAtk2 = 0, _
@@ -86,23 +86,23 @@ Func CreateAttackSearchActiveBaseEndBattle()
 		$g_hPicABMinDarkElixirStopAtk2 = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnDark, $x + 117, $y, 16, 16)
 
 	$y += 21
-		$g_hChkABEndNoResources = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndNoResources", -1), $x, $y, -1, -1)
+		$g_hchkRankedBattleEndNoResources = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndNoResources", -1), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndNoResources_Info_01", -1))
 			GUICtrlSetState(-1, $GUI_ENABLE)
 
 	$y += 21
-		$g_hChkABEndOneStar = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndOneStar", -1), $x, $y, -1, -1)
+		$g_hchkRankedBattleEndOneStar = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndOneStar", -1), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndOneStar_Info_01", -1))
 			GUICtrlSetState(-1, $GUI_ENABLE)
 
 	$y += 21
-		$g_hChkABEndTwoStars = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndTwoStars", -1), $x, $y, -1, -1)
+		$g_hchkRankedBattleEndTwoStars = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndTwoStars", -1), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndTwoStars_Info_01", -1))
 			GUICtrlSetState(-1, $GUI_ENABLE)
 	$y += 21
-		$g_hChkABEndPercentHigher = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentHigher", -1), $x, $y, -1, -1)
+		$g_hchkRankedBattleEndPercentHigher = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentHigher", -1), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentHigher_Info_01", -1))
-			GUICtrlSetOnEvent(-1, "chkABEndPercentHigher")
+			GUICtrlSetOnEvent(-1, "chkRankedBattleEndPercentHigher")
 			GUICtrlSetState(-1, $GUI_ENABLE)
 	$y +=20
 		$g_hLblABPercentHigher = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "LblPercentHigher", -1) & ":", $x + 16, $y + 2, -1, -1)
@@ -111,9 +111,9 @@ Func CreateAttackSearchActiveBaseEndBattle()
 			GUICtrlSetLimit(-1, 2)
 		$g_hLblABPercentHigherSec = GUICtrlCreateLabel("%", $x + 120, $y + 3, -1, -1)
 	$y += 21
-		$g_hChkABEndPercentChange = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentChange", -1), $x, $y, -1, -1)
+		$g_hchkRankedBattleEndPercentChange = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentChange", -1), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "ChkEndPercentChange_Info_01", -1))
-			GUICtrlSetOnEvent(-1, "chkABEndPercentChange")
+			GUICtrlSetOnEvent(-1, "chkRankedBattleEndPercentChange")
 			GUICtrlSetState(-1, $GUI_ENABLE)
 	$y +=20
 		$g_hLblABPercentChange = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - EndBattle", "LblPercentChange", -1) & ":", $x + 16, $y + 3, -1, -1)

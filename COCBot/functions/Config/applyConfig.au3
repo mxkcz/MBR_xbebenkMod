@@ -5,7 +5,7 @@
 ; Parameters ....: $bRedrawAtExit = True: redraws bot window after config was applied, $TypeReadSave = "Read" : Read GUI Values and set Variables. $TypeReadSave = "Save" : Set the GUI Settings with the Variables
 ; Return values .: NA
 ; Author ........:
-; Modified ......: CodeSlinger69 (01-2017)
+; Modified ......: CodeSlinger69 (01-2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2021
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -1160,6 +1160,7 @@ Func ApplyConfig_600_28($TypeReadSave)
 			GUICtrlSetData($g_hTxtRestartSearchlimit, $g_iSearchRestartLimit)
 			ChkRestartSearchLimit()
 			GUICtrlSetState($g_hChkAlertSearch, $g_bSearchAlertMe ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hChkSearchDisableFullResources, $g_bSearchDisableFullResources ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
 			$g_bSearchReductionEnable = (GUICtrlRead($g_hChkSearchReduction) = $GUI_CHECKED)
 			$g_iSearchReductionCount = GUICtrlRead($g_hTxtSearchReduceCount)
@@ -1174,6 +1175,7 @@ Func ApplyConfig_600_28($TypeReadSave)
 			$g_bSearchRestartEnable = (GUICtrlRead($g_hChkRestartSearchLimit) = $GUI_CHECKED)
 			$g_iSearchRestartLimit = GUICtrlRead($g_hTxtRestartSearchlimit)
 			$g_bSearchAlertMe = (GUICtrlRead($g_hChkAlertSearch) = $GUI_CHECKED)
+			$g_bSearchDisableFullResources = (GUICtrlRead($g_hChkSearchDisableFullResources) = $GUI_CHECKED)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_28
 
@@ -1182,90 +1184,107 @@ Func ApplyConfig_600_28_DB($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
 			; Search - Start Search If
-			GUICtrlSetState($g_hChkDBActivateSearches, $g_abSearchSearchesEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDBSearchesMin, $g_aiSearchSearchesMin[$DB])
-			GUICtrlSetData($g_hTxtDBSearchesMax, $g_aiSearchSearchesMax[$DB])
-			GUICtrlSetState($g_hChkDBActivateCamps, $g_abSearchCampsEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkDBActivateCamps()
-			GUICtrlSetData($g_hTxtDBArmyCamps, $g_aiSearchCampsPct[$DB])
+			GUICtrlSetState($g_hchkBattleActivateSearches, $g_abSearchSearchesEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtDBSearchesMin, $g_aiSearchSearchesMin[$Battle])
+			GUICtrlSetData($g_hTxtDBSearchesMax, $g_aiSearchSearchesMax[$Battle])
+			GUICtrlSetState($g_hchkBattleActivateCamps, $g_abSearchCampsEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkBattleActivateCamps()
+			GUICtrlSetData($g_hTxtDBArmyCamps, $g_aiSearchCampsPct[$Battle])
 
-			chkDBActivateSearches()
-			GUICtrlSetState($g_hChkDeadbase, $g_abAttackTypeEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkBattleActivateSearches()
+			GUICtrlSetState($g_hChkDeadbase, $g_abAttackTypeEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
-			GUICtrlSetState($g_hChkDBWaitForCastle, $g_abSearchCastleWaitEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleWaitForCastle, $g_abSearchCastleWaitEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			; Search - Filters
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBMeetGE, $g_aiFilterMeetGE[$DB])
-			GUICtrlSetData($g_hTxtDBMinGold, $g_aiFilterMinGold[$DB])
-			GUICtrlSetData($g_hTxtDBMinElixir, $g_aiFilterMinElixir[$DB])
-			GUICtrlSetData($g_hTxtDBMinGoldPlusElixir, $g_aiFilterMinGoldPlusElixir[$DB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBMeetGE, $g_aiFilterMeetGE[$Battle])
+			GUICtrlSetData($g_hTxtDBMinGold, $g_aiFilterMinGold[$Battle])
+			GUICtrlSetData($g_hTxtDBMinElixir, $g_aiFilterMinElixir[$Battle])
+			GUICtrlSetData($g_hTxtDBMinGoldPlusElixir, $g_aiFilterMinGoldPlusElixir[$Battle])
 			cmbDBGoldElixir()
-			GUICtrlSetState($g_hChkDBMeetDE, $g_abFilterMeetDEEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDBMinDarkElixir, $g_aiFilterMeetDEMin[$DB])
-			chkDBMeetDE()
-			GUICtrlSetState($g_hChkDBMeetTH, $g_abFilterMeetTH[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBTH, $g_aiFilterMeetTHMin[$DB])
-			$g_aiMaxTH[$DB] = $g_asTHText[$g_aiFilterMeetTHMin[$DB]]
-			chkDBMeetTH()
+			GUICtrlSetState($g_hchkBattleMeetDE, $g_abFilterMeetDEEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtDBMinDarkElixir, $g_aiFilterMeetDEMin[$Battle])
+			chkBattleMeetDE()
+			GUICtrlSetState($g_hchkBattleMeetTH, $g_abFilterMeetTH[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBTH, $g_aiFilterMeetTHMin[$Battle])
+			$g_aiMaxTH[$Battle] = $g_asTHText[$g_aiFilterMeetTHMin[$Battle]]
+			chkBattleMeetTH()
 			CmbDBTH()
-			GUICtrlSetState($g_hChkDBMeetTHO, $g_abFilterMeetTHOutsideEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleMeetTHO, $g_abFilterMeetTHOutsideEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
-			GUICtrlSetState($g_hChkDBMeetDeadEagle, $g_bChkDeadEagle ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleMeetDeadEagle, $g_bChkDeadEagle ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetData($g_hTxtDeadEagleSearch, $g_iDeadEagleSearch)
 
-			GUICtrlSetState($g_ahChkMaxMortar[$DB], $g_abFilterMaxMortarEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxWizTower[$DB], $g_abFilterMaxWizTowerEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxAirDefense[$DB], $g_abFilterMaxAirDefenseEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxXBow[$DB], $g_abFilterMaxXBowEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxInferno[$DB], $g_abFilterMaxInfernoEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxEagle[$DB], $g_abFilterMaxEagleEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxScatter[$DB], $g_abFilterMaxScatterEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakMortar[$DB], $g_aiFilterMaxMortarLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakWizTower[$DB], $g_aiFilterMaxWizTowerLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakAirDefense[$DB], $g_aiFilterMaxAirDefenseLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakXBow[$DB], $g_aiFilterMaxXBowLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakInferno[$DB], $g_aiFilterMaxInfernoLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakEagle[$DB], $g_aiFilterMaxEagleLevel[$DB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakScatter[$DB], $g_aiFilterMaxScatterLevel[$DB])
-			chkDBWeakBase()
-			GUICtrlSetState($g_ahChkMeetOne[$DB], $g_abFilterMeetOneConditionEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxMortar[$Battle], $g_abFilterMaxMortarEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxWizTower[$Battle], $g_abFilterMaxWizTowerEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxAirDefense[$Battle], $g_abFilterMaxAirDefenseEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxXBow[$Battle], $g_abFilterMaxXBowEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxInferno[$Battle], $g_abFilterMaxInfernoEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxEagle[$Battle], $g_abFilterMaxEagleEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxScatter[$Battle], $g_abFilterMaxScatterEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakMortar[$Battle], $g_aiFilterMaxMortarLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakWizTower[$Battle], $g_aiFilterMaxWizTowerLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakAirDefense[$Battle], $g_aiFilterMaxAirDefenseLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakXBow[$Battle], $g_aiFilterMaxXBowLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakInferno[$Battle], $g_aiFilterMaxInfernoLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakEagle[$Battle], $g_aiFilterMaxEagleLevel[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakScatter[$Battle], $g_aiFilterMaxScatterLevel[$Battle])
+			chkBattleWeakBase()
+			GUICtrlSetState($g_ahChkMeetOne[$Battle], $g_abFilterMeetOneConditionEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
-			$g_abAttackTypeEnable[$DB] = (GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED)
+			$g_abAttackTypeEnable[$Battle] = (GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED)
 			; Search - Start Search If
-			$g_abSearchSearchesEnable[$DB] = (GUICtrlRead($g_hChkDBActivateSearches) = $GUI_CHECKED)
-			$g_aiSearchSearchesMin[$DB] = GUICtrlRead($g_hTxtDBSearchesMin)
-			$g_aiSearchSearchesMax[$DB] = GUICtrlRead($g_hTxtDBSearchesMax)
-			$g_abSearchCampsEnable[$DB] = (GUICtrlRead($g_hChkDBActivateCamps) = $GUI_CHECKED)
-			$g_aiSearchCampsPct[$DB] = Int(GUICtrlRead($g_hTxtDBArmyCamps))
-			$g_abSearchSpellsWaitEnable[$DB] = False
-			$g_abSearchCastleWaitEnable[$DB] = (GUICtrlRead($g_hChkDBWaitForCastle) = $GUI_CHECKED)
+			$g_abSearchSearchesEnable[$Battle] = (GUICtrlRead($g_hchkBattleActivateSearches) = $GUI_CHECKED)
+			$g_aiSearchSearchesMin[$Battle] = GUICtrlRead($g_hTxtDBSearchesMin)
+			$g_aiSearchSearchesMax[$Battle] = GUICtrlRead($g_hTxtDBSearchesMax)
+			$g_abSearchCampsEnable[$Battle] = (GUICtrlRead($g_hchkBattleActivateCamps) = $GUI_CHECKED)
+			$g_aiSearchCampsPct[$Battle] = Int(GUICtrlRead($g_hTxtDBArmyCamps))
+			$g_abSearchSpellsWaitEnable[$Battle] = False
+			$g_abSearchCastleWaitEnable[$Battle] = (GUICtrlRead($g_hchkBattleWaitForCastle) = $GUI_CHECKED)
 			; Search - Filters
 			$g_iDeadEagleSearch = GUICtrlRead($g_hTxtDeadEagleSearch)
 
-			$g_aiFilterMeetGE[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBMeetGE)
-			$g_aiFilterMinGold[$DB] = GUICtrlRead($g_hTxtDBMinGold)
-			$g_aiFilterMinElixir[$DB] = GUICtrlRead($g_hTxtDBMinElixir)
-			$g_aiFilterMinGoldPlusElixir[$DB] = GUICtrlRead($g_hTxtDBMinGoldPlusElixir)
-			$g_abFilterMeetDEEnable[$DB] = (GUICtrlRead($g_hChkDBMeetDE) = $GUI_CHECKED)
-			$g_aiFilterMeetDEMin[$DB] = GUICtrlRead($g_hTxtDBMinDarkElixir)
-			$g_abFilterMeetTH[$DB] = (GUICtrlRead($g_hChkDBMeetTH) = $GUI_CHECKED)
-			$g_aiFilterMeetTHMin[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBTH)
-			$g_aiMaxTH[$DB] = $g_asTHText[$g_aiFilterMeetTHMin[$DB]]
-			$g_abFilterMeetTHOutsideEnable[$DB] = (GUICtrlRead($g_hChkDBMeetTHO) = $GUI_CHECKED)
-			$g_abFilterMaxMortarEnable[$DB] = (GUICtrlRead($g_ahChkMaxMortar[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxWizTowerEnable[$DB] = (GUICtrlRead($g_ahChkMaxWizTower[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxAirDefenseEnable[$DB] = (GUICtrlRead($g_ahChkMaxAirDefense[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxXBowEnable[$DB] = (GUICtrlRead($g_ahChkMaxXBow[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxInfernoEnable[$DB] = (GUICtrlRead($g_ahChkMaxInferno[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxEagleEnable[$DB] = (GUICtrlRead($g_ahChkMaxEagle[$DB]) = $GUI_CHECKED)
-			$g_abFilterMaxScatterEnable[$DB] = (GUICtrlRead($g_ahChkMaxScatter[$DB]) = $GUI_CHECKED)
-			$g_aiFilterMaxMortarLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakMortar[$DB])
-			$g_aiFilterMaxWizTowerLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakWizTower[$DB])
-			$g_aiFilterMaxAirDefenseLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakAirDefense[$DB])
-			$g_aiFilterMaxXBowLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakXBow[$DB])
-			$g_aiFilterMaxInfernoLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakInferno[$DB])
-			$g_aiFilterMaxEagleLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakEagle[$DB])
-			$g_aiFilterMaxScatterLevel[$DB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakScatter[$DB])
-			$g_abFilterMeetOneConditionEnable[$DB] = (GUICtrlRead($g_ahChkMeetOne[$DB]) = $GUI_CHECKED)
+			$g_aiFilterMeetGE[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBMeetGE)
+			$g_aiFilterMinGold[$Battle] = GUICtrlRead($g_hTxtDBMinGold)
+			$g_aiFilterMinElixir[$Battle] = GUICtrlRead($g_hTxtDBMinElixir)
+			$g_aiFilterMinGoldPlusElixir[$Battle] = GUICtrlRead($g_hTxtDBMinGoldPlusElixir)
+			$g_abFilterMeetDEEnable[$Battle] = (GUICtrlRead($g_hchkBattleMeetDE) = $GUI_CHECKED)
+			$g_aiFilterMeetDEMin[$Battle] = GUICtrlRead($g_hTxtDBMinDarkElixir)
+			$g_abFilterMeetTH[$Battle] = (GUICtrlRead($g_hchkBattleMeetTH) = $GUI_CHECKED)
+			$g_aiFilterMeetTHMin[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBTH)
+			$g_aiMaxTH[$Battle] = $g_asTHText[$g_aiFilterMeetTHMin[$Battle]]
+			$g_abFilterMeetTHOutsideEnable[$Battle] = (GUICtrlRead($g_hchkBattleMeetTHO) = $GUI_CHECKED)
+			$g_abFilterMaxMortarEnable[$Battle] = (GUICtrlRead($g_ahChkMaxMortar[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxWizTowerEnable[$Battle] = (GUICtrlRead($g_ahChkMaxWizTower[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxAirDefenseEnable[$Battle] = (GUICtrlRead($g_ahChkMaxAirDefense[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxXBowEnable[$Battle] = (GUICtrlRead($g_ahChkMaxXBow[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxInfernoEnable[$Battle] = (GUICtrlRead($g_ahChkMaxInferno[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxEagleEnable[$Battle] = (GUICtrlRead($g_ahChkMaxEagle[$Battle]) = $GUI_CHECKED)
+			$g_abFilterMaxScatterEnable[$Battle] = (GUICtrlRead($g_ahChkMaxScatter[$Battle]) = $GUI_CHECKED)
+			$g_aiFilterMaxMortarLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakMortar[$Battle])
+			$g_aiFilterMaxWizTowerLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakWizTower[$Battle])
+			$g_aiFilterMaxAirDefenseLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakAirDefense[$Battle])
+			$g_aiFilterMaxXBowLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakXBow[$Battle])
+			$g_aiFilterMaxInfernoLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakInferno[$Battle])
+			$g_aiFilterMaxEagleLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakEagle[$Battle])
+			$g_aiFilterMaxScatterLevel[$Battle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakScatter[$Battle])
+			$g_abFilterMeetOneConditionEnable[$Battle] = (GUICtrlRead($g_ahChkMeetOne[$Battle]) = $GUI_CHECKED)
+
+			; CSV Mod simplification: only gold/elixir/dark criteria + search count
+			$g_abSearchCampsEnable[$Battle] = False
+			$g_aiSearchCampsPct[$Battle] = 0
+			$g_aiFilterMeetGE[$Battle] = 0
+			$g_aiFilterMinGoldPlusElixir[$Battle] = 0
+			$g_abFilterMeetTH[$Battle] = False
+			$g_abFilterMeetTHOutsideEnable[$Battle] = False
+			$g_abFilterMaxMortarEnable[$Battle] = False
+			$g_abFilterMaxWizTowerEnable[$Battle] = False
+			$g_abFilterMaxAirDefenseEnable[$Battle] = False
+			$g_abFilterMaxXBowEnable[$Battle] = False
+			$g_abFilterMaxInfernoEnable[$Battle] = False
+			$g_abFilterMaxEagleEnable[$Battle] = False
+			$g_abFilterMaxScatterEnable[$Battle] = False
+			$g_bChkDeadEagle = 0
+			$g_iDeadEagleSearch = 0
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_28_DB
 
@@ -1274,83 +1293,98 @@ Func ApplyConfig_600_28_LB($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
 			; Search - Start Search If
-			GUICtrlSetState($g_hChkABActivateSearches, $g_abSearchSearchesEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABSearchesMin, $g_aiSearchSearchesMin[$LB])
-			GUICtrlSetData($g_hTxtABSearchesMax, $g_aiSearchSearchesMax[$LB])
-			GUICtrlSetState($g_hChkABActivateCamps, $g_abSearchCampsEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABArmyCamps, $g_aiSearchCampsPct[$LB])
+			GUICtrlSetState($g_hchkRankedBattleActivateSearches, $g_abSearchSearchesEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABSearchesMin, $g_aiSearchSearchesMin[$RankedBattle])
+			GUICtrlSetData($g_hTxtABSearchesMax, $g_aiSearchSearchesMax[$RankedBattle])
+			GUICtrlSetState($g_hchkRankedBattleActivateCamps, $g_abSearchCampsEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABArmyCamps, $g_aiSearchCampsPct[$RankedBattle])
 
-			chkABActivateSearches()
-			GUICtrlSetState($g_hChkActivebase, $g_abAttackTypeEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkRankedBattleActivateSearches()
+			GUICtrlSetState($g_hChkActivebase, $g_abAttackTypeEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
-			GUICtrlSetState($g_hChkABWaitForCastle, $g_abSearchCastleWaitEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleWaitForCastle, $g_abSearchCastleWaitEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			; Search - Filters
-			_GUICtrlComboBox_SetCurSel($g_hCmbABMeetGE, $g_aiFilterMeetGE[$LB])
-			GUICtrlSetData($g_hTxtABMinGold, $g_aiFilterMinGold[$LB])
-			GUICtrlSetData($g_hTxtABMinElixir, $g_aiFilterMinElixir[$LB])
-			GUICtrlSetData($g_hTxtABMinGoldPlusElixir, $g_aiFilterMinGoldPlusElixir[$LB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbABMeetGE, $g_aiFilterMeetGE[$RankedBattle])
+			GUICtrlSetData($g_hTxtABMinGold, $g_aiFilterMinGold[$RankedBattle])
+			GUICtrlSetData($g_hTxtABMinElixir, $g_aiFilterMinElixir[$RankedBattle])
+			GUICtrlSetData($g_hTxtABMinGoldPlusElixir, $g_aiFilterMinGoldPlusElixir[$RankedBattle])
 			cmbABGoldElixir()
-			GUICtrlSetState($g_hChkABMeetDE, $g_abFilterMeetDEEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABMinDarkElixir, $g_aiFilterMeetDEMin[$LB])
-			chkABMeetDE()
-			GUICtrlSetState($g_hChkABMeetTH, $g_abFilterMeetTH[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			_GUICtrlComboBox_SetCurSel($g_hCmbABTH, $g_aiFilterMeetTHMin[$LB])
-			$g_aiMaxTH[$LB] = $g_asTHText[$g_aiFilterMeetTHMin[$LB]]
-			chkABMeetTH()
+			GUICtrlSetState($g_hchkRankedBattleMeetDE, $g_abFilterMeetDEEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABMinDarkElixir, $g_aiFilterMeetDEMin[$RankedBattle])
+			chkRankedBattleMeetDE()
+			GUICtrlSetState($g_hchkRankedBattleMeetTH, $g_abFilterMeetTH[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbABTH, $g_aiFilterMeetTHMin[$RankedBattle])
+			$g_aiMaxTH[$RankedBattle] = $g_asTHText[$g_aiFilterMeetTHMin[$RankedBattle]]
+			chkRankedBattleMeetTH()
 			CmbABTH()
-			GUICtrlSetState($g_hChkABMeetTHO, $g_abFilterMeetTHOutsideEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxMortar[$LB], $g_abFilterMaxMortarEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxWizTower[$LB], $g_abFilterMaxWizTowerEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxAirDefense[$LB], $g_abFilterMaxAirDefenseEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxXBow[$LB], $g_abFilterMaxXBowEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxInferno[$LB], $g_abFilterMaxInfernoEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxEagle[$LB], $g_abFilterMaxEagleEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_ahChkMaxScatter[$LB], $g_abFilterMaxScatterEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakMortar[$LB], $g_aiFilterMaxMortarLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakWizTower[$LB], $g_aiFilterMaxWizTowerLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakAirDefense[$LB], $g_aiFilterMaxAirDefenseLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakXBow[$LB], $g_aiFilterMaxXBowLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakInferno[$LB], $g_aiFilterMaxInfernoLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakEagle[$LB], $g_aiFilterMaxEagleLevel[$LB])
-			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakScatter[$LB], $g_aiFilterMaxScatterLevel[$LB])
-			chkABWeakBase()
-			GUICtrlSetState($g_ahChkMeetOne[$LB], $g_abFilterMeetOneConditionEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleMeetTHO, $g_abFilterMeetTHOutsideEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxMortar[$RankedBattle], $g_abFilterMaxMortarEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxWizTower[$RankedBattle], $g_abFilterMaxWizTowerEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxAirDefense[$RankedBattle], $g_abFilterMaxAirDefenseEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxXBow[$RankedBattle], $g_abFilterMaxXBowEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxInferno[$RankedBattle], $g_abFilterMaxInfernoEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxEagle[$RankedBattle], $g_abFilterMaxEagleEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_ahChkMaxScatter[$RankedBattle], $g_abFilterMaxScatterEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakMortar[$RankedBattle], $g_aiFilterMaxMortarLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakWizTower[$RankedBattle], $g_aiFilterMaxWizTowerLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakAirDefense[$RankedBattle], $g_aiFilterMaxAirDefenseLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakXBow[$RankedBattle], $g_aiFilterMaxXBowLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakInferno[$RankedBattle], $g_aiFilterMaxInfernoLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakEagle[$RankedBattle], $g_aiFilterMaxEagleLevel[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_ahCmbWeakScatter[$RankedBattle], $g_aiFilterMaxScatterLevel[$RankedBattle])
+			chkRankedBattleWeakBase()
+			GUICtrlSetState($g_ahChkMeetOne[$RankedBattle], $g_abFilterMeetOneConditionEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
-			$g_abAttackTypeEnable[$LB] = (GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED)
+			$g_abAttackTypeEnable[$RankedBattle] = (GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED)
 			; Search - Start Search If
-			$g_abSearchSearchesEnable[$LB] = (GUICtrlRead($g_hChkABActivateSearches) = $GUI_CHECKED)
-			$g_aiSearchSearchesMin[$LB] = GUICtrlRead($g_hTxtABSearchesMin)
-			$g_aiSearchSearchesMax[$LB] = GUICtrlRead($g_hTxtABSearchesMax)
-			$g_abSearchCampsEnable[$LB] = (GUICtrlRead($g_hChkABActivateCamps) = $GUI_CHECKED)
-			$g_aiSearchCampsPct[$LB] = Int(GUICtrlRead($g_hTxtABArmyCamps))
-			$g_abSearchSpellsWaitEnable[$LB] = False
-			$g_abSearchCastleWaitEnable[$LB] = (GUICtrlRead($g_hChkABWaitForCastle) = $GUI_CHECKED)
+			$g_abSearchSearchesEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleActivateSearches) = $GUI_CHECKED)
+			$g_aiSearchSearchesMin[$RankedBattle] = GUICtrlRead($g_hTxtABSearchesMin)
+			$g_aiSearchSearchesMax[$RankedBattle] = GUICtrlRead($g_hTxtABSearchesMax)
+			$g_abSearchCampsEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleActivateCamps) = $GUI_CHECKED)
+			$g_aiSearchCampsPct[$RankedBattle] = Int(GUICtrlRead($g_hTxtABArmyCamps))
+			$g_abSearchSpellsWaitEnable[$RankedBattle] = False
+			$g_abSearchCastleWaitEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleWaitForCastle) = $GUI_CHECKED)
 			; Search - Filters
-			$g_aiFilterMeetGE[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABMeetGE)
-			$g_aiFilterMinGold[$LB] = GUICtrlRead($g_hTxtABMinGold)
-			$g_aiFilterMinElixir[$LB] = GUICtrlRead($g_hTxtABMinElixir)
-			$g_aiFilterMinGoldPlusElixir[$LB] = GUICtrlRead($g_hTxtABMinGoldPlusElixir)
-			$g_abFilterMeetDEEnable[$LB] = (GUICtrlRead($g_hChkABMeetDE) = $GUI_CHECKED)
-			$g_aiFilterMeetDEMin[$LB] = GUICtrlRead($g_hTxtABMinDarkElixir)
-			$g_abFilterMeetTH[$LB] = (GUICtrlRead($g_hChkABMeetTH) = $GUI_CHECKED)
-			$g_aiFilterMeetTHMin[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABTH)
-			$g_aiMaxTH[$LB] = $g_asTHText[$g_aiFilterMeetTHMin[$LB]]
-			$g_abFilterMeetTHOutsideEnable[$LB] = (GUICtrlRead($g_hChkABMeetTHO) = $GUI_CHECKED)
-			$g_abFilterMaxMortarEnable[$LB] = (GUICtrlRead($g_ahChkMaxMortar[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxWizTowerEnable[$LB] = (GUICtrlRead($g_ahChkMaxWizTower[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxAirDefenseEnable[$LB] = (GUICtrlRead($g_ahChkMaxAirDefense[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxXBowEnable[$LB] = (GUICtrlRead($g_ahChkMaxXBow[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxInfernoEnable[$LB] = (GUICtrlRead($g_ahChkMaxInferno[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxEagleEnable[$LB] = (GUICtrlRead($g_ahChkMaxEagle[$LB]) = $GUI_CHECKED)
-			$g_abFilterMaxScatterEnable[$LB] = (GUICtrlRead($g_ahChkMaxScatter[$LB]) = $GUI_CHECKED)
-			$g_aiFilterMaxMortarLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakMortar[$LB])
-			$g_aiFilterMaxWizTowerLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakWizTower[$LB])
-			$g_aiFilterMaxAirDefenseLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakAirDefense[$LB])
-			$g_aiFilterMaxXBowLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakXBow[$LB])
-			$g_aiFilterMaxInfernoLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakInferno[$LB])
-			$g_aiFilterMaxEagleLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakEagle[$LB])
-			$g_aiFilterMaxScatterLevel[$LB] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakScatter[$LB])
-			$g_abFilterMeetOneConditionEnable[$LB] = (GUICtrlRead($g_ahChkMeetOne[$LB]) = $GUI_CHECKED)
+			$g_aiFilterMeetGE[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABMeetGE)
+			$g_aiFilterMinGold[$RankedBattle] = GUICtrlRead($g_hTxtABMinGold)
+			$g_aiFilterMinElixir[$RankedBattle] = GUICtrlRead($g_hTxtABMinElixir)
+			$g_aiFilterMinGoldPlusElixir[$RankedBattle] = GUICtrlRead($g_hTxtABMinGoldPlusElixir)
+			$g_abFilterMeetDEEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleMeetDE) = $GUI_CHECKED)
+			$g_aiFilterMeetDEMin[$RankedBattle] = GUICtrlRead($g_hTxtABMinDarkElixir)
+			$g_abFilterMeetTH[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleMeetTH) = $GUI_CHECKED)
+			$g_aiFilterMeetTHMin[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABTH)
+			$g_aiMaxTH[$RankedBattle] = $g_asTHText[$g_aiFilterMeetTHMin[$RankedBattle]]
+			$g_abFilterMeetTHOutsideEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleMeetTHO) = $GUI_CHECKED)
+			$g_abFilterMaxMortarEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxMortar[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxWizTowerEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxWizTower[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxAirDefenseEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxAirDefense[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxXBowEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxXBow[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxInfernoEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxInferno[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxEagleEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxEagle[$RankedBattle]) = $GUI_CHECKED)
+			$g_abFilterMaxScatterEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMaxScatter[$RankedBattle]) = $GUI_CHECKED)
+			$g_aiFilterMaxMortarLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakMortar[$RankedBattle])
+			$g_aiFilterMaxWizTowerLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakWizTower[$RankedBattle])
+			$g_aiFilterMaxAirDefenseLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakAirDefense[$RankedBattle])
+			$g_aiFilterMaxXBowLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakXBow[$RankedBattle])
+			$g_aiFilterMaxInfernoLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakInferno[$RankedBattle])
+			$g_aiFilterMaxEagleLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakEagle[$RankedBattle])
+			$g_aiFilterMaxScatterLevel[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_ahCmbWeakScatter[$RankedBattle])
+			$g_abFilterMeetOneConditionEnable[$RankedBattle] = (GUICtrlRead($g_ahChkMeetOne[$RankedBattle]) = $GUI_CHECKED)
+
+			; CSV Mod simplification: only gold/elixir/dark criteria + search count
+			$g_abSearchCampsEnable[$RankedBattle] = False
+			$g_aiSearchCampsPct[$RankedBattle] = 0
+			$g_aiFilterMeetGE[$RankedBattle] = 0
+			$g_aiFilterMinGoldPlusElixir[$RankedBattle] = 0
+			$g_abFilterMeetTH[$RankedBattle] = False
+			$g_abFilterMeetTHOutsideEnable[$RankedBattle] = False
+			$g_abFilterMaxMortarEnable[$RankedBattle] = False
+			$g_abFilterMaxWizTowerEnable[$RankedBattle] = False
+			$g_abFilterMaxAirDefenseEnable[$RankedBattle] = False
+			$g_abFilterMaxXBowEnable[$RankedBattle] = False
+			$g_abFilterMaxInfernoEnable[$RankedBattle] = False
+			$g_abFilterMaxEagleEnable[$RankedBattle] = False
+			$g_abFilterMaxScatterEnable[$RankedBattle] = False
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_28_LB
 
@@ -1413,6 +1447,15 @@ Func ApplyConfig_600_29($TypeReadSave)
 			EndIf
 			$g_iDelayActivateChampion = Int(GUICtrlRead($g_hTxtManChampionAbility) * 1000)
 
+			If GUICtrlRead($g_hRadAutoPrinceAbility) = $GUI_CHECKED Then
+				$g_iActivatePrince = 0
+			ElseIf GUICtrlRead($g_hRadManPrinceAbility) = $GUI_CHECKED Then
+				$g_iActivatePrince = 1
+			ElseIf GUICtrlRead($g_hRadBothPrinceAbility) = $GUI_CHECKED Then
+				$g_iActivatePrince = 2
+			EndIf
+			$g_iDelayActivatePrince = Int(GUICtrlRead($g_hTxtManPrinceAbility) * 1000)
+
 			$g_bAttackPlannerEnable = (GUICtrlRead($g_hChkAttackPlannerEnable) = $GUI_CHECKED)
 			$g_bAttackPlannerCloseCoC = (GUICtrlRead($g_hChkAttackPlannerCloseCoC) = $GUI_CHECKED)
 			$g_bAttackPlannerCloseAll = (GUICtrlRead($g_hChkAttackPlannerCloseAll) = $GUI_CHECKED)
@@ -1438,40 +1481,40 @@ Func ApplyConfig_600_29_DB($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
 			; Attack
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBAlgorithm, $g_aiAttackAlgorithm[$DB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBAlgorithm, $g_aiAttackAlgorithm[$Battle])
 			cmbDBAlgorithm()
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBSelectTroop, $g_aiAttackTroopSelection[$DB])
-			GUICtrlSetState($g_hChkDBKingAttack, BitAND($g_aiAttackUseHeroes[$DB], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBQueenAttack, BitAND($g_aiAttackUseHeroes[$DB], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBWardenAttack, BitAND($g_aiAttackUseHeroes[$DB], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkDBWardenAttack()
-			GUICtrlSetState($g_hChkDBChampionAttack, BitAND($g_aiAttackUseHeroes[$DB], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBSelectTroop, $g_aiAttackTroopSelection[$Battle])
+			GUICtrlSetState($g_hchkBattleKingAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleQueenAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleWardenAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkBattleWardenAttack()
+			GUICtrlSetState($g_hchkBattleChampionAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
 			Local $temp1, $temp2, $temp3, $temp4
-			$temp1 = GUICtrlRead($g_hChkDBKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
-			$temp2 = GUICtrlRead($g_hChkDBQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
-			$temp3 = GUICtrlRead($g_hChkDBWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
-			$temp4 = GUICtrlRead($g_hChkDBChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
-			$g_aiAttackUseHeroes[$DB] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
-			GUICtrlSetState($g_hChkDBDropCC, $g_abAttackDropCC[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkDBDropCC()
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBWardenMode, $g_aiAttackUseWardenMode[$DB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbDBSiege, $g_aiAttackUseSiege[$DB])
-			GUICtrlSetState($g_hChkDBDropEmptySiege, $g_bDropEmptySiege[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			$temp1 = GUICtrlRead($g_hchkBattleKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
+			$temp2 = GUICtrlRead($g_hchkBattleQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
+			$temp3 = GUICtrlRead($g_hchkBattleWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
+			$temp4 = GUICtrlRead($g_hchkBattleChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
+			$g_aiAttackUseHeroes[$Battle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
+			GUICtrlSetState($g_hchkBattleDropCC, $g_abAttackDropCC[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkBattleDropCC()
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBWardenMode, $g_aiAttackUseWardenMode[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbDBSiege, $g_aiAttackUseSiege[$Battle])
+			GUICtrlSetState($g_hchkBattleDropEmptySiege, $g_bDropEmptySiege[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 		Case "Save"
-			$g_aiAttackAlgorithm[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBAlgorithm)
-			$g_aiAttackTroopSelection[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBSelectTroop)
+			$g_aiAttackAlgorithm[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBAlgorithm)
+			$g_aiAttackTroopSelection[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBSelectTroop)
 			Local $temp1, $temp2, $temp3, $temp4
-			$temp1 = GUICtrlRead($g_hChkDBKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
-			$temp2 = GUICtrlRead($g_hChkDBQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
-			$temp3 = GUICtrlRead($g_hChkDBWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
-			$temp4 = GUICtrlRead($g_hChkDBChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
-			$g_aiAttackUseHeroes[$DB] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
-			$g_abAttackDropCC[$DB] = (GUICtrlRead($g_hChkDBDropCC) = $GUI_CHECKED)
+			$temp1 = GUICtrlRead($g_hchkBattleKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
+			$temp2 = GUICtrlRead($g_hchkBattleQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
+			$temp3 = GUICtrlRead($g_hchkBattleWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
+			$temp4 = GUICtrlRead($g_hchkBattleChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
+			$g_aiAttackUseHeroes[$Battle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
+			$g_abAttackDropCC[$Battle] = (GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED)
 
-			$g_aiAttackUseWardenMode[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBWardenMode)
-			$g_aiAttackUseSiege[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbDBSiege)
-			$g_bDropEmptySiege[$DB] = (GUICtrlRead($g_hChkDBDropEmptySiege) = $GUI_CHECKED)
+			$g_aiAttackUseWardenMode[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBWardenMode)
+			$g_aiAttackUseSiege[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBSiege)
+			$g_bDropEmptySiege[$Battle] = (GUICtrlRead($g_hchkBattleDropEmptySiege) = $GUI_CHECKED)
 	EndSwitch
 
 	ApplyConfig_600_29_DB_Standard($TypeReadSave)
@@ -1483,22 +1526,22 @@ Func ApplyConfig_600_29_DB_Standard($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Standard <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropOrderDB, $g_aiAttackStdDropOrder[$DB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropSidesDB, $g_aiAttackStdDropSides[$DB])
-			GUICtrlSetState($g_hChkSmartAttackRedAreaDB, $g_abAttackStdSmartAttack[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropOrderDB, $g_aiAttackStdDropOrder[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropSidesDB, $g_aiAttackStdDropSides[$Battle])
+			GUICtrlSetState($g_hChkSmartAttackRedAreaDB, $g_abAttackStdSmartAttack[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			chkSmartAttackRedAreaDB()
-			_GUICtrlComboBox_SetCurSel($g_hCmbSmartDeployDB, $g_aiAttackStdSmartDeploy[$DB])
-			GUICtrlSetState($g_hChkAttackNearGoldMineDB, $g_abAttackStdSmartNearCollectors[$DB][0] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkAttackNearElixirCollectorDB, $g_abAttackStdSmartNearCollectors[$DB][1] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkAttackNearDarkElixirDrillDB, $g_abAttackStdSmartNearCollectors[$DB][2] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbSmartDeployDB, $g_aiAttackStdSmartDeploy[$Battle])
+			GUICtrlSetState($g_hChkAttackNearGoldMineDB, $g_abAttackStdSmartNearCollectors[$Battle][0] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hChkAttackNearElixirCollectorDB, $g_abAttackStdSmartNearCollectors[$Battle][1] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hChkAttackNearDarkElixirDrillDB, $g_abAttackStdSmartNearCollectors[$Battle][2] ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
-			$g_aiAttackStdDropOrder[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropOrderDB)
-			$g_aiAttackStdDropSides[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropSidesDB)
-			$g_abAttackStdSmartAttack[$DB] = (GUICtrlRead($g_hChkSmartAttackRedAreaDB) = $GUI_CHECKED)
-			$g_aiAttackStdSmartDeploy[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbSmartDeployDB)
-			$g_abAttackStdSmartNearCollectors[$DB][0] = (GUICtrlRead($g_hChkAttackNearGoldMineDB) = $GUI_CHECKED)
-			$g_abAttackStdSmartNearCollectors[$DB][1] = (GUICtrlRead($g_hChkAttackNearElixirCollectorDB) = $GUI_CHECKED)
-			$g_abAttackStdSmartNearCollectors[$DB][2] = (GUICtrlRead($g_hChkAttackNearDarkElixirDrillDB) = $GUI_CHECKED)
+			$g_aiAttackStdDropOrder[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropOrderDB)
+			$g_aiAttackStdDropSides[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropSidesDB)
+			$g_abAttackStdSmartAttack[$Battle] = (GUICtrlRead($g_hChkSmartAttackRedAreaDB) = $GUI_CHECKED)
+			$g_aiAttackStdSmartDeploy[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbSmartDeployDB)
+			$g_abAttackStdSmartNearCollectors[$Battle][0] = (GUICtrlRead($g_hChkAttackNearGoldMineDB) = $GUI_CHECKED)
+			$g_abAttackStdSmartNearCollectors[$Battle][1] = (GUICtrlRead($g_hChkAttackNearElixirCollectorDB) = $GUI_CHECKED)
+			$g_abAttackStdSmartNearCollectors[$Battle][2] = (GUICtrlRead($g_hChkAttackNearDarkElixirDrillDB) = $GUI_CHECKED)
 
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_29_DB_Standard
@@ -1507,26 +1550,32 @@ Func ApplyConfig_600_29_DB_Scripted($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Scripted <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplDB, $g_aiAttackScrRedlineRoutine[$DB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $g_aiAttackScrDroplineEdge[$DB])
-			PopulateComboScriptsFilesDB()
-			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameDB, $g_sAttackScrScriptName[$DB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplBattle, $g_aiAttackScrRedlineRoutine[$Battle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $g_aiAttackScrDroplineEdge[$Battle])
+			PopulateComboScriptsFilesBattle()
+			UpdateComboScriptNameRanked()
+			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameBattle, $g_sAttackScrScriptName[$Battle])
 			If $tempindex = -1 Then
 				$tempindex = 0
 				SetLog("Previous saved Scripted Attack not found (deleted, renamed?)", $COLOR_ERROR)
 				SetLog("Automatically setted a default script, please check your config", $COLOR_ERROR)
 			EndIf
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameDB, $tempindex)
-			cmbScriptNameDB()
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameBattle, $tempindex)
+			cmbScriptNameBattle()
 			cmbScriptRedlineImplDB()
 		Case "Save"
-			$g_aiAttackScrRedlineRoutine[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplDB)
-			$g_aiAttackScrDroplineEdge[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
-			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB)
+			$g_aiAttackScrRedlineRoutine[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplBattle)
+			$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
+			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle)
 			Local $scriptname
-			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameDB, $indexofscript, $scriptname)
-			$g_sAttackScrScriptName[$DB] = $scriptname
-			IniWriteS($g_sProfileConfigPath, "attack", "ScriptDB", $g_sAttackScrScriptName[$DB])
+			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameBattle, $indexofscript, $scriptname)
+			$g_sAttackScrScriptName[$Battle] = $scriptname
+			IniWriteS($g_sProfileConfigPath, "attack", "ScriptDB", $g_sAttackScrScriptName[$Battle])
+			Local $indexRanked = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRanked)
+			Local $rankedName
+			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRanked, $indexRanked, $rankedName)
+			$g_sAttackScrScriptNameRankedBattle = $rankedName
+			IniWriteS($g_sProfileConfigPath, "attack", "ScriptRanked", $g_sAttackScrScriptNameRankedBattle)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_29_DB_Scripted
 
@@ -1550,40 +1599,40 @@ Func ApplyConfig_600_29_LB($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbABAlgorithm, $g_aiAttackAlgorithm[$LB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbABAlgorithm, $g_aiAttackAlgorithm[$RankedBattle])
 			cmbABAlgorithm()
-			_GUICtrlComboBox_SetCurSel($g_hCmbABSelectTroop, $g_aiAttackTroopSelection[$LB])
-			GUICtrlSetState($g_hChkABKingAttack, BitAND($g_aiAttackUseHeroes[$LB], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABQueenAttack, BitAND($g_aiAttackUseHeroes[$LB], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABWardenAttack, BitAND($g_aiAttackUseHeroes[$LB], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkABWardenAttack()
-			GUICtrlSetState($g_hChkABChampionAttack, BitAND($g_aiAttackUseHeroes[$LB], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbABSelectTroop, $g_aiAttackTroopSelection[$RankedBattle])
+			GUICtrlSetState($g_hchkRankedBattleKingAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleQueenAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleWardenAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroWarden) = $eHeroWarden ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkRankedBattleWardenAttack()
+			GUICtrlSetState($g_hchkRankedBattleChampionAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroChampion) = $eHeroChampion ? $GUI_CHECKED : $GUI_UNCHECKED)
 			Local $temp1, $temp2, $temp3, $temp4
-			$temp1 = GUICtrlRead($g_hChkABKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
-			$temp2 = GUICtrlRead($g_hChkABQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
-			$temp3 = GUICtrlRead($g_hChkABWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
-			$temp4 = GUICtrlRead($g_hChkABChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
-			$g_aiAttackUseHeroes[$LB] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
-			GUICtrlSetState($g_hChkABDropCC, $g_abAttackDropCC[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			chkABDropCC()
-			_GUICtrlComboBox_SetCurSel($g_hCmbABWardenMode, $g_aiAttackUseWardenMode[$LB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbABSiege, $g_aiAttackUseSiege[$LB])
-			GUICtrlSetState($g_hChkABDropEmptySiege, $g_bDropEmptySiege[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			$temp1 = GUICtrlRead($g_hchkRankedBattleKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
+			$temp2 = GUICtrlRead($g_hchkRankedBattleQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
+			$temp3 = GUICtrlRead($g_hchkRankedBattleWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
+			$temp4 = GUICtrlRead($g_hchkRankedBattleChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
+			$g_aiAttackUseHeroes[$RankedBattle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
+			GUICtrlSetState($g_hchkRankedBattleDropCC, $g_abAttackDropCC[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			chkRankedBattleDropCC()
+			_GUICtrlComboBox_SetCurSel($g_hCmbABWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbABSiege, $g_aiAttackUseSiege[$RankedBattle])
+			GUICtrlSetState($g_hchkRankedBattleDropEmptySiege, $g_bDropEmptySiege[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 		Case "Save"
-			$g_aiAttackAlgorithm[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABAlgorithm)
-			$g_aiAttackTroopSelection[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABSelectTroop)
+			$g_aiAttackAlgorithm[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABAlgorithm)
+			$g_aiAttackTroopSelection[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABSelectTroop)
 			Local $temp1, $temp2, $temp3, $temp4
-			$temp1 = GUICtrlRead($g_hChkABKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
-			$temp2 = GUICtrlRead($g_hChkABQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
-			$temp3 = GUICtrlRead($g_hChkABWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
-			$temp4 = GUICtrlRead($g_hChkABChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
-			$g_aiAttackUseHeroes[$LB] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
-			$g_abAttackDropCC[$LB] = (GUICtrlRead($g_hChkABDropCC) = $GUI_CHECKED)
+			$temp1 = GUICtrlRead($g_hchkRankedBattleKingAttack) = $GUI_CHECKED ? $eHeroKing : $eHeroNone
+			$temp2 = GUICtrlRead($g_hchkRankedBattleQueenAttack) = $GUI_CHECKED ? $eHeroQueen : $eHeroNone
+			$temp3 = GUICtrlRead($g_hchkRankedBattleWardenAttack) = $GUI_CHECKED ? $eHeroWarden : $eHeroNone
+			$temp4 = GUICtrlRead($g_hchkRankedBattleChampionAttack) = $GUI_CHECKED ? $eHeroChampion : $eHeroNone
+			$g_aiAttackUseHeroes[$RankedBattle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
+			$g_abAttackDropCC[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED)
 
-			$g_aiAttackUseWardenMode[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABWardenMode)
-			$g_aiAttackUseSiege[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbABSiege)
-			$g_bDropEmptySiege[$LB] = (GUICtrlRead($g_hChkABDropEmptySiege) = $GUI_CHECKED)
+			$g_aiAttackUseWardenMode[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABWardenMode)
+			$g_aiAttackUseSiege[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABSiege)
+			$g_bDropEmptySiege[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleDropEmptySiege) = $GUI_CHECKED)
 	EndSwitch
 
 	ApplyConfig_600_29_LB_Standard($TypeReadSave)
@@ -1594,22 +1643,22 @@ Func ApplyConfig_600_29_LB_Standard($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack / Standard <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropOrderAB, $g_aiAttackStdDropOrder[$LB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropSidesAB, $g_aiAttackStdDropSides[$LB])
-			GUICtrlSetState($g_hChkSmartAttackRedAreaAB, $g_abAttackStdSmartAttack[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropOrderAB, $g_aiAttackStdDropOrder[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbStandardDropSidesAB, $g_aiAttackStdDropSides[$RankedBattle])
+			GUICtrlSetState($g_hChkSmartAttackRedAreaAB, $g_abAttackStdSmartAttack[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			chkSmartAttackRedAreaAB()
-			_GUICtrlComboBox_SetCurSel($g_hCmbSmartDeployAB, $g_aiAttackStdSmartDeploy[$LB])
-			GUICtrlSetState($g_hChkAttackNearGoldMineAB, $g_abAttackStdSmartNearCollectors[$LB][0] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkAttackNearElixirCollectorAB, $g_abAttackStdSmartNearCollectors[$LB][1] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkAttackNearDarkElixirDrillAB, $g_abAttackStdSmartNearCollectors[$LB][2] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			_GUICtrlComboBox_SetCurSel($g_hCmbSmartDeployAB, $g_aiAttackStdSmartDeploy[$RankedBattle])
+			GUICtrlSetState($g_hChkAttackNearGoldMineAB, $g_abAttackStdSmartNearCollectors[$RankedBattle][0] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hChkAttackNearElixirCollectorAB, $g_abAttackStdSmartNearCollectors[$RankedBattle][1] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hChkAttackNearDarkElixirDrillAB, $g_abAttackStdSmartNearCollectors[$RankedBattle][2] ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
-			$g_aiAttackStdDropOrder[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropOrderAB)
-			$g_aiAttackStdDropSides[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropSidesAB)
-			$g_abAttackStdSmartAttack[$LB] = (GUICtrlRead($g_hChkSmartAttackRedAreaAB) = $GUI_CHECKED)
-			$g_aiAttackStdSmartDeploy[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbSmartDeployAB)
-			$g_abAttackStdSmartNearCollectors[$LB][0] = (GUICtrlRead($g_hChkAttackNearGoldMineAB) = $GUI_CHECKED)
-			$g_abAttackStdSmartNearCollectors[$LB][1] = (GUICtrlRead($g_hChkAttackNearElixirCollectorAB) = $GUI_CHECKED)
-			$g_abAttackStdSmartNearCollectors[$LB][2] = (GUICtrlRead($g_hChkAttackNearDarkElixirDrillAB) = $GUI_CHECKED)
+			$g_aiAttackStdDropOrder[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropOrderAB)
+			$g_aiAttackStdDropSides[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbStandardDropSidesAB)
+			$g_abAttackStdSmartAttack[$RankedBattle] = (GUICtrlRead($g_hChkSmartAttackRedAreaAB) = $GUI_CHECKED)
+			$g_aiAttackStdSmartDeploy[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbSmartDeployAB)
+			$g_abAttackStdSmartNearCollectors[$RankedBattle][0] = (GUICtrlRead($g_hChkAttackNearGoldMineAB) = $GUI_CHECKED)
+			$g_abAttackStdSmartNearCollectors[$RankedBattle][1] = (GUICtrlRead($g_hChkAttackNearElixirCollectorAB) = $GUI_CHECKED)
+			$g_abAttackStdSmartNearCollectors[$RankedBattle][2] = (GUICtrlRead($g_hChkAttackNearDarkElixirDrillAB) = $GUI_CHECKED)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_29_LB_Standard
 
@@ -1617,26 +1666,32 @@ Func ApplyConfig_600_29_LB_Scripted($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack / Scripted <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplAB, $g_aiAttackScrRedlineRoutine[$LB])
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $g_aiAttackScrDroplineEdge[$LB])
-			PopulateComboScriptsFilesAB()
-			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameAB, $g_sAttackScrScriptName[$LB])
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplRankedBattle, $g_aiAttackScrRedlineRoutine[$RankedBattle])
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $g_aiAttackScrDroplineEdge[$RankedBattle])
+			PopulateComboScriptsFilesRankedBattle()
+			UpdateComboScriptNameRanked()
+			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameRankedBattle, $g_sAttackScrScriptName[$RankedBattle])
 			If $tempindex = -1 Then
 				$tempindex = 0
 				SetLog("Previous saved Scripted Attack not found (deleted, renamed?)", $COLOR_ERROR)
 				SetLog("Automatically setted a default script, please check your config", $COLOR_ERROR)
 			EndIf
-			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameAB, $tempindex)
-			cmbScriptNameAB()
+			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameRankedBattle, $tempindex)
+			cmbScriptNameRankedBattle()
 			cmbScriptRedlineImplAB()
 		Case "Save"
-			$g_aiAttackScrRedlineRoutine[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplAB)
-			$g_aiAttackScrDroplineEdge[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
-			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB)
+			$g_aiAttackScrRedlineRoutine[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplRankedBattle)
+			$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
+			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle)
 			Local $scriptname
-			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameAB, $indexofscript, $scriptname)
-			$g_sAttackScrScriptName[$LB] = $scriptname
-			IniWriteS($g_sProfileConfigPath, "attack", "ScriptAB", $g_sAttackScrScriptName[$LB])
+			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRankedBattle, $indexofscript, $scriptname)
+			$g_sAttackScrScriptName[$RankedBattle] = $scriptname
+			IniWriteS($g_sProfileConfigPath, "attack", "ScriptAB", $g_sAttackScrScriptName[$RankedBattle])
+			Local $indexRanked = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRanked)
+			Local $rankedName
+			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRanked, $indexRanked, $rankedName)
+			$g_sAttackScrScriptNameRankedBattle = $rankedName
+			IniWriteS($g_sProfileConfigPath, "attack", "ScriptRanked", $g_sAttackScrScriptNameRankedBattle)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_29_LB_Scripted
 
@@ -1668,39 +1723,39 @@ Func ApplyConfig_600_30_DB($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			GUICtrlSetState($g_hChkStopAtkDBNoLoot1, $g_abStopAtkNoLoot1Enable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtStopAtkDBNoLoot1, $g_aiStopAtkNoLoot1Time[$DB])
+			GUICtrlSetState($g_hChkStopAtkDBNoLoot1, $g_abStopAtkNoLoot1Enable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtStopAtkDBNoLoot1, $g_aiStopAtkNoLoot1Time[$Battle])
 			chkStopAtkDBNoLoot1()
-			GUICtrlSetState($g_hChkStopAtkDBNoLoot2, $g_abStopAtkNoLoot2Enable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtStopAtkDBNoLoot2, $g_aiStopAtkNoLoot2Time[$DB])
+			GUICtrlSetState($g_hChkStopAtkDBNoLoot2, $g_abStopAtkNoLoot2Enable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtStopAtkDBNoLoot2, $g_aiStopAtkNoLoot2Time[$Battle])
 			chkStopAtkDBNoLoot2()
-			GUICtrlSetData($g_hTxtDBMinGoldStopAtk2, $g_aiStopAtkNoLoot2MinGold[$DB])
-			GUICtrlSetData($g_hTxtDBMinElixirStopAtk2, $g_aiStopAtkNoLoot2MinElixir[$DB])
-			GUICtrlSetData($g_hTxtDBMinDarkElixirStopAtk2, $g_aiStopAtkNoLoot2MinDark[$DB])
-			GUICtrlSetState($g_hChkDBEndNoResources, $g_abStopAtkNoResources[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBEndOneStar, $g_abStopAtkOneStar[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBEndTwoStars, $g_abStopAtkTwoStars[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkDBEndPercentHigher, $g_abStopAtkPctHigherEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDBPercentHigher, $g_aiStopAtkPctHigherAmt[$DB])
-			chkDBEndPercentHigher()
-			GUICtrlSetState($g_hChkDBEndPercentChange, $g_abStopAtkPctNoChangeEnable[$DB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtDBPercentChange, $g_aiStopAtkPctNoChangeTime[$DB])
-			chkDBEndPercentChange()
+			GUICtrlSetData($g_hTxtDBMinGoldStopAtk2, $g_aiStopAtkNoLoot2MinGold[$Battle])
+			GUICtrlSetData($g_hTxtDBMinElixirStopAtk2, $g_aiStopAtkNoLoot2MinElixir[$Battle])
+			GUICtrlSetData($g_hTxtDBMinDarkElixirStopAtk2, $g_aiStopAtkNoLoot2MinDark[$Battle])
+			GUICtrlSetState($g_hchkBattleEndNoResources, $g_abStopAtkNoResources[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleEndOneStar, $g_abStopAtkOneStar[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleEndTwoStars, $g_abStopAtkTwoStars[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleEndPercentHigher, $g_abStopAtkPctHigherEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtDBPercentHigher, $g_aiStopAtkPctHigherAmt[$Battle])
+			chkBattleEndPercentHigher()
+			GUICtrlSetState($g_hchkBattleEndPercentChange, $g_abStopAtkPctNoChangeEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtDBPercentChange, $g_aiStopAtkPctNoChangeTime[$Battle])
+			chkBattleEndPercentChange()
 		Case "Save"
-			$g_abStopAtkNoLoot1Enable[$DB] = (GUICtrlRead($g_hChkStopAtkDBNoLoot1) = $GUI_CHECKED)
-			$g_aiStopAtkNoLoot1Time[$DB] = Int(GUICtrlRead($g_hTxtStopAtkDBNoLoot1))
-			$g_abStopAtkNoLoot2Enable[$DB] = (GUICtrlRead($g_hChkStopAtkDBNoLoot2) = $GUI_CHECKED)
-			$g_aiStopAtkNoLoot2Time[$DB] = Int(GUICtrlRead($g_hTxtStopAtkDBNoLoot2))
-			$g_aiStopAtkNoLoot2MinGold[$DB] = Int(GUICtrlRead($g_hTxtDBMinGoldStopAtk2))
-			$g_aiStopAtkNoLoot2MinElixir[$DB] = Int(GUICtrlRead($g_hTxtDBMinElixirStopAtk2))
-			$g_aiStopAtkNoLoot2MinDark[$DB] = Int(GUICtrlRead($g_hTxtDBMinDarkElixirStopAtk2))
-			$g_abStopAtkNoResources[$DB] = (GUICtrlRead($g_hChkDBEndNoResources) = $GUI_CHECKED)
-			$g_abStopAtkOneStar[$DB] = (GUICtrlRead($g_hChkDBEndOneStar) = $GUI_CHECKED)
-			$g_abStopAtkTwoStars[$DB] = (GUICtrlRead($g_hChkDBEndTwoStars) = $GUI_CHECKED)
-			$g_abStopAtkPctHigherEnable[$DB] = (GUICtrlRead($g_hChkDBEndPercentHigher) = $GUI_CHECKED)
-			$g_aiStopAtkPctHigherAmt[$DB] = GUICtrlRead($g_hTxtDBPercentHigher)
-			$g_abStopAtkPctNoChangeEnable[$DB] = (GUICtrlRead($g_hChkDBEndPercentChange) = $GUI_CHECKED)
-			$g_aiStopAtkPctNoChangeTime[$DB] = GUICtrlRead($g_hTxtDBPercentChange)
+			$g_abStopAtkNoLoot1Enable[$Battle] = (GUICtrlRead($g_hChkStopAtkDBNoLoot1) = $GUI_CHECKED)
+			$g_aiStopAtkNoLoot1Time[$Battle] = Int(GUICtrlRead($g_hTxtStopAtkDBNoLoot1))
+			$g_abStopAtkNoLoot2Enable[$Battle] = (GUICtrlRead($g_hChkStopAtkDBNoLoot2) = $GUI_CHECKED)
+			$g_aiStopAtkNoLoot2Time[$Battle] = Int(GUICtrlRead($g_hTxtStopAtkDBNoLoot2))
+			$g_aiStopAtkNoLoot2MinGold[$Battle] = Int(GUICtrlRead($g_hTxtDBMinGoldStopAtk2))
+			$g_aiStopAtkNoLoot2MinElixir[$Battle] = Int(GUICtrlRead($g_hTxtDBMinElixirStopAtk2))
+			$g_aiStopAtkNoLoot2MinDark[$Battle] = Int(GUICtrlRead($g_hTxtDBMinDarkElixirStopAtk2))
+			$g_abStopAtkNoResources[$Battle] = (GUICtrlRead($g_hchkBattleEndNoResources) = $GUI_CHECKED)
+			$g_abStopAtkOneStar[$Battle] = (GUICtrlRead($g_hchkBattleEndOneStar) = $GUI_CHECKED)
+			$g_abStopAtkTwoStars[$Battle] = (GUICtrlRead($g_hchkBattleEndTwoStars) = $GUI_CHECKED)
+			$g_abStopAtkPctHigherEnable[$Battle] = (GUICtrlRead($g_hchkBattleEndPercentHigher) = $GUI_CHECKED)
+			$g_aiStopAtkPctHigherAmt[$Battle] = GUICtrlRead($g_hTxtDBPercentHigher)
+			$g_abStopAtkPctNoChangeEnable[$Battle] = (GUICtrlRead($g_hchkBattleEndPercentChange) = $GUI_CHECKED)
+			$g_aiStopAtkPctNoChangeTime[$Battle] = GUICtrlRead($g_hTxtDBPercentChange)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_30_DB
 
@@ -1708,18 +1763,18 @@ Func ApplyConfig_600_30_LB($TypeReadSave)
 	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
 	Switch $TypeReadSave
 		Case "Read"
-			GUICtrlSetState($g_hChkStopAtkABNoLoot1, $g_abStopAtkNoLoot1Enable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtStopAtkABNoLoot1, $g_aiStopAtkNoLoot1Time[$LB])
+			GUICtrlSetState($g_hChkStopAtkABNoLoot1, $g_abStopAtkNoLoot1Enable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtStopAtkABNoLoot1, $g_aiStopAtkNoLoot1Time[$RankedBattle])
 			chkStopAtkABNoLoot1()
-			GUICtrlSetState($g_hChkStopAtkABNoLoot2, $g_abStopAtkNoLoot2Enable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtStopAtkABNoLoot2, $g_aiStopAtkNoLoot2Time[$LB])
+			GUICtrlSetState($g_hChkStopAtkABNoLoot2, $g_abStopAtkNoLoot2Enable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtStopAtkABNoLoot2, $g_aiStopAtkNoLoot2Time[$RankedBattle])
 			chkStopAtkABNoLoot2()
-			GUICtrlSetData($g_hTxtABMinGoldStopAtk2, $g_aiStopAtkNoLoot2MinGold[$LB])
-			GUICtrlSetData($g_hTxtABMinElixirStopAtk2, $g_aiStopAtkNoLoot2MinElixir[$LB])
-			GUICtrlSetData($g_hTxtABMinDarkElixirStopAtk2, $g_aiStopAtkNoLoot2MinDark[$LB])
-			GUICtrlSetState($g_hChkABEndNoResources, $g_abStopAtkNoResources[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABEndOneStar, $g_abStopAtkOneStar[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABEndTwoStars, $g_abStopAtkTwoStars[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABMinGoldStopAtk2, $g_aiStopAtkNoLoot2MinGold[$RankedBattle])
+			GUICtrlSetData($g_hTxtABMinElixirStopAtk2, $g_aiStopAtkNoLoot2MinElixir[$RankedBattle])
+			GUICtrlSetData($g_hTxtABMinDarkElixirStopAtk2, $g_aiStopAtkNoLoot2MinDark[$RankedBattle])
+			GUICtrlSetState($g_hchkRankedBattleEndNoResources, $g_abStopAtkNoResources[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleEndOneStar, $g_abStopAtkOneStar[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkRankedBattleEndTwoStars, $g_abStopAtkTwoStars[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkDESideEB, $g_bDESideEndEnable ? $GUI_CHECKED : $GUI_UNCHECKED)
 			chkDESideEB()
 			GUICtrlSetData($g_hTxtDELowEndMin, $g_iDESideEndMin)
@@ -1727,33 +1782,33 @@ Func ApplyConfig_600_30_LB($TypeReadSave)
 			GUICtrlSetState($g_hChkDEEndBk, $g_bDESideEndBKWeak ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkDEEndAq, $g_bDESideEndAQWeak ? $GUI_CHECKED : $GUI_UNCHECKED)
 			GUICtrlSetState($g_hChkDEEndOneStar, $g_bDESideEndOneStar ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetState($g_hChkABEndPercentHigher, $g_abStopAtkPctHigherEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABPercentHigher, $g_aiStopAtkPctHigherAmt[$LB])
-			chkABEndPercentHigher()
-			GUICtrlSetState($g_hChkABEndPercentChange, $g_abStopAtkPctNoChangeEnable[$LB] ? $GUI_CHECKED : $GUI_UNCHECKED)
-			GUICtrlSetData($g_hTxtABPercentChange, $g_aiStopAtkPctNoChangeTime[$LB])
-			chkABEndPercentChange()
+			GUICtrlSetState($g_hchkRankedBattleEndPercentHigher, $g_abStopAtkPctHigherEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABPercentHigher, $g_aiStopAtkPctHigherAmt[$RankedBattle])
+			chkRankedBattleEndPercentHigher()
+			GUICtrlSetState($g_hchkRankedBattleEndPercentChange, $g_abStopAtkPctNoChangeEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetData($g_hTxtABPercentChange, $g_aiStopAtkPctNoChangeTime[$RankedBattle])
+			chkRankedBattleEndPercentChange()
 		Case "Save"
-			$g_abStopAtkNoLoot1Enable[$LB] = (GUICtrlRead($g_hChkStopAtkABNoLoot1) = $GUI_CHECKED)
-			$g_aiStopAtkNoLoot1Time[$LB] = Int(GUICtrlRead($g_hTxtStopAtkABNoLoot1))
-			$g_abStopAtkNoLoot2Enable[$LB] = (GUICtrlRead($g_hChkStopAtkABNoLoot2) = $GUI_CHECKED)
-			$g_aiStopAtkNoLoot2Time[$LB] = (GUICtrlRead($g_hTxtStopAtkABNoLoot2))
-			$g_aiStopAtkNoLoot2MinGold[$LB] = Int(GUICtrlRead($g_hTxtABMinGoldStopAtk2))
-			$g_aiStopAtkNoLoot2MinElixir[$LB] = Int(GUICtrlRead($g_hTxtABMinElixirStopAtk2))
-			$g_aiStopAtkNoLoot2MinDark[$LB] = Int(GUICtrlRead($g_hTxtABMinDarkElixirStopAtk2))
-			$g_abStopAtkNoResources[$LB] = (GUICtrlRead($g_hChkABEndNoResources) = $GUI_CHECKED)
-			$g_abStopAtkOneStar[$LB] = (GUICtrlRead($g_hChkABEndOneStar) = $GUI_CHECKED)
-			$g_abStopAtkTwoStars[$LB] = (GUICtrlRead($g_hChkABEndTwoStars) = $GUI_CHECKED)
+			$g_abStopAtkNoLoot1Enable[$RankedBattle] = (GUICtrlRead($g_hChkStopAtkABNoLoot1) = $GUI_CHECKED)
+			$g_aiStopAtkNoLoot1Time[$RankedBattle] = Int(GUICtrlRead($g_hTxtStopAtkABNoLoot1))
+			$g_abStopAtkNoLoot2Enable[$RankedBattle] = (GUICtrlRead($g_hChkStopAtkABNoLoot2) = $GUI_CHECKED)
+			$g_aiStopAtkNoLoot2Time[$RankedBattle] = (GUICtrlRead($g_hTxtStopAtkABNoLoot2))
+			$g_aiStopAtkNoLoot2MinGold[$RankedBattle] = Int(GUICtrlRead($g_hTxtABMinGoldStopAtk2))
+			$g_aiStopAtkNoLoot2MinElixir[$RankedBattle] = Int(GUICtrlRead($g_hTxtABMinElixirStopAtk2))
+			$g_aiStopAtkNoLoot2MinDark[$RankedBattle] = Int(GUICtrlRead($g_hTxtABMinDarkElixirStopAtk2))
+			$g_abStopAtkNoResources[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleEndNoResources) = $GUI_CHECKED)
+			$g_abStopAtkOneStar[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleEndOneStar) = $GUI_CHECKED)
+			$g_abStopAtkTwoStars[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleEndTwoStars) = $GUI_CHECKED)
 			$g_bDESideEndEnable = (GUICtrlRead($g_hChkDESideEB) = $GUI_CHECKED)
 			$g_iDESideEndMin = GUICtrlRead($g_hTxtDELowEndMin)
 			$g_bDESideDisableOther = (GUICtrlRead($g_hChkDisableOtherEBO) = $GUI_CHECKED)
 			$g_bDESideEndAQWeak = (GUICtrlRead($g_hChkDEEndAq) = $GUI_CHECKED)
 			$g_bDESideEndBKWeak = (GUICtrlRead($g_hChkDEEndBk) = $GUI_CHECKED)
 			$g_bDESideEndOneStar = (GUICtrlRead($g_hChkDEEndOneStar) = $GUI_CHECKED)
-			$g_abStopAtkPctHigherEnable[$LB] = (GUICtrlRead($g_hChkABEndPercentHigher) = $GUI_CHECKED)
-			$g_aiStopAtkPctHigherAmt[$LB] = GUICtrlRead($g_hTxtABPercentHigher)
-			$g_abStopAtkPctNoChangeEnable[$LB] = (GUICtrlRead($g_hChkABEndPercentChange) = $GUI_CHECKED)
-			$g_aiStopAtkPctNoChangeTime[$LB] = GUICtrlRead($g_hTxtABPercentChange)
+			$g_abStopAtkPctHigherEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleEndPercentHigher) = $GUI_CHECKED)
+			$g_aiStopAtkPctHigherAmt[$RankedBattle] = GUICtrlRead($g_hTxtABPercentHigher)
+			$g_abStopAtkPctNoChangeEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleEndPercentChange) = $GUI_CHECKED)
+			$g_aiStopAtkPctNoChangeTime[$RankedBattle] = GUICtrlRead($g_hTxtABPercentChange)
 	EndSwitch
 EndFunc   ;==>ApplyConfig_600_30_LB
 
@@ -1762,20 +1817,20 @@ Func ApplyConfig_600_31($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
 			For $i = 6 To 14
-				GUICtrlSetState($g_ahChkDBCollectorLevel[$i], $g_abCollectorLevelEnabled[$i] ? $GUI_CHECKED : $GUI_UNCHECKED)
+				GUICtrlSetState($g_ahchkBattleCollectorLevel[$i], $g_abCollectorLevelEnabled[$i] ? $GUI_CHECKED : $GUI_UNCHECKED)
                 GUICtrlSetState($g_ahCmbDBCollectorLevel[$i], $g_abCollectorLevelEnabled[$i] ? $GUI_ENABLE : $GUI_DISABLE)
 				_GUICtrlComboBox_SetCurSel($g_ahCmbDBCollectorLevel[$i], $g_aiCollectorLevelFill[$i])
 			Next
-			GUICtrlSetState($g_hChkDBDisableCollectorsFilter, $g_bCollectorFilterDisable ? $GUI_CHECKED : $GUI_UNCHECKED)
+			GUICtrlSetState($g_hchkBattleDisableCollectorsFilter, $g_bCollectorFilterDisable ? $GUI_CHECKED : $GUI_UNCHECKED)
 			_GUICtrlComboBox_SetCurSel($g_hCmbMinCollectorMatches, $g_iCollectorMatchesMin - 1)
 			GUICtrlSetData($g_hSldCollectorTolerance, $g_iCollectorToleranceOffset)
 			checkCollectors()
 		Case "Save"
 			For $i = 6 To 14
-				$g_abCollectorLevelEnabled[$i] = (GUICtrlRead($g_ahChkDBCollectorLevel[$i]) = $GUI_CHECKED)
+				$g_abCollectorLevelEnabled[$i] = (GUICtrlRead($g_ahchkBattleCollectorLevel[$i]) = $GUI_CHECKED)
 				$g_aiCollectorLevelFill[$i] = _GUICtrlComboBox_GetCurSel($g_ahCmbDBCollectorLevel[$i])
 			Next
-			$g_bCollectorFilterDisable = (GUICtrlRead($g_hChkDBDisableCollectorsFilter) = $GUI_CHECKED)
+			$g_bCollectorFilterDisable = (GUICtrlRead($g_hchkBattleDisableCollectorsFilter) = $GUI_CHECKED)
 			$g_iCollectorMatchesMin = _GUICtrlComboBox_GetCurSel($g_hCmbMinCollectorMatches) + 1
 			$g_iCollectorToleranceOffset = GUICtrlRead($g_hSldCollectorTolerance)
 	EndSwitch

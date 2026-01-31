@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........:
-; Modified ......: CodeSlinger69 (2017)
+; Modified ......: CodeSlinger69 (2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -31,9 +31,9 @@ Func CreateAttackSearchOptions()
 	GUISwitch($g_hGUI_ATTACKOPTION)
 	$g_hGUI_ATTACKOPTION_TAB = GUICtrlCreateTab(0, 0, $g_iSizeWGrpTab3, $g_iSizeHGrpTab3, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
 	$g_hGUI_ATTACKOPTION_TAB_ITEM1 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_01", -1))
-		CreateAttackSearchOptionsSearch()
+		GUICtrlCreateLabel("Search options moved to CSV Mod tab.", 15, 20, $g_iSizeWGrpTab3 - 30, 40)
 	$g_hGUI_ATTACKOPTION_TAB_ITEM2 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_02", -1))
-		CreateAttackSearchOptionsAttack()
+		GUICtrlCreateLabel("Attack options moved to CSV Mod tab.", 15, 20, $g_iSizeWGrpTab3 - 30, 40)
 	$g_hGUI_ATTACKOPTION_TAB_ITEM3 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_05_STab_01", "SmartZap"))
 		CreateAttackNewSmartZap()
 	$g_hGUI_ATTACKOPTION_TAB_ITEM4 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_03", -1))

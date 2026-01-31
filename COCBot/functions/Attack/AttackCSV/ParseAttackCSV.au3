@@ -29,10 +29,13 @@ Func ParseAttackCSV($debug = False)
 	Next
 
 	;Local $filename = "attack1"
-	If $g_iMatchMode = $DB Then
-		Local $filename = $g_sAttackScrScriptName[$DB]
+	Local $filename = ""
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then
+		$filename = $g_sAttackScrScriptNameRankedBattle
+	ElseIf $g_iMatchMode = $Battle Then
+		$filename = $g_sAttackScrScriptName[$Battle]
 	Else
-		Local $filename = $g_sAttackScrScriptName[$LB]
+		$filename = $g_sAttackScrScriptName[$RankedBattle]
 	EndIf
 	SetLog("execute " & $filename)
 
@@ -952,10 +955,13 @@ Func ParseAttackCSV_MainSide($debug = False)
 
 	Local $bForceSideExist = False
 	;Local $filename = "attack1"
-	If $g_iMatchMode = $DB Then
-		Local $filename = $g_sAttackScrScriptName[$DB]
+	Local $filename = ""
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then
+		$filename = $g_sAttackScrScriptNameRankedBattle
+	ElseIf $g_iMatchMode = $Battle Then
+		$filename = $g_sAttackScrScriptName[$Battle]
 	Else
-		Local $filename = $g_sAttackScrScriptName[$LB]
+		$filename = $g_sAttackScrScriptName[$RankedBattle]
 	EndIf
 
 	Local $line, $acommand, $command

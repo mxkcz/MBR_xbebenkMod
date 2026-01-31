@@ -27,7 +27,7 @@ Func TestSmartFarm()
 	CheckIfArmyIsReady()
 	ClickAway()
 	If _Sleep(100) Then Return FuncReturn()
-	If (IsSearchModeActive($DB) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
+	If (IsSearchModeActive($Battle) And checkCollectors(True, False)) Or IsSearchModeActive($RankedBattle) Then
 		If _Sleep(100) Then Return FuncReturn()
 		PrepareSearch()
 		If _Sleep(1000) Then Return FuncReturn()
@@ -949,7 +949,7 @@ EndFunc   ;==>DropTroopSmartFarm
 
 Func TestSF()
 	CheckZoomOut("VillageSearch")
-	PrepareAttack($DB)
+	PrepareAttack($Battle)
 	Local $Nside = ChkSmartFarm()
 	AttackSmartFarm($Nside[1], $Nside[2])
 	ReturnHome()
@@ -965,7 +965,7 @@ Func SFLoop($iCountLoop = 1, $bStopWhenResourceFull = False)
 		If Not IsAttackPage() Then ContinueLoop
 		If Not $g_bRunState Then Return
 		CheckZoomOut("VillageSearch")
-		PrepareAttack($DB)
+		PrepareAttack($Battle)
 		If IsProblemAffect() Then ContinueLoop
 		If Not $g_bRunState Then Return
 		Local $Nside = ChkSmartFarm()

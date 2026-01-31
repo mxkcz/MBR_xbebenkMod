@@ -20,7 +20,7 @@ Func ReturnHome($bTakeSS = True, $GoldChangeCheck = True) ;Return main screen
 	Local $i, $j
 	Local $aiSurrenderButton
 
-	If $g_bDESideDisableOther And $g_iMatchMode = $LB And $g_aiAttackStdDropSides[$LB] = 4 And $g_bDESideEndEnable And ($g_bDropQueen Or $g_bDropKing) Then
+	If $g_bDESideDisableOther And $g_iMatchMode = $RankedBattle And $g_aiAttackStdDropSides[$RankedBattle] = 4 And $g_bDESideEndEnable And ($g_bDropQueen Or $g_bDropKing) Then
 		SaveandDisableEBO()
 		SetLog("Disabling Normal End Battle Options", $COLOR_SUCCESS)
 	EndIf
@@ -39,7 +39,7 @@ Func ReturnHome($bTakeSS = True, $GoldChangeCheck = True) ;Return main screen
 		EndIf
 	EndIf
 
-	If $g_bDESideDisableOther And $g_iMatchMode = $LB And $g_aiAttackStdDropSides[$LB] = 4 And $g_bDESideEndEnable And ($g_bDropQueen Or $g_bDropKing) Then
+	If $g_bDESideDisableOther And $g_iMatchMode = $RankedBattle And $g_aiAttackStdDropSides[$RankedBattle] = 4 And $g_bDESideEndEnable And ($g_bDropQueen Or $g_bDropKing) Then
 		RevertEBO()
 	EndIf
 

@@ -110,9 +110,9 @@ Func getMaxUISetting($settingArray, $iDefenseType)
 
 	If IsArray($settingArray) Then
 		; Check if dead base search is active and dead base weak base detection is active, use setting if active, 0 if not active
-		$maxDB = (IsWeakBaseActive($DB)) ? $settingArray[$DB] : 0
+		$maxDB = (IsWeakBaseActive($Battle)) ? $settingArray[$Battle] : 0
 		; Check if live base search is active and live base weak base detection is active, use setting if active, 0 if not active
-		$maxLB = (IsWeakBaseActive($LB)) ? $settingArray[$LB] : 0
+		$maxLB = (IsWeakBaseActive($RankedBattle)) ? $settingArray[$RankedBattle] : 0
 
 		; Get the value that is highest
 		$result = _Max(Number($maxDB), Number($maxLB))
@@ -128,9 +128,9 @@ Func getMinUISetting($settingArray, $iDefenseType)
 
 	If IsArray($settingArray) Then
 		; Check if dead base search is active and dead base weak base detection is active, use setting if active, 0 if not active
-		$minDB = (IsWeakBaseActive($DB)) ? $settingArray[$DB] : 0
+		$minDB = (IsWeakBaseActive($Battle)) ? $settingArray[$Battle] : 0
 		; Check if live base search is active and live base weak base detection is active, use setting if active, 0 if not active
-		$minLB = (IsWeakBaseActive($LB)) ? $settingArray[$LB] : 0
+		$minLB = (IsWeakBaseActive($RankedBattle)) ? $settingArray[$RankedBattle] : 0
 
 		; Get the value that is lowest of maximum defense level to detect
 		$result = _Min(Number($minDB), Number($minLB))
@@ -185,8 +185,8 @@ Func defenseSearch(ByRef $aResult, $directory, $townHallLevel, $settingArray, $i
 		; Setup search limitations
 		Local $minSearchLevel = getMinUISetting($settingArray, $iDefenseType) + 1 ; stores lowest defense bldg level specified in all active attack modes for max buiding level in GUI
 		Local $maxSearchLevel = getTHDefenseMax($townHallLevel, $iDefenseType) ; store the maximum defense building level possible based on TH level being attacked
-		Local $bGuiEnableArray = IsArray($guiEnabledArray), $bIsSearchModeActiveDB = IsSearchModeActiveMini($DB), $bIsSearchModeActiveLB = IsSearchModeActiveMini($LB)
-		Local $guiCheckDefense = $bGuiEnableArray And (($bIsSearchModeActiveDB And $guiEnabledArray[$DB]) Or ($bIsSearchModeActiveLB And $guiEnabledArray[$LB]))
+		Local $bGuiEnableArray = IsArray($guiEnabledArray), $bIsSearchModeActiveDB = IsSearchModeActiveMini($Battle), $bIsSearchModeActiveLB = IsSearchModeActiveMini($RankedBattle)
+		Local $guiCheckDefense = $bGuiEnableArray And (($bIsSearchModeActiveDB And $guiEnabledArray[$Battle]) Or ($bIsSearchModeActiveLB And $guiEnabledArray[$RankedBattle]))
 
 		; Start the timer for individual defense searches
 		Local $defenseTimer = __TimerInit()
@@ -601,7 +601,7 @@ Func DefenseSearchMultiMatch($iDefenseType, $directory, $redlines = "DCD", $stat
 EndFunc   ;==>DefenseSearchMultiMatch
 
 Func isScriptedAttackActive()
-	If ($g_abAttackTypeEnable[$DB] And $g_aiAttackAlgorithm[$DB] = 1) Or ($g_abAttackTypeEnable[$LB] And $g_aiAttackAlgorithm[$LB] = 1) Then Return True
+	If ($g_abAttackTypeEnable[$Battle] And $g_aiAttackAlgorithm[$Battle] = 1) Or ($g_abAttackTypeEnable[$RankedBattle] And $g_aiAttackAlgorithm[$RankedBattle] = 1) Then Return True
 	Return False
 EndFunc   ;==>isScriptedAttackActive
 

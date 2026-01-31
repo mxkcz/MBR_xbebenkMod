@@ -31,10 +31,10 @@ Func IsSearchModeActive($g_iMatchMode, $bDontCheckHeroes = False, $bNoLog = Fals
 	EndIf
 
 	Switch $g_iMatchMode
-		Case $DB
-			$bMatchModeEnabled = $g_abAttackTypeEnable[$DB]
-		Case $LB
-			$bMatchModeEnabled = $g_abAttackTypeEnable[$LB]
+		Case $Battle
+			$bMatchModeEnabled = $g_abAttackTypeEnable[$Battle]
+		Case $RankedBattle
+			$bMatchModeEnabled = $g_abAttackTypeEnable[$RankedBattle]
 		Case Else
 			$bMatchModeEnabled = False
 	EndSwitch
@@ -157,7 +157,7 @@ EndFunc   ;==>IsWaitforHeroesActive
 ; Example .......: No
 ; ===============================================================================================================================
 Func IsWaitforSiegeMachine()
-	For $i = $DB To $g_iModeCount - 1
+	For $i = $Battle To $g_iModeCount - 1
 		If $g_abAttackTypeEnable[$i] And $g_abSearchSiegeWaitEnable[$i] Then
 			If $g_bDebugSetlogTrain Or $g_bDebugSetlog Then SetLog("IsWaitforSiegeMachine = True", $COLOR_DEBUG)
 			Return True

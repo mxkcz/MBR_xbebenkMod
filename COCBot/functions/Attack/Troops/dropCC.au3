@@ -16,7 +16,7 @@
 ; ===============================================================================================================================
 Func dropCC($iX, $iY, $iCCSlot) ;Drop clan castle
 
-	Local $test = ($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or $g_abAttackDropCC[$g_iMatchMode]
+	Local $test = ($g_iMatchMode <> $Battle And $g_iMatchMode <> $RankedBattle) Or $g_abAttackDropCC[$g_iMatchMode]
 
 	If $iCCSlot <> -1 And $test Then
 		;standard attack

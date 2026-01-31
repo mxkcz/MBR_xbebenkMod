@@ -87,10 +87,13 @@ Func ParseAttackCSV_Read_SIDE_variables()
 		$g_aiCSVSideBWeights[$i] = 0
 	Next
 
-	If $g_iMatchMode = $DB Then
-		Local $filename = $g_sAttackScrScriptName[$DB]
+	Local $filename = ""
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then
+		$filename = $g_sAttackScrScriptNameRankedBattle
+	ElseIf $g_iMatchMode = $Battle Then
+		$filename = $g_sAttackScrScriptName[$Battle]
 	Else
-		Local $filename = $g_sAttackScrScriptName[$LB]
+		$filename = $g_sAttackScrScriptName[$RankedBattle]
 	EndIf
 
 	Local $f, $line, $acommand, $command
@@ -221,7 +224,7 @@ EndFunc   ;==>ParseAttackCSV_Read_SIDE_variables
 ; Name ..........: PrepareAttackCSV
 ; Description ...: Pre-scan CSV script to cache locate flags, weights, and MAKE usage before search.
 ; Syntax ........: PrepareAttackCSV($iMode[, $bForce = False])
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $bForce            - [optional] Force refresh even if cache is valid. Default is False.
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
@@ -243,6 +246,7 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	_CSVInitTHWindow()
 
 	Local $sFilename = $g_sAttackScrScriptName[$iMode]
+	If $g_bLeagueAttack And $g_sAttackScrScriptNameRankedBattle <> "" Then $sFilename = $g_sAttackScrScriptNameRankedBattle
 	If $sFilename = "" Then
 		_CSVPrepResetMode($iMode)
 		Return SetError(3, 0, 0)
@@ -376,7 +380,7 @@ EndFunc   ;==>PrepareAttackCSV
 ; Name ..........: AttackCSV_ApplyPrepared
 ; Description ...: Apply prepared CSV locate flags and weights for the current match.
 ; Syntax ........: AttackCSV_ApplyPrepared($iMode, $iTH)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iTH               - Townhall level (may be "-").
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
@@ -450,7 +454,7 @@ EndFunc   ;==>AttackCSV_ApplyPrepared
 ; Name ..........: AttackCSV_GetPreparedMakeUsage
 ; Description ...: Retrieve cached MAKE side usage and targeted-only state for a mode.
 ; Syntax ........: AttackCSV_GetPreparedMakeUsage($iMode, ByRef $aSidesUsed, ByRef $bAllMakeTargeted)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $aSidesUsed        - [out] Array [TL, TR, BL, BR] of used sides (Boolean).
 ;                  $bAllMakeTargeted  - [out] True if all MAKE commands are targeted.
 ; Return values .: Success: 1
@@ -481,7 +485,7 @@ EndFunc   ;==>AttackCSV_GetPreparedMakeUsage
 ; Name ..........: AttackCSV_GetTargetMaxReturnPoints
 ; Description ...: Compute max return points for targeted-only MAKE using defense counts and PRIO weights.
 ; Syntax ........: AttackCSV_GetTargetMaxReturnPoints($iMode, $iTH, $iCap)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iTH               - Townhall level (may be "-").
 ;                  $iCap              - Max cap (0 disables).
 ; Return values .: Success: integer max return points
@@ -753,7 +757,7 @@ EndFunc   ;==>_CSVTHToWindowIndex
 ; Name ..........: _CSVGetResolvedLocateBase
 ; Description ...: Build resolved locate flags from weights and explicit targets.
 ; Syntax ........: _CSVGetResolvedLocateBase($iMode, ByRef $aResolved)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $aResolved         - [out] Locate flags array.
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
@@ -803,7 +807,7 @@ EndFunc   ;==>_CSVGetResolvedLocateBase
 ; Name ..........: _CSVPrebuildTHLocateTableWindow
 ; Description ...: Precompute locate flags for the TH window (TH-1/TH/TH+1).
 ; Syntax ........: _CSVPrebuildTHLocateTableWindow($iMode)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
 ; Author ........: mxkcz
@@ -847,7 +851,7 @@ EndFunc   ;==>_CSVPrebuildTHLocateTableWindow
 ; Name ..........: _CSVHasAnyLocateFlag
 ; Description ...: Determine if any locate flag is enabled for a mode and TH.
 ; Syntax ........: _CSVHasAnyLocateFlag($iMode, $iTH)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iTH               - Townhall level (may be "-").
 ; Return values .: Success: True/False
 ; Author ........: mxkcz
@@ -878,7 +882,7 @@ EndFunc   ;==>_CSVHasAnyLocateFlag
 ; Name ..........: _CSVResolveLocateFlags
 ; Description ...: Resolve CSV locate flags from PRIO weights and explicit MAKE targets.
 ; Syntax ........: _CSVResolveLocateFlags($iMode)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ; Return values .: Success: 1
 ;                  Failure: 0 and @error set.
 ; Author ........: mxkcz
@@ -910,7 +914,7 @@ EndFunc   ;==>_CSVResolveLocateFlags
 ; Name ..........: _CSVPrecalcLocateForTH
 ; Description ...: Disable locate flags for buildings locked below the minimum TH (with delta).
 ; Syntax ........: _CSVPrecalcLocateForTH($iMode, $iTH, $iDelta, $aLocateOverride)
-; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iTH               - Townhall level (may be "-").
 ;                  $iDelta            - [optional] TH delta tolerance. Default is 1.
 ; Return values .: Success: 1

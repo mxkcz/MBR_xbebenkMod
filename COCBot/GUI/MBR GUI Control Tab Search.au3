@@ -32,16 +32,16 @@ Func cmbDBGoldElixir()
 	EndIf
 EndFunc   ;==>cmbDBGoldElixir
 
-Func chkDBMeetDE()
-	_GUICtrlEdit_SetReadOnly($g_hTxtDBMinDarkElixir, GUICtrlRead($g_hChkDBMeetDE) = $GUI_CHECKED ? False : True)
-EndFunc   ;==>chkDBMeetDE
+Func chkBattleMeetDE()
+	_GUICtrlEdit_SetReadOnly($g_hTxtDBMinDarkElixir, GUICtrlRead($g_hchkBattleMeetDE) = $GUI_CHECKED ? False : True)
+EndFunc   ;==>chkBattleMeetDE
 
-Func chkDBMeetTH()
-	GUICtrlSetState($g_hCmbDBTH, GUICtrlRead($g_hChkDBMeetTH) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-EndFunc   ;==>chkDBMeetTH
+Func chkBattleMeetTH()
+	GUICtrlSetState($g_hCmbDBTH, GUICtrlRead($g_hchkBattleMeetTH) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkBattleMeetTH
 
-Func chkDBMeetDeadEagle()
-	If GUICtrlRead($g_hChkDBMeetDeadEagle) = $GUI_CHECKED Then
+Func chkBattleMeetDeadEagle()
+	If GUICtrlRead($g_hchkBattleMeetDeadEagle) = $GUI_CHECKED Then
 		$g_bChkDeadEagle = True
 		$g_iDeadEagleSearch = GUICtrlRead($g_hTxtDeadEagleSearch)
 	Else
@@ -51,15 +51,15 @@ Func chkDBMeetDeadEagle()
 	SetLog("$g_bChkDeadEagle :" & $g_bChkDeadEagle)
 EndFunc
 
-Func chkDBWeakBase()
-	GUICtrlSetState($g_ahCmbWeakMortar[$DB], GUICtrlRead($g_ahChkMaxMortar[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakWizTower[$DB], GUICtrlRead($g_ahChkMaxWizTower[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakAirDefense[$DB], GUICtrlRead($g_ahChkMaxAirDefense[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakXBow[$DB], GUICtrlRead($g_ahChkMaxXBow[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakInferno[$DB], GUICtrlRead($g_ahChkMaxInferno[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakEagle[$DB], GUICtrlRead($g_ahChkMaxEagle[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakScatter[$DB], GUICtrlRead($g_ahChkMaxScatter[$DB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-EndFunc   ;==>chkDBWeakBase
+Func chkBattleWeakBase()
+	GUICtrlSetState($g_ahCmbWeakMortar[$Battle], GUICtrlRead($g_ahChkMaxMortar[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakWizTower[$Battle], GUICtrlRead($g_ahChkMaxWizTower[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakAirDefense[$Battle], GUICtrlRead($g_ahChkMaxAirDefense[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakXBow[$Battle], GUICtrlRead($g_ahChkMaxXBow[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakInferno[$Battle], GUICtrlRead($g_ahChkMaxInferno[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakEagle[$Battle], GUICtrlRead($g_ahChkMaxEagle[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakScatter[$Battle], GUICtrlRead($g_ahChkMaxScatter[$Battle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkBattleWeakBase
 
 Func cmbABGoldElixir()
 	If _GUICtrlComboBox_GetCurSel($g_hCmbABMeetGE) < 2 Then
@@ -79,30 +79,30 @@ Func cmbABGoldElixir()
 	EndIf
 EndFunc   ;==>cmbABGoldElixir
 
-Func chkABMeetDE()
-	_GUICtrlEdit_SetReadOnly($g_hTxtABMinDarkElixir, GUICtrlRead($g_hChkABMeetDE) = $GUI_CHECKED ? False : True)
-EndFunc   ;==>chkABMeetDE
+Func chkRankedBattleMeetDE()
+	_GUICtrlEdit_SetReadOnly($g_hTxtABMinDarkElixir, GUICtrlRead($g_hchkRankedBattleMeetDE) = $GUI_CHECKED ? False : True)
+EndFunc   ;==>chkRankedBattleMeetDE
 
-Func chkABMeetTH()
-	GUICtrlSetState($g_hCmbABTH, GUICtrlRead($g_hChkABMeetTH) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-EndFunc   ;==>chkABMeetTH
+Func chkRankedBattleMeetTH()
+	GUICtrlSetState($g_hCmbABTH, GUICtrlRead($g_hchkRankedBattleMeetTH) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkRankedBattleMeetTH
 
-Func chkABWeakBase()
-	GUICtrlSetState($g_ahCmbWeakMortar[$LB], GUICtrlRead($g_ahChkMaxMortar[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakWizTower[$LB], GUICtrlRead($g_ahChkMaxWizTower[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakAirDefense[$LB], GUICtrlRead($g_ahChkMaxAirDefense[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakXBow[$LB], GUICtrlRead($g_ahChkMaxXBow[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakInferno[$LB], GUICtrlRead($g_ahChkMaxInferno[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakEagle[$LB], GUICtrlRead($g_ahChkMaxEagle[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-	GUICtrlSetState($g_ahCmbWeakScatter[$LB], GUICtrlRead($g_ahChkMaxScatter[$LB]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
-EndFunc   ;==>chkABWeakBase
+Func chkRankedBattleWeakBase()
+	GUICtrlSetState($g_ahCmbWeakMortar[$RankedBattle], GUICtrlRead($g_ahChkMaxMortar[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakWizTower[$RankedBattle], GUICtrlRead($g_ahChkMaxWizTower[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakAirDefense[$RankedBattle], GUICtrlRead($g_ahChkMaxAirDefense[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakXBow[$RankedBattle], GUICtrlRead($g_ahChkMaxXBow[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakInferno[$RankedBattle], GUICtrlRead($g_ahChkMaxInferno[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakEagle[$RankedBattle], GUICtrlRead($g_ahChkMaxEagle[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	GUICtrlSetState($g_ahCmbWeakScatter[$RankedBattle], GUICtrlRead($g_ahChkMaxScatter[$RankedBattle]) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkRankedBattleWeakBase
 
 Func chkRestartSearchLimit()
 	GUICtrlSetState($g_hTxtRestartSearchlimit, GUICtrlRead($g_hChkRestartSearchLimit) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
 EndFunc   ;==>chkRestartSearchLimit
 
-Func chkDBActivateSearches()
-	If GUICtrlRead($g_hChkDBActivateSearches) = $GUI_CHECKED Then
+Func chkBattleActivateSearches()
+	If GUICtrlRead($g_hchkBattleActivateSearches) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hTxtDBSearchesMin, $GUI_ENABLE)
 		GUICtrlSetState($g_hLblDBSearches, $GUI_ENABLE)
 		GUICtrlSetState($g_hTxtDBSearchesMax, $GUI_ENABLE)
@@ -113,10 +113,10 @@ Func chkDBActivateSearches()
 	EndIf
 
 	dbCheckall()
-EndFunc   ;==>chkDBActivateSearches
+EndFunc   ;==>chkBattleActivateSearches
 
-Func chkDBActivateCamps()
-	If GUICtrlRead($g_hChkDBActivateCamps) = $GUI_CHECKED Then
+Func chkBattleActivateCamps()
+	If GUICtrlRead($g_hchkBattleActivateCamps) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hLblDBArmyCamps, $GUI_ENABLE)
 		GUICtrlSetState($g_hTxtDBArmyCamps, $GUI_ENABLE)
 	Else
@@ -125,27 +125,27 @@ Func chkDBActivateCamps()
 	EndIf
 
 	dbCheckall()
-EndFunc   ;==>chkDBActivateCamps
+EndFunc   ;==>chkBattleActivateCamps
 
 Func EnableSearchPanels($iMatchMode)
 	Switch $iMatchMode
-		Case $DB
-			If GUICtrlRead($g_hChkDBActivateSearches) = $GUI_CHECKED Or _
-			   GUICtrlRead($g_hChkDBActivateCamps) = $GUI_CHECKED Then
-				_GUI_Value_STATE("SHOW", $g_aGroupSearchDB)
+		Case $Battle
+			If GUICtrlRead($g_hchkBattleActivateSearches) = $GUI_CHECKED Or _
+			   GUICtrlRead($g_hchkBattleActivateCamps) = $GUI_CHECKED Then
+				_GUI_Value_STATE("SHOW", $g_aGroupSearchBattlattle)
 
 				cmbDBGoldElixir()
 			Else
-				_GUI_Value_STATE("HIDE", $g_aGroupSearchDB)
+				_GUI_Value_STATE("HIDE", $g_aGroupSearchBattlattle)
 			EndIf
-		Case $LB
-			If GUICtrlRead($g_hChkABActivateSearches) = $GUI_CHECKED Or _
-			   GUICtrlRead($g_hChkABActivateCamps) = $GUI_CHECKED Then
-				_GUI_Value_STATE("SHOW", $groupSearchAB)
+		Case $RankedBattle
+			If GUICtrlRead($g_hchkRankedBattleActivateSearches) = $GUI_CHECKED Or _
+			   GUICtrlRead($g_hchkRankedBattleActivateCamps) = $GUI_CHECKED Then
+				_GUI_Value_STATE("SHOW", $groupSearchRB)
 
 				cmbABGoldElixir()
 			Else
-				_GUI_Value_STATE("HIDE", $groupSearchAB)
+				_GUI_Value_STATE("HIDE", $groupSearchRB)
 			EndIf
 	EndSwitch
 
@@ -154,8 +154,8 @@ EndFunc   ;==>EnableSearchPanels
 
 
 
-Func chkABActivateSearches()
-	If GUICtrlRead($g_hChkABActivateSearches) = $GUI_CHECKED Then
+Func chkRankedBattleActivateSearches()
+	If GUICtrlRead($g_hchkRankedBattleActivateSearches) = $GUI_CHECKED Then
 		GUICtrlSetState($g_hTxtABSearchesMin, $GUI_ENABLE)
 		GUICtrlSetState($g_hLblABSearches, $GUI_ENABLE)
 		GUICtrlSetState($g_hTxtABSearchesMax, $GUI_ENABLE)
@@ -164,17 +164,17 @@ Func chkABActivateSearches()
 		GUICtrlSetState($g_hLblABSearches, $GUI_DISABLE)
 		GUICtrlSetState($g_hTxtABSearchesMax, $GUI_DISABLE)
 	EndIf
-	;EnableSearchPanels($LB)
+	;EnableSearchPanels($RankedBattle)
 	abCheckall()
-EndFunc   ;==>chkABActivateSearches
+EndFunc   ;==>chkRankedBattleActivateSearches
 Func CmbDBTH()
-	_GUI_Value_STATE("HIDE", $g_aGroupListPicDBMaxTH)
+	_GUI_Value_STATE("HIDE", $g_aGroupListPicBMaxTH)
 	Local $iCmbValue = _GUICtrlComboBox_GetCurSel($g_hCmbDBTH) + 6
 	GUICtrlSetState($g_ahPicDBMaxTH[$iCmbValue], $GUI_SHOW)
 EndFunc   ;==>CmbDBTH
 
 Func CmbABTH()
-	_GUI_Value_STATE("HIDE", $g_aGroupListPicABMaxTH)
+	_GUI_Value_STATE("HIDE", $g_aGroupListPicRBMaxTH)
 	Local $iCmbValue = _GUICtrlComboBox_GetCurSel($g_hCmbABTH) + 6
 	GUICtrlSetState($g_ahPicABMaxTH[$iCmbValue], $GUI_SHOW)
 EndFunc   ;==>CmbABTH
@@ -186,7 +186,7 @@ Func CmbBullyMaxTH()
 EndFunc   ;==>CmbBullyMaxTH
 
 Func dbCheckAll()
-	If BitAND(GUICtrlRead($g_hChkDBActivateSearches), GUICtrlRead($g_hChkDBActivateCamps)) = $GUI_UNCHECKED Then
+	If BitAND(GUICtrlRead($g_hchkBattleActivateSearches), GUICtrlRead($g_hchkBattleActivateCamps)) = $GUI_UNCHECKED Then
 		GUICtrlSetState($g_hChkDeadbase, $GUI_UNCHECKED)
 	Else
 		GUICtrlSetState($g_hChkDeadbase, $GUI_CHECKED)
@@ -195,7 +195,7 @@ Func dbCheckAll()
 EndFunc   ;==>dbCheckAll
 
 Func abCheckAll()
-	If BitAND(GUICtrlRead($g_hChkABActivateSearches), GUICtrlRead($g_hChkABActivateCamps)) = $GUI_UNCHECKED Then
+	If BitAND(GUICtrlRead($g_hchkRankedBattleActivateSearches), GUICtrlRead($g_hchkRankedBattleActivateCamps)) = $GUI_UNCHECKED Then
 		GUICtrlSetState($g_hChkActivebase, $GUI_UNCHECKED)
 	Else
 		GUICtrlSetState($g_hChkActivebase, $GUI_CHECKED)

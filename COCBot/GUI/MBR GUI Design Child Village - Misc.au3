@@ -577,7 +577,7 @@ Func CreateMiscModSubTab()
 		$g_hLblFillIncorrectTroopCombo = GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design - FillIncorrectTroopCombo", "Label_01", "Use Attack from :"), $x, $y+3, -1, -1)
 		$g_hCmbTournamentAttackType = GUICtrlCreateCombo("", $x + 90, $y, 90, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Village - Misc", "cmbTournament", "Select Attack that will be used for Tournament Attack, Attack Type will inherit from DeadBase or ActiveBase Setting Tab"))
-		GUICtrlSetData(-1, "Dead Base|Active Base", "Dead Base")
+		GUICtrlSetData(-1, "Dead Base|Ranked Battle", "Dead Base")
 		GUICtrlSetOnEvent(-1, "chkTournament")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc ;==>CreateMiscModSubTab

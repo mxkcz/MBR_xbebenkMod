@@ -10,7 +10,7 @@
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
-; Example .......: _GUI_Value_STATE("SHOW",$g_aGroupSearchDB) Show the group $g_aGroupSearchDB
+; Example .......: _GUI_Value_STATE("SHOW",$g_aGroupSearchBattlattle) Show the group $g_aGroupSearchBattlattle
 ; ===============================================================================================================================
 Func _GUI_Value_STATE($action_groupe, $group_de_controle)
 	;SetRedrawBotWindow(False)

@@ -561,7 +561,7 @@ Func btnTestAttackBar()
 
 	SetLog(_PadStringCenter(" Begin AttackBar Detection", 54, "="), $COlOR_INFO)
 
-	Local $avAttackBar = GetAttackBar(False, $DB, True)
+	Local $avAttackBar = GetAttackBar(False, $Battle, True)
 
 	If IsArray($avAttackBar) And UBound($avAttackBar, 1) >= 1 Then
 	SetLog("Found " & UBound($avAttackBar, 1) & " Slots", $COlOR_SUCCESS)
@@ -937,7 +937,7 @@ Func btnTestAttackCSV()
 	$g_bDebugSetlog = True
 	$g_bDebugBuildingPos = True
 
-	$g_iMatchMode = $DB ; define which script to use
+	$g_iMatchMode = $Battle ; define which script to use
 
 	; reset village measures
 	setVillageOffset(0, 0, 1)

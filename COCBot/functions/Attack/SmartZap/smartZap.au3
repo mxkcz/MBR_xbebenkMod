@@ -151,7 +151,7 @@ Func smartZap($minDE = -1)
 	If $bZapDrills Then
 		; Check match mode
 		If $g_bDebugSmartZap Then SetLog("$g_bSmartZapDB = " & $g_bSmartZapDB, $COLOR_DEBUG)
-		If $g_bSmartZapDB And $g_iMatchMode <> $DB Then
+		If $g_bSmartZapDB And $g_iMatchMode <> $Battle Then
 			SetLog("Not a dead base!", $COLOR_INFO)
 			$bZapDrills = False
 		EndIf
@@ -232,7 +232,7 @@ Func smartZap($minDE = -1)
 
 		If $g_bDebugSmartZap Then
 			SetLog("$g_iSmartZapExpectedDE| Expected DE value:" & Number($g_iSmartZapExpectedDE), $COLOR_DEBUG)
-			SetLog("$g_abStopAtkNoLoot1Enable[$DB] = " & $g_abStopAtkNoLoot1Enable[$DB] & ", $g_aiStopAtkNoLoot1Time[$DB] = " & $g_aiStopAtkNoLoot1Time[$DB] & "s", $COLOR_DEBUG)
+			SetLog("$g_abStopAtkNoLoot1Enable[$Battle] = " & $g_abStopAtkNoLoot1Enable[$Battle] & ", $g_aiStopAtkNoLoot1Time[$Battle] = " & $g_aiStopAtkNoLoot1Time[$Battle] & "s", $COLOR_DEBUG)
 		EndIf
 	EndIf
 

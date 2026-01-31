@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........:
-; Modified ......: CodeSlinger69 (01-2017)
+; Modified ......: CodeSlinger69 (01-2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -17,7 +17,6 @@
 Global $g_hGUI_DEADBASE = 0
 
 #include "MBR GUI Design Child Attack - Deadbase Attack Standard.au3"
-#include "MBR GUI Design Child Attack - Deadbase Attack Scripted.au3"
 #include "MBR GUI Design Child Attack - Deadbase Attack Smart Farm.au3"
 #include "MBR GUI Design Child Attack - Deadbase-Search.au3"
 #include "MBR GUI Design Child Attack - Deadbase-Attack.au3"
@@ -33,15 +32,14 @@ Func CreateAttackSearchDeadBase()
 
 	;creating subchilds first!
 	CreateAttackSearchDeadBaseStandard()
-	CreateAttackSearchDeadBaseScripted()
 	CreateAttackSearchDeadBaseSmartFarm()
 
 	GUISwitch($g_hGUI_DEADBASE)
 	$g_hGUI_DEADBASE_TAB = GUICtrlCreateTab(0, 0, $g_iSizeWGrpTab3, $g_iSizeHGrpTab3, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
 	$g_hGUI_DEADBASE_TAB_ITEM1 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_01", "Search"))
-		CreateAttackSearchDeadBaseSearch()
+		GUICtrlCreateLabel("Search criteria moved to CSV Mod tab.", 15, 20, $g_iSizeWGrpTab3 - 30, 40)
 	$g_hGUI_DEADBASE_TAB_ITEM2 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_02", "Attack"))
-		CreateAttackSearchDeadBaseAttack()
+		GUICtrlCreateLabel("Attack options moved to CSV Mod tab.", 15, 20, $g_iSizeWGrpTab3 - 30, 40)
 	$g_hGUI_DEADBASE_TAB_ITEM3 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_0X_STab_03", "End Battle"))
 		CreateAttackSearchDeadBaseEndBattle()
 	$g_hGUI_DEADBASE_TAB_ITEM4 = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03_STab_02_STab_01_STab_01", "Collectors"))

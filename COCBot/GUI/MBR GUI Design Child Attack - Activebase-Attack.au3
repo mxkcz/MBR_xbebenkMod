@@ -15,15 +15,15 @@
 #include-once
 
 ; Attack with
-Global $g_hCmbABAlgorithm = 0, $g_hCmbABSelectTroop = 0, $g_hChkABKingAttack = 0, $g_hChkABQueenAttack = 0, $g_hChkABWardenAttack = 0, $g_hChkABDropCC = 0
-;Global $g_hChkABLightSpell = 0, $g_hChkABHealSpell = 0, $g_hChkABRageSpell = 0, $g_hChkABJumpSpell = 0, $g_hChkABFreezeSpell = 0, $g_hChkABCloneSpell = 0, _
-;	   $g_hChkABInvisibilitySpell = 0, $g_hChkABRecallSpell = 0, $g_hChkABPoisonSpell = 0, $g_hChkABEarthquakeSpell = 0, $g_hChkABHasteSpell = 0, $g_hChkABSkeletonSpell = 0, $g_hChkABBatSpell = 0
+Global $g_hCmbABAlgorithm = 0, $g_hCmbABSelectTroop = 0, $g_hchkRankedBattleKingAttack = 0, $g_hchkRankedBattleQueenAttack = 0, $g_hchkRankedBattleWardenAttack = 0, $g_hchkRankedBattleDropCC = 0
+;Global $g_hchkRankedBattleLightSpell = 0, $g_hchkRankedBattleHealSpell = 0, $g_hchkRankedBattleRageSpell = 0, $g_hchkRankedBattleJumpSpell = 0, $g_hchkRankedBattleFreezeSpell = 0, $g_hchkRankedBattleCloneSpell = 0, _
+;	   $g_hchkRankedBattleInvisibilitySpell = 0, $g_hchkRankedBattleRecallSpell = 0, $g_hchkRankedBattlePoisonSpell = 0, $g_hchkRankedBattleEarthquakeSpell = 0, $g_hchkRankedBattleHasteSpell = 0, $g_hchkRankedBattleSkeletonSpell = 0, $g_hchkRankedBattleBatSpell = 0
 
 Global $g_hGrpABAttack = 0, $g_hPicABKingAttack = 0, $g_hPicABQueenAttack = 0, $g_hPicABWardenAttack = 0, $g_hPicABDropCC = 0
 ;Global $g_hPicABLightSpell = 0, $g_hPicABHealSpell = 0, $g_hPicABRageSpell = 0, $g_hPicABJumpSpell = 0, $g_hPicABFreezeSpell = 0, $g_hPicABCloneSpell = 0, _
 ;	   $g_hPicABInvisibilitySpell = 0, $g_hPicABRecallSpell = 0, $g_hPicABPoisonSpell = 0, $g_hPicABEarthquakeSpell = 0, $g_hPicABHasteSpell = 0, $g_hPicABSkeletonSpell = 0, $g_hPicABBatSpell = 0
 
-Global $g_hCmbABSiege = 0, $g_hCmbABWardenMode = 0, $g_hChkABChampionAttack = 0, $g_hPicABChampionAttack = 0, $g_hChkABDropEmptySiege = 0
+Global $g_hCmbABSiege = 0, $g_hCmbABWardenMode = 0, $g_hchkRankedBattleChampionAttack = 0, $g_hPicABChampionAttack = 0, $g_hchkRankedBattleDropEmptySiege = 0
 
 Func CreateAttackSearchActiveBaseAttack()
 	Local $sTxtTip = ""
@@ -57,7 +57,7 @@ Func CreateAttackSearchActiveBaseAttack()
 				$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-King_Info_01", -1) & @CRLF & _
 						   GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-King_Info_02", -1)
 				_GUICtrlSetTip(-1, $sTxtTip)
-			$g_hChkABKingAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+			$g_hchkRankedBattleKingAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 				_GUICtrlSetTip(-1, $sTxtTip)
 
 		$x += 46
@@ -65,7 +65,7 @@ Func CreateAttackSearchActiveBaseAttack()
 				$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Queen_Info_01", -1) & @CRLF & _
 						   GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Queen_Info_02", -1)
 				_GUICtrlSetTip(-1, $sTxtTip)
-			$g_hChkABQueenAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+			$g_hchkRankedBattleQueenAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 				_GUICtrlSetTip(-1, $sTxtTip)
 
 		$x += 46
@@ -73,7 +73,7 @@ Func CreateAttackSearchActiveBaseAttack()
 				$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Champion_Info_01", -1) & @CRLF & _
 						   GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Champion_Info_02", -1)
 				_GUICtrlSetTip(-1, $sTxtTip)
-			$g_hChkABChampionAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+			$g_hchkRankedBattleChampionAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 				_GUICtrlSetTip(-1, $sTxtTip)
 
 		$y += 27
@@ -82,9 +82,9 @@ Func CreateAttackSearchActiveBaseAttack()
 				$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Warden_Info_01", -1) & @CRLF & _
 						   GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Warden_Info_02", -1)
 				_GUICtrlSetTip(-1, $sTxtTip)
-			$g_hChkABWardenAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+			$g_hchkRankedBattleWardenAttack = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 				_GUICtrlSetTip(-1, $sTxtTip)
-				GUICtrlSetOnEvent(-1, "chkABWardenAttack")
+				GUICtrlSetOnEvent(-1, "chkRankedBattleWardenAttack")
 
 		$x += 46
 			$g_hCmbABWardenMode = GUICtrlCreateCombo("", $x, $y, 90, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
@@ -99,9 +99,9 @@ Func CreateAttackSearchActiveBaseAttack()
 			$g_hPicABDropCC = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnCC, $x, $y, 24, 24)
 				$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Clan Castle_Info_01", -1)
 				_GUICtrlSetTip(-1, $sTxtTip)
-			$g_hChkABDropCC = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+			$g_hchkRankedBattleDropCC = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 				_GUICtrlSetTip(-1, $sTxtTip)
-                GUICtrlSetOnEvent(-1, "chkABDropCC")
+                GUICtrlSetOnEvent(-1, "chkRankedBattleDropCC")
 
 		$x += 46
 			$g_hCmbABSiege = GUICtrlCreateCombo("", $x, $y, 90, 25, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
@@ -123,21 +123,21 @@ Func CreateAttackSearchActiveBaseAttack()
 		;	$g_hPicABLightSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnLightSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Light_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABLightSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleLightSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$x += 46
 		;	$g_hPicABHealSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnHealSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Healing_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABHealSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleHealSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$x += 46
 		;	$g_hPicABRageSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnRageSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Rage_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABRageSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleRageSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$y += 27
@@ -145,21 +145,21 @@ Func CreateAttackSearchActiveBaseAttack()
 		;	$g_hPicABJumpSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnJumpSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Jump_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABJumpSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleJumpSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$x += 46
 		;	$g_hPicABFreezeSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnFreezeSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Freeze_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABFreezeSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleFreezeSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$x += 46
 		;	$g_hPicABCloneSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnCloneSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Clone_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABCloneSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleCloneSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$y += 27
@@ -167,21 +167,21 @@ Func CreateAttackSearchActiveBaseAttack()
 		;	$g_hPicABInvisibilitySpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnInvisibilitySpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Invisibility_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABInvisibilitySpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleInvisibilitySpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;		
 		;$x += 46
 		;	$g_hPicABRecallSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnRecallSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Recall_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABRecallSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleRecallSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)		
 		;
         ;$x += 46
 		;	$g_hPicABPoisonSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnPoisonSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Poison_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABPoisonSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattlePoisonSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$y += 27
@@ -189,21 +189,21 @@ Func CreateAttackSearchActiveBaseAttack()
 		;	$g_hPicABEarthquakeSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnEarthquakeSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Earthquake_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABEarthquakeSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleEarthquakeSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
 		;$x += 46
 		;	$g_hPicABHasteSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnHasteSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Haste_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABHasteSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleHasteSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
         ;$x += 46
 		;	$g_hPicABSkeletonSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnSkeletonSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Skeleton_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABSkeletonSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleSkeletonSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		;
         ;$y += 27
@@ -211,12 +211,12 @@ Func CreateAttackSearchActiveBaseAttack()
 		;	$g_hPicABBatSpell = _GUICtrlCreateIcon($g_sLibIconPath, $eIcnBatSpell, $x, $y, 24, 24)
 		;		$sTxtTip = GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Chk-Use-Bat_Info_01", -1)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
-		;	$g_hChkABBatSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
+		;	$g_hchkRankedBattleBatSpell = GUICtrlCreateCheckbox("", $x + 27, $y, 17, 17)
 		;		_GUICtrlSetTip(-1, $sTxtTip)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 		
 		$y += 50
 		$x = 10
-		$g_hChkABDropEmptySiege = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "ChkDropEmptySiege", "Drop Empty Siege"), $x, $y, -1, -1)
+		$g_hchkRankedBattleDropEmptySiege = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "ChkDropEmptySiege", "Drop Empty Siege"), $x, $y, -1, -1)
 		
 EndFunc   ;==>CreateAttackSearchActiveBaseAttack

@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........:
-; Modified ......: Everyone all the time  :)
+; Modified ......: Everyone all the time  :), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2021
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -611,7 +611,7 @@ Global Enum $eBarb, $eSBarb, $eArch, $eSArch, $eGiant, $eSGiant, $eGobl, $eSGobl
 			$eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, $eArmyCount
 
 ; Attack types
-Global Enum $DB, $LB, $TB ; DeadBase, ActiveBase, TownhallBully
+Global Enum $Battle, $RankedBattle, $TB ; DeadBase, ActiveBase, TownhallBully
 Global Const $g_iModeCount = 3
 Global $g_iMatchMode = 0 ; 0 Dead / 1 Live / 2 TH Bully
 Global Const $g_asModeText[3] = ["Dead Base", "Live Base", "TH Bully"]
@@ -1098,7 +1098,7 @@ Global $g_iTrainClickDelay = 150
 Global $g_bTrainAddRandomDelayEnable = False, $g_iTrainAddRandomDelayMin = 5, $g_iTrainAddRandomDelayMax = 60
 
 ; <><><><> Attack Plan / Search & Attack / {Common Across DeadBase, ActiveBase, Bully} <><><><>
-Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $DB, $LB, $TB plus reserved slot
+Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $Battle, $RankedBattle, $TB plus reserved slot
 ; Search - Start Search If
 Global $g_abSearchSearchesEnable[$g_iModeCount] = [True, False, False], $g_aiSearchSearchesMin[$g_iModeCount] = [0, 0, 0], $g_aiSearchSearchesMax[$g_iModeCount] = [0, 0, 0] ; Search count limit
 Global $g_abSearchCampsEnable[$g_iModeCount] = [False, False, False], $g_aiSearchCampsPct[$g_iModeCount] = [0, 0, 0] ; Camp limit
@@ -1120,6 +1120,7 @@ Global $g_aiFilterMaxMortarLevel[$g_iModeCount] = [5, 5, 0], $g_aiFilterMaxWizTo
 Global $g_abFilterMeetOneConditionEnable[$g_iModeCount] = [False, False, False]
 Global $g_bChkDeadEagle = 0
 Global $g_iDeadEagleSearch = 0
+Global $g_bSearchDisableFullResources = False
 
 ; Attack
 Global $g_iSlotsGiants = 1
@@ -1633,7 +1634,17 @@ Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
 Global $g_bCSVPreDropVerify = True ; CSV DROP: verify troop count when low before dropping
 Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= threshold
 Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
-Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
+Global $g_iAttackCSVSettingsMode = $Battle ; Last Attack CSV settings mode (DB/LB)
+Global $g_sAttackScrScriptNameRankedBattle = ""
+Global $g_hTabCSVMod = 0
+Global $g_hGUI_CSVMOD = 0
+Global $g_bCSVModReady = False
+Global $g_hGUI_CSVMOD_TAB = 0
+Global $g_hGUI_CSVMOD_TAB_ITEM1 = 0, $g_hGUI_CSVMOD_TAB_ITEM2 = 0, $g_hGUI_CSVMOD_TAB_ITEM3 = 0, $g_hGUI_CSVMOD_TAB_ITEM4 = 0, $g_hGUI_CSVMOD_TAB_ITEM5 = 0
+Global $g_hGUI_CSVMOD_TAB_ITEM6 = 0, $g_hGUI_CSVMOD_TAB_ITEM7 = 0, $g_hGUI_CSVMOD_TAB_ITEM8 = 0, $g_hGUI_CSVMOD_TAB_ITEM9 = 0, $g_hGUI_CSVMOD_TAB_ITEM10 = 0
+Global $g_hCmbScriptNameRankedBattle = 0
+Global $g_hLblNotesScriptRankedBattle = 0, $g_hLblCSVScriptVersionRankedBattle = 0
+Global $g_hChkSearchDisableFullResources = 0
 Global Const $g_iCSVPrecacheConservative = 0
 Global Const $g_iCSVPrecacheAggressive = 1
 Global $g_iCSVPrecacheMode = $g_iCSVPrecacheConservative

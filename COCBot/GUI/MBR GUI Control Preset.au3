@@ -149,21 +149,21 @@ Func MakeSavePresetMessage()
 	$message &= @CRLF
 
 	$message &= "SEARCH SETTINGS:" & @CRLF
-	For $i = $DB To $LB
+	For $i = $Battle To $RankedBattle
 		If IsSearchModeActive($i, True) Then
 			Switch $i
-				Case $DB
+				Case $Battle
 					$message &= "- DB search: "
-				Case $LB
+				Case $RankedBattle
 					$message &= "- AB search: "
 			EndSwitch
 			If $g_abSearchSearchesEnable[$i] Then $message &= " " & "s. " & $g_aiSearchSearchesMin[$i] & "-" & $g_aiSearchSearchesMax[$i]
 			If $g_abSearchCampsEnable[$i] Then $message &= " " & "c. >" & $g_aiSearchCampsPct[$i] & "%"
 			$message &= @CRLF
 			Switch $i
-				Case $DB
+				Case $Battle
 					$message &= "- DB filter: "
-				Case $LB
+				Case $RankedBattle
 					$message &= "- AB filter: "
 			EndSwitch
 			Switch $g_aiFilterMeetGE[$i]
@@ -190,15 +190,15 @@ Func MakeSavePresetMessage()
 
 
 	$message &= @CRLF & "ATTACK SETTINGS:" & @CRLF
-	For $i = $DB To $LB
+	For $i = $Battle To $RankedBattle
 		If IsSearchModeActive($i, True) Then
 			Switch $i
-				Case $DB
+				Case $Battle
 					$message &= "- DB: "
-				Case $LB
+				Case $RankedBattle
 					$message &= "- AS: "
 			EndSwitch
-			If $i = $DB Or $i = $LB Then
+			If $i = $Battle Or $i = $RankedBattle Then
 				Switch $g_aiAttackAlgorithm[$i]
 					Case "0"
 						$message &= "Standard Attack > "
@@ -207,7 +207,7 @@ Func MakeSavePresetMessage()
 				EndSwitch
 			EndIf
 
-			If ($i = $DB Or $i = $LB) And $g_aiAttackAlgorithm[$i] = 0 Then
+			If ($i = $Battle Or $i = $RankedBattle) And $g_aiAttackAlgorithm[$i] = 0 Then
 				Local $tmp = StringSplit("one side|two sides|three sides|four sides|DE side|TH side", "|", 2)
 				$message &= $tmp[$g_aiAttackStdDropSides[$i]] & @CRLF
 			EndIf
@@ -216,12 +216,12 @@ Func MakeSavePresetMessage()
 
 
 	$message &= @CRLF & "END BATTLE SETTINGS:" & @CRLF
-	For $i = $DB To $LB
+	For $i = $Battle To $RankedBattle
 		If IsSearchModeActive($i, True) Then
 			Switch $i
-				Case $DB
+				Case $Battle
 					$message &= "- DB: "
-				Case $LB
+				Case $RankedBattle
 					$message &= "- AB: "
 			EndSwitch
 			If $g_abStopAtkNoLoot1Enable[$i] Then $message &= "wait " & $g_aiStopAtkNoLoot1Time[$i] & "  "

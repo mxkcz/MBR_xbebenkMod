@@ -239,7 +239,7 @@ Func BotSearchMode()
 	CheckIfArmyIsReady()
 	ClickAway()
 	If _Sleep(100) Then Return FuncReturn()
-	If (IsSearchModeActive($DB) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
+	If (IsSearchModeActive($Battle) And checkCollectors(True, False)) Or IsSearchModeActive($RankedBattle) Then
 		If _Sleep(100) Then Return FuncReturn()
 		PrepareSearch()
 		If _Sleep(1000) Then Return FuncReturn()

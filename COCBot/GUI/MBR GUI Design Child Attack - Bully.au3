@@ -80,8 +80,8 @@ Func CreateAttackSearchBully()
 			$g_hRadBullyUseDBAttack = GUICtrlCreateRadio(GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseDBAttack", "DeadBase Atk."), $x + 20, $y, -1, -1)
 				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseDBAttack_Info_01", "Use Dead Base attack settings when attacking a TH Bully match."))
 				GUICtrlSetState(-1, $GUI_CHECKED)
-			$g_hRadBullyUseLBAttack = GUICtrlCreateRadio(GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseLBAttack", "Active Base Atk."), $x + 115, $y, -1, -1)
-				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseLBAttack_Info_01", "Use Active Base attack settings when attacking a TH Bully match."))
+			$g_hRadBullyUseLBAttack = GUICtrlCreateRadio(GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseLBAttack", "Ranked Battle Atk."), $x + 115, $y, -1, -1)
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Bully", "RadBullyUseLBAttack_Info_01", "Use Ranked Battle attack settings when attacking a TH Bully match."))
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 EndFunc   ;==>CreateAttackSearchBully
