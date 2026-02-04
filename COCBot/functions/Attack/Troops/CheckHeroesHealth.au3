@@ -5,7 +5,7 @@
 ; Parameters ....:
 ; Return values .: None
 ; Author ........:
-; Modified ......: MonkeyHunter(03-2017), Fliegerfaust (11-2017)
+; Modified ......: MonkeyHunter(03-2017), Fliegerfaust (11-2017), mxkcz (2026)
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -25,6 +25,11 @@ Func CheckHeroesHealth()
 		Local $TempWardenSlot = $g_iWardenSlot
 		Local $TempChampionSlot = $g_iChampionSlot
 		Local $TempPrinceSlot = $g_iPrinceSlot
+		Local $bCSVManualKing = ($g_bCSVHeroAbilityOverrideActive And $g_abCSVHeroManualControl[$eHeroBarbarianKing])
+		Local $bCSVManualQueen = ($g_bCSVHeroAbilityOverrideActive And $g_abCSVHeroManualControl[$eHeroArcherQueen])
+		Local $bCSVManualWarden = ($g_bCSVHeroAbilityOverrideActive And $g_abCSVHeroManualControl[$eHeroGrandWarden])
+		Local $bCSVManualChampion = ($g_bCSVHeroAbilityOverrideActive And $g_abCSVHeroManualControl[$eHeroRoyalChampion])
+		Local $bCSVManualPrince = ($g_bCSVHeroAbilityOverrideActive And $g_abCSVHeroManualControl[$eHeroMinionPrince])
 		
 		If $g_iKingSlot >= 11 Or $g_iQueenSlot >= 11 Or $g_iWardenSlot >= 11 Or $g_iChampionSlot >= 11 Or $g_iPrinceSlot >= 11 Then
 			If Not $g_bDraggedAttackBar Then DragAttackBar($g_iTotalAttackSlot, False) ; drag forward
@@ -45,34 +50,38 @@ Func CheckHeroesHealth()
 			If _Sleep($DELAYRESPOND) Then Return ; improve pause button response
 		EndIf
 
-		If $g_iActivateQueen = 0 Or $g_iActivateQueen = 2 Then
-			If $g_bCheckQueenPower And ($g_aHeroesTimerActivation[$eHeroArcherQueen] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroArcherQueen]) > $DELAYCHECKHEROESHEALTH) Then
-				Local $aQueenHealthCopy = $aQueenHealth ; copy ScreenCoordinates array to modify locally with dynamic X coordinate from slotposition
-				Local $aSlotPosition = GetSlotPosition($TempQueenSlot)
-				$aQueenHealthCopy[0] = $aSlotPosition[0] + $aQueenHealthCopy[4] ; Slot11+
-				Local $QueenPixelColor = _GetPixelColor($aQueenHealthCopy[0], $aQueenHealthCopy[1], $g_bCapturePixel)
-				SetDebugLog(" Queen _GetPixelColor(" & $aQueenHealthCopy[0] & "," & $aQueenHealthCopy[1] & "): " & $QueenPixelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aQueenHealthCopy, $QueenPixelColor, "Red+Blue") Then
-					SetLog("Queen is getting weak, Activating Queen's ability", $COLOR_INFO)
-					SelectDropTroop($TempQueenSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iQueenSlot
-					$g_bCheckQueenPower = False
+		If Not $bCSVManualQueen Then
+			If $g_iActivateQueen = 0 Or $g_iActivateQueen = 2 Then
+				If $g_bCheckQueenPower And ($g_aHeroesTimerActivation[$eHeroArcherQueen] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroArcherQueen]) > $DELAYCHECKHEROESHEALTH) Then
+					Local $aQueenHealthCopy = $aQueenHealth ; copy ScreenCoordinates array to modify locally with dynamic X coordinate from slotposition
+					Local $aSlotPosition = GetSlotPosition($TempQueenSlot)
+					$aQueenHealthCopy[0] = $aSlotPosition[0] + $aQueenHealthCopy[4] ; Slot11+
+					Local $QueenPixelColor = _GetPixelColor($aQueenHealthCopy[0], $aQueenHealthCopy[1], $g_bCapturePixel)
+					SetDebugLog(" Queen _GetPixelColor(" & $aQueenHealthCopy[0] & "," & $aQueenHealthCopy[1] & "): " & $QueenPixelColor, $COLOR_DEBUG)
+					If Not _CheckPixel2($aQueenHealthCopy, $QueenPixelColor, "Red+Blue") Then
+						SetLog("Queen is getting weak, Activating Queen's ability", $COLOR_INFO)
+						SelectDropTroop($TempQueenSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iQueenSlot
+						$g_bCheckQueenPower = False
+					EndIf
 				EndIf
 			EndIf
-		EndIf
-		If $g_iActivateQueen = 1 Or $g_iActivateQueen = 2 Then
-			If $g_bCheckQueenPower Then
-				If $g_aHeroesTimerActivation[$eHeroArcherQueen] <> 0 Then
-					$aDisplayTime[$eHeroArcherQueen] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroArcherQueen]) / 1000) ; seconds
-				EndIf
-				If (Int($g_iDelayActivateQueen) / 1000) <= $aDisplayTime[$eHeroArcherQueen] Then
-					SetLog("Activating Queen's ability after " & $aDisplayTime[$eHeroArcherQueen] & "'s", $COLOR_INFO)
-					SelectDropTroop($TempQueenSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iQueenSlot
-					$g_bCheckQueenPower = False ; Reset check power flag
-					$g_aHeroesTimerActivation[$eHeroArcherQueen] = 0 ; Reset Timer
+			If $g_iActivateQueen = 1 Or $g_iActivateQueen = 2 Then
+				If $g_bCheckQueenPower Then
+					If $g_aHeroesTimerActivation[$eHeroArcherQueen] <> 0 Then
+						$aDisplayTime[$eHeroArcherQueen] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroArcherQueen]) / 1000) ; seconds
+					EndIf
+					If (Int($g_iDelayActivateQueen) / 1000) <= $aDisplayTime[$eHeroArcherQueen] Then
+						SetLog("Activating Queen's ability after " & $aDisplayTime[$eHeroArcherQueen] & "'s", $COLOR_INFO)
+						SelectDropTroop($TempQueenSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iQueenSlot
+						$g_bCheckQueenPower = False ; Reset check power flag
+						$g_aHeroesTimerActivation[$eHeroArcherQueen] = 0 ; Reset Timer
+					EndIf
 				EndIf
 			EndIf
+		ElseIf $g_bCheckQueenPower And $g_bDebugSetlog Then
+			SetDebugLog("CheckHeroesHealth(): CSV manual hero override active for Queen, auto activation skipped", $COLOR_DEBUG)
 		EndIf
 
 		If $g_bDebugSetlog Then
@@ -80,34 +89,38 @@ Func CheckHeroesHealth()
 			If _Sleep($DELAYRESPOND) Then Return ; improve pause button response
 		EndIf
 
-		If $g_iActivateKing = 0 Or $g_iActivateKing = 2 Then
-			If $g_bCheckKingPower And ($g_aHeroesTimerActivation[$eHeroBarbarianKing] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroBarbarianKing]) > $DELAYCHECKHEROESHEALTH) Then
-				Local $aKingHealthCopy = $aKingHealth ; copy ScreenCoordinates array to modify locally with dynamic X coordinate from slotposition
-				Local $aSlotPosition = GetSlotPosition($TempKingSlot)
-				$aKingHealthCopy[0] = $aSlotPosition[0] + $aKingHealthCopy[4] ; Slot11+
-				Local $KingPixelColor = _GetPixelColor($aKingHealthCopy[0], $aKingHealthCopy[1], $g_bCapturePixel)
-				SetDebugLog("King _GetPixelColor(" & $aKingHealthCopy[0] & "," & $aKingHealthCopy[1] & "): " & $KingPixelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aKingHealthCopy, $KingPixelColor, "Red+Blue") Then
-					SetLog("King is getting weak, Activating King's ability", $COLOR_INFO)
-					SelectDropTroop($TempKingSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iKingSlot
-					$g_bCheckKingPower = False
+		If Not $bCSVManualKing Then
+			If $g_iActivateKing = 0 Or $g_iActivateKing = 2 Then
+				If $g_bCheckKingPower And ($g_aHeroesTimerActivation[$eHeroBarbarianKing] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroBarbarianKing]) > $DELAYCHECKHEROESHEALTH) Then
+					Local $aKingHealthCopy = $aKingHealth ; copy ScreenCoordinates array to modify locally with dynamic X coordinate from slotposition
+					Local $aSlotPosition = GetSlotPosition($TempKingSlot)
+					$aKingHealthCopy[0] = $aSlotPosition[0] + $aKingHealthCopy[4] ; Slot11+
+					Local $KingPixelColor = _GetPixelColor($aKingHealthCopy[0], $aKingHealthCopy[1], $g_bCapturePixel)
+					SetDebugLog("King _GetPixelColor(" & $aKingHealthCopy[0] & "," & $aKingHealthCopy[1] & "): " & $KingPixelColor, $COLOR_DEBUG)
+					If Not _CheckPixel2($aKingHealthCopy, $KingPixelColor, "Red+Blue") Then
+						SetLog("King is getting weak, Activating King's ability", $COLOR_INFO)
+						SelectDropTroop($TempKingSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iKingSlot
+						$g_bCheckKingPower = False
+					EndIf
 				EndIf
 			EndIf
-		EndIf
-		If $g_iActivateKing = 1 Or $g_iActivateKing = 2 Then
-			If $g_bCheckKingPower Then
-				If $g_aHeroesTimerActivation[$eHeroBarbarianKing] <> 0 Then
-					$aDisplayTime[$eHeroBarbarianKing] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroBarbarianKing]) / 1000) ; seconds
-				EndIf
-				If (Int($g_iDelayActivateKing) / 1000) <= $aDisplayTime[$eHeroBarbarianKing] Then
-					SetLog("Activating King's ability after " & $aDisplayTime[$eHeroBarbarianKing] & "'s", $COLOR_INFO)
-					SelectDropTroop($TempKingSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iKingSlot
-					$g_bCheckKingPower = False ; Reset check power flag
-					$g_aHeroesTimerActivation[$eHeroBarbarianKing] = 0 ; Reset Timer
+			If $g_iActivateKing = 1 Or $g_iActivateKing = 2 Then
+				If $g_bCheckKingPower Then
+					If $g_aHeroesTimerActivation[$eHeroBarbarianKing] <> 0 Then
+						$aDisplayTime[$eHeroBarbarianKing] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroBarbarianKing]) / 1000) ; seconds
+					EndIf
+					If (Int($g_iDelayActivateKing) / 1000) <= $aDisplayTime[$eHeroBarbarianKing] Then
+						SetLog("Activating King's ability after " & $aDisplayTime[$eHeroBarbarianKing] & "'s", $COLOR_INFO)
+						SelectDropTroop($TempKingSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iKingSlot
+						$g_bCheckKingPower = False ; Reset check power flag
+						$g_aHeroesTimerActivation[$eHeroBarbarianKing] = 0 ; Reset Timer
+					EndIf
 				EndIf
 			EndIf
+		ElseIf $g_bCheckKingPower And $g_bDebugSetlog Then
+			SetDebugLog("CheckHeroesHealth(): CSV manual hero override active for King, auto activation skipped", $COLOR_DEBUG)
 		EndIf
 
 		If $g_bDebugSetlog Then
@@ -115,34 +128,38 @@ Func CheckHeroesHealth()
 			If _Sleep($DELAYRESPOND) Then Return ; improve pause button response
 		EndIf
 
-		If $g_iActivateWarden = 0 Or $g_iActivateWarden = 2 And ($g_aHeroesTimerActivation[$eHeroGrandWarden] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroGrandWarden]) > $DELAYCHECKHEROESHEALTH) Then
-			If $g_bCheckWardenPower Then
-				Local $aWardenHealthCopy = $aWardenHealth
-				Local $aSlotPosition = GetSlotPosition($TempWardenSlot)
-				$aWardenHealthCopy[0] = $aSlotPosition[0] + $aWardenHealthCopy[4] ; Slot11+
-				Local $WardenPixelColor = _GetPixelColor($aWardenHealthCopy[0], $aWardenHealthCopy[1], $g_bCapturePixel)
-				SetDebugLog(" Grand Warden _GetPixelColor(" & $aWardenHealthCopy[0] & "," & $aWardenHealthCopy[1] & "): " & $WardenPixelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aWardenHealthCopy, $WardenPixelColor, "Red+Blue") Then
-					SetLog("Grand Warden is getting weak, Activating Warden's ability", $COLOR_INFO)
-					SelectDropTroop($TempWardenSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iWardenSlot
-					$g_bCheckWardenPower = False
+		If Not $bCSVManualWarden Then
+			If $g_iActivateWarden = 0 Or $g_iActivateWarden = 2 And ($g_aHeroesTimerActivation[$eHeroGrandWarden] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroGrandWarden]) > $DELAYCHECKHEROESHEALTH) Then
+				If $g_bCheckWardenPower Then
+					Local $aWardenHealthCopy = $aWardenHealth
+					Local $aSlotPosition = GetSlotPosition($TempWardenSlot)
+					$aWardenHealthCopy[0] = $aSlotPosition[0] + $aWardenHealthCopy[4] ; Slot11+
+					Local $WardenPixelColor = _GetPixelColor($aWardenHealthCopy[0], $aWardenHealthCopy[1], $g_bCapturePixel)
+					SetDebugLog(" Grand Warden _GetPixelColor(" & $aWardenHealthCopy[0] & "," & $aWardenHealthCopy[1] & "): " & $WardenPixelColor, $COLOR_DEBUG)
+					If Not _CheckPixel2($aWardenHealthCopy, $WardenPixelColor, "Red+Blue") Then
+						SetLog("Grand Warden is getting weak, Activating Warden's ability", $COLOR_INFO)
+						SelectDropTroop($TempWardenSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iWardenSlot
+						$g_bCheckWardenPower = False
+					EndIf
 				EndIf
 			EndIf
-		EndIf
-		If $g_iActivateWarden = 1 Or $g_iActivateWarden = 2 Then
-			If $g_bCheckWardenPower Then
-				If $g_aHeroesTimerActivation[$eHeroGrandWarden] <> 0 Then
-					$aDisplayTime[$eHeroGrandWarden] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroGrandWarden]) / 1000) ; seconds
-				EndIf
-				If (Int($g_iDelayActivateWarden) / 1000) <= $aDisplayTime[$eHeroGrandWarden] Then
-					SetLog("Activating Warden's ability after " & $aDisplayTime[$eHeroGrandWarden] & "'s", $COLOR_INFO)
-					SelectDropTroop($TempWardenSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iWardenSlot
-					$g_bCheckWardenPower = False ; Reset check power flag
-					$g_aHeroesTimerActivation[$eHeroGrandWarden] = 0 ; Reset Timer
+			If $g_iActivateWarden = 1 Or $g_iActivateWarden = 2 Then
+				If $g_bCheckWardenPower Then
+					If $g_aHeroesTimerActivation[$eHeroGrandWarden] <> 0 Then
+						$aDisplayTime[$eHeroGrandWarden] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroGrandWarden]) / 1000) ; seconds
+					EndIf
+					If (Int($g_iDelayActivateWarden) / 1000) <= $aDisplayTime[$eHeroGrandWarden] Then
+						SetLog("Activating Warden's ability after " & $aDisplayTime[$eHeroGrandWarden] & "'s", $COLOR_INFO)
+						SelectDropTroop($TempWardenSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iWardenSlot
+						$g_bCheckWardenPower = False ; Reset check power flag
+						$g_aHeroesTimerActivation[$eHeroGrandWarden] = 0 ; Reset Timer
+					EndIf
 				EndIf
 			EndIf
+		ElseIf $g_bCheckWardenPower And $g_bDebugSetlog Then
+			SetDebugLog("CheckHeroesHealth(): CSV manual hero override active for Warden, auto activation skipped", $COLOR_DEBUG)
 		EndIf
 
 		If $g_bDebugSetlog Then
@@ -150,34 +167,38 @@ Func CheckHeroesHealth()
 			If _Sleep($DELAYRESPOND) Then Return ; improve pause button response
 		EndIf
 
-		If $g_iActivateChampion = 0 Or $g_iActivateChampion = 2 And ($g_aHeroesTimerActivation[$eHeroRoyalChampion] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroRoyalChampion]) > $DELAYCHECKHEROESHEALTH) Then
-			If $g_bCheckChampionPower Then
-				Local $aChampionHealthCopy = $aChampionHealth
-				Local $aSlotPosition = GetSlotPosition($TempChampionSlot)
-				$aChampionHealthCopy[0] = $aSlotPosition[0] - $aChampionHealthCopy[4] ; Slot11+
-				Local $ChampionPixelColor = _GetPixelColor($aChampionHealthCopy[0], $aChampionHealthCopy[1], $g_bCapturePixel)
-				SetDebugLog("Royal Champion _GetPixelColor(" & $aChampionHealthCopy[0] & "," & $aChampionHealthCopy[1] & "): " & $ChampionPixelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aChampionHealthCopy, $ChampionPixelColor, "Red+Blue") Then
-					SetLog("Royal Champion is getting weak, Activating Royal Champion's ability", $COLOR_INFO)
-					SelectDropTroop($TempChampionSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iChampionSlot
-					$g_bCheckChampionPower = False
+		If Not $bCSVManualChampion Then
+			If $g_iActivateChampion = 0 Or $g_iActivateChampion = 2 And ($g_aHeroesTimerActivation[$eHeroRoyalChampion] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroRoyalChampion]) > $DELAYCHECKHEROESHEALTH) Then
+				If $g_bCheckChampionPower Then
+					Local $aChampionHealthCopy = $aChampionHealth
+					Local $aSlotPosition = GetSlotPosition($TempChampionSlot)
+					$aChampionHealthCopy[0] = $aSlotPosition[0] - $aChampionHealthCopy[4] ; Slot11+
+					Local $ChampionPixelColor = _GetPixelColor($aChampionHealthCopy[0], $aChampionHealthCopy[1], $g_bCapturePixel)
+					SetDebugLog("Royal Champion _GetPixelColor(" & $aChampionHealthCopy[0] & "," & $aChampionHealthCopy[1] & "): " & $ChampionPixelColor, $COLOR_DEBUG)
+					If Not _CheckPixel2($aChampionHealthCopy, $ChampionPixelColor, "Red+Blue") Then
+						SetLog("Royal Champion is getting weak, Activating Royal Champion's ability", $COLOR_INFO)
+						SelectDropTroop($TempChampionSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iChampionSlot
+						$g_bCheckChampionPower = False
+					EndIf
 				EndIf
 			EndIf
-		EndIf
-		If $g_iActivateChampion = 1 Or $g_iActivateChampion = 2 Then
-			If $g_bCheckChampionPower Then
-				If $g_aHeroesTimerActivation[$eHeroRoyalChampion] <> 0 Then
-					$aDisplayTime[$eHeroRoyalChampion] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroRoyalChampion]) / 1000) ; seconds
-				EndIf
-				If (Int($g_iDelayActivateChampion) / 1000) <= $aDisplayTime[$eHeroRoyalChampion] Then
-					SetLog("Activating Royal Champion's ability after " & $aDisplayTime[$eHeroRoyalChampion] & "'s", $COLOR_INFO)
-					SelectDropTroop($TempChampionSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iChampionSlot
-					$g_bCheckChampionPower = False ; Reset check power flag
-					$g_aHeroesTimerActivation[$eHeroRoyalChampion] = 0 ; Reset Timer
+			If $g_iActivateChampion = 1 Or $g_iActivateChampion = 2 Then
+				If $g_bCheckChampionPower Then
+					If $g_aHeroesTimerActivation[$eHeroRoyalChampion] <> 0 Then
+						$aDisplayTime[$eHeroRoyalChampion] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroRoyalChampion]) / 1000) ; seconds
+					EndIf
+					If (Int($g_iDelayActivateChampion) / 1000) <= $aDisplayTime[$eHeroRoyalChampion] Then
+						SetLog("Activating Royal Champion's ability after " & $aDisplayTime[$eHeroRoyalChampion] & "'s", $COLOR_INFO)
+						SelectDropTroop($TempChampionSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iChampionSlot
+						$g_bCheckChampionPower = False ; Reset check power flag
+						$g_aHeroesTimerActivation[$eHeroRoyalChampion] = 0 ; Reset Timer
+					EndIf
 				EndIf
 			EndIf
+		ElseIf $g_bCheckChampionPower And $g_bDebugSetlog Then
+			SetDebugLog("CheckHeroesHealth(): CSV manual hero override active for Champion, auto activation skipped", $COLOR_DEBUG)
 		EndIf
 		
 		If $g_bDebugSetlog Then
@@ -185,34 +206,38 @@ Func CheckHeroesHealth()
 			If _Sleep($DELAYRESPOND) Then Return ; improve pause button response
 		EndIf
 
-		If $g_iActivatePrince = 0 Or $g_iActivatePrince = 2 And ($g_aHeroesTimerActivation[$eHeroMinionPrince] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroMinionPrince]) > $DELAYCHECKHEROESHEALTH) Then
-			If $g_bCheckPrincePower Then
-				Local $aPrinceHealthCopy = $aPrinceHealth
-				Local $aSlotPosition = GetSlotPosition($TempPrinceSlot)
-				$aPrinceHealthCopy[0] = $aSlotPosition[0] - $aPrinceHealthCopy[4] ; Slot11+
-				Local $PrincePixelColor = _GetPixelColor($aPrinceHealthCopy[0], $aPrinceHealthCopy[1], $g_bCapturePixel)
-				SetDebugLog("Minion Prince _GetPixelColor(" & $aPrinceHealthCopy[0] & "," & $aPrinceHealthCopy[1] & "): " & $PrincePixelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aPrinceHealthCopy, $PrincePixelColor, "Red+Blue") Then
-					SetLog("Minion Prince is getting weak, Activating Minion Prince's ability", $COLOR_INFO)
-					SelectDropTroop($TempPrinceSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iPrinceSlot
-					$g_bCheckPrincePower = False
+		If Not $bCSVManualPrince Then
+			If $g_iActivatePrince = 0 Or $g_iActivatePrince = 2 And ($g_aHeroesTimerActivation[$eHeroMinionPrince] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroMinionPrince]) > $DELAYCHECKHEROESHEALTH) Then
+				If $g_bCheckPrincePower Then
+					Local $aPrinceHealthCopy = $aPrinceHealth
+					Local $aSlotPosition = GetSlotPosition($TempPrinceSlot)
+					$aPrinceHealthCopy[0] = $aSlotPosition[0] - $aPrinceHealthCopy[4] ; Slot11+
+					Local $PrincePixelColor = _GetPixelColor($aPrinceHealthCopy[0], $aPrinceHealthCopy[1], $g_bCapturePixel)
+					SetDebugLog("Minion Prince _GetPixelColor(" & $aPrinceHealthCopy[0] & "," & $aPrinceHealthCopy[1] & "): " & $PrincePixelColor, $COLOR_DEBUG)
+					If Not _CheckPixel2($aPrinceHealthCopy, $PrincePixelColor, "Red+Blue") Then
+						SetLog("Minion Prince is getting weak, Activating Minion Prince's ability", $COLOR_INFO)
+						SelectDropTroop($TempPrinceSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iPrinceSlot
+						$g_bCheckPrincePower = False
+					EndIf
 				EndIf
 			EndIf
-		EndIf
-		If $g_iActivatePrince = 1 Or $g_iActivatePrince = 2 Then
-			If $g_bCheckPrincePower Then
-				If $g_aHeroesTimerActivation[$eHeroMinionPrince] <> 0 Then
-					$aDisplayTime[$eHeroMinionPrince] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroMinionPrince]) / 1000) ; seconds
-				EndIf
-				If (Int($g_iDelayActivateChampion) / 1000) <= $aDisplayTime[$eHeroMinionPrince] Then
-					SetLog("Activating Minion Prince's ability after " & $aDisplayTime[$eHeroMinionPrince] & "'s", $COLOR_INFO)
-					SelectDropTroop($TempPrinceSlot, 2, Default, False) ; Slot11+
-					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iPrinceSlot
-					$g_bCheckPrincePower = False ; Reset check power flag
-					$g_aHeroesTimerActivation[$eHeroMinionPrince] = 0 ; Reset Timer
+			If $g_iActivatePrince = 1 Or $g_iActivatePrince = 2 Then
+				If $g_bCheckPrincePower Then
+					If $g_aHeroesTimerActivation[$eHeroMinionPrince] <> 0 Then
+						$aDisplayTime[$eHeroMinionPrince] = Ceiling(__TimerDiff($g_aHeroesTimerActivation[$eHeroMinionPrince]) / 1000) ; seconds
+					EndIf
+					If (Int($g_iDelayActivateChampion) / 1000) <= $aDisplayTime[$eHeroMinionPrince] Then
+						SetLog("Activating Minion Prince's ability after " & $aDisplayTime[$eHeroMinionPrince] & "'s", $COLOR_INFO)
+						SelectDropTroop($TempPrinceSlot, 2, Default, False) ; Slot11+
+						$g_iCSVLastTroopPositionDropTroopFromINI = $g_iPrinceSlot
+						$g_bCheckPrincePower = False ; Reset check power flag
+						$g_aHeroesTimerActivation[$eHeroMinionPrince] = 0 ; Reset Timer
+					EndIf
 				EndIf
 			EndIf
+		ElseIf $g_bCheckPrincePower And $g_bDebugSetlog Then
+			SetDebugLog("CheckHeroesHealth(): CSV manual hero override active for Prince, auto activation skipped", $COLOR_DEBUG)
 		EndIf
 		
 		If _Sleep($DELAYRESPOND) Then Return ; improve pause button response

@@ -48,14 +48,22 @@ Func ReturnHome($bTakeSS = True, $GoldChangeCheck = True) ;Return main screen
 	$g_bCheckQueenPower = False
 	$g_bCheckWardenPower = False
 	$g_bCheckChampionPower = False
+	$g_bCheckPrincePower = False
 	$g_bDropKing = False
 	$g_bDropQueen = False
 	$g_bDropWarden = False
 	$g_bDropChampion = False
+	$g_bDropPrince = False
+	$g_bCSVHeroAbilityOverrideActive = False
+	For $iCSVHero = 0 To UBound($g_abCSVHeroManualControl) - 1
+		$g_abCSVHeroManualControl[$iCSVHero] = False
+		$g_abCSVHeroAbilityTriggered[$iCSVHero] = False
+	Next
 	$g_aHeroesTimerActivation[$eHeroBarbarianKing] = 0
 	$g_aHeroesTimerActivation[$eHeroArcherQueen] = 0
 	$g_aHeroesTimerActivation[$eHeroGrandWarden] = 0
 	$g_aHeroesTimerActivation[$eHeroRoyalChampion] = 0
+	$g_aHeroesTimerActivation[$eHeroMinionPrince] = 0
 
 	; Reset building info used to attack base
 	_ObjDeleteKey($g_oBldgAttackInfo, "") ; Remove all Keys from dictionary

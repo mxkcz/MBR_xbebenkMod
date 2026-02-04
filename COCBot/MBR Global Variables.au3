@@ -1677,6 +1677,9 @@ Global $g_asCSVDiagnostics[0]
 Global $g_bCSVTargetedOnlyActive = False
 Global $g_bCSVPrioStrict = False
 Global $g_bCSVAbortAttack = False
+Global $g_bCSVHeroAbilityOverrideActive = False
+Global $g_abCSVHeroManualControl[$eHeroCount] = [False, False, False, False, False]
+Global $g_abCSVHeroAbilityTriggered[$eHeroCount] = [False, False, False, False, False]
 Global $g_sCSVLastMakeFallbackReason = ""
 Global $g_iCSVLastMakeFallbackCode = 0
 Global $g_sCSVLastMakeFallbackSide = ""

@@ -41,7 +41,9 @@ Func ParseAttackCSV($debug = False)
 	Local $f, $line, $acommand, $command
 	Local $value1 = "", $value2 = "", $value3 = "", $value4 = "", $value5 = "", $value6 = "", $value7 = "", $value8 = "", $value9 = ""
 	Local $aLines, $aTokens
+	AttackCSV_ResetHeroAbilityOverride()
 	If _CSVGetCachedLinesAndTokens($filename, $aLines, $aTokens) Then
+		AttackCSV_InitHeroAbilityOverride($filename, $aLines, $aTokens)
 
 		; Read in lines of text until the EOF is reached
 		For $iLine = 0 To UBound($aLines) - 1
@@ -445,52 +447,23 @@ Func ParseAttackCSV($debug = False)
 							SetLog("Discard row, " & $sErrorText & ": row " & $iLine + 1)
 							debugAttackCSV("Discard row, " & $sErrorText & ": row " & $iLine + 1)
 						Else
-							$bRemain = AttackCSV_ParseRemainFlags($value4, $bIncludeHeroes, $bIncludeSpells, $sUnknownRemainFlags)
-							; REMAIN CMD from @chalicucu
-							If $bRemain Then
-								ReleaseClicks()
-								Local $sRemainNote = ""
-								If $bIncludeHeroes Or $bIncludeSpells Then
-									$sRemainNote = " ("
-									If $bIncludeHeroes Then $sRemainNote &= "heroes"
-									If $bIncludeSpells Then $sRemainNote &= ($bIncludeHeroes ? "+spells" : "spells")
-									$sRemainNote &= ")"
-								EndIf
-								SetLog("Drop|Remain: Dropping left over troops" & $sRemainNote, $COLOR_BLUE)
-								If $sUnknownRemainFlags <> "" Then SetLog("Drop|Remain: Unknown flags [" & $sUnknownRemainFlags & "]", $COLOR_WARNING)
-								Local $aRemainBackup = $g_avAttackTroops
-								Local $aUnknownBackup = $g_avAttackUnknownSlots
-								Local $iRemainTroops = PrepareAttack($g_iMatchMode, True)
-								If $iRemainTroops <= 0 Then
-									SetLog("Drop|Remain: attack bar refresh failed, using cached troop data", $COLOR_WARNING)
-									$g_avAttackTroops = $aRemainBackup
-									$g_avAttackUnknownSlots = $aUnknownBackup
-								Else
-									Local $iRestored = AttackCSV_MergeRemainTroops($g_avAttackTroops, $aRemainBackup)
-									If $iRestored > 0 Then SetLog("Drop|Remain: restored " & $iRestored & " cached troop slots", $COLOR_WARNING)
-								EndIf
-
-								; Drop any remaining troop-type entries found on the attack bar (incl. event troops/CC/siege).
-								For $x = 0 To UBound($g_avAttackTroops) - 1
-									Local $iTroopIndex = $g_avAttackTroops[$x][0]
-									Local $iTroopCount = $g_avAttackTroops[$x][1]
-									If $iTroopCount <= 0 Then ContinueLoop
-									Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
-									If $sShortName = "" Then ContinueLoop
-									Local $name = GetTroopName($iTroopIndex, $iTroopCount)
-									Local $iOverDrop = 0
-									If $iTroopIndex >= $eBarb And $iTroopIndex <= $eIWiza Then
-										$iOverDrop = ($iTroopCount >= 10) ? 2 : 1
+								$bRemain = AttackCSV_ParseRemainFlags($value4, $bIncludeHeroes, $bIncludeSpells, $sUnknownRemainFlags)
+								; REMAIN CMD from @chalicucu
+								If $bRemain Then
+									ReleaseClicks()
+									Local $sRemainNote = ""
+									If $bIncludeHeroes Or $bIncludeSpells Then
+										$sRemainNote = " ("
+										If $bIncludeHeroes Then $sRemainNote &= "heroes"
+										If $bIncludeSpells Then $sRemainNote &= ($bIncludeHeroes ? "+spells" : "spells")
+										$sRemainNote &= ")"
 									EndIf
-									Setlog("Drop Remaining " & $name & " x" & $iTroopCount, $COLOR_DEBUG)
-									DropTroopFromINI($value1, $index1, $index2, $indexArray, $iTroopCount, $iTroopCount, $sShortName, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, False, $iOverDrop, True)
-									If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return
-								Next
-
-								AttackCSV_DropUnknownSlots($value1, $index1, $index2, $indexArray, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, $bIncludeSpells)
-							Else
-								DropTroopFromINI($value1, $index1, $index2, $indexArray, $qty1, $qty2, $value4, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
-							EndIf
+									SetLog("Drop|Remain: Dropping left over troops" & $sRemainNote, $COLOR_BLUE)
+									If $sUnknownRemainFlags <> "" Then SetLog("Drop|Remain: Unknown flags [" & $sUnknownRemainFlags & "]", $COLOR_WARNING)
+									If AttackCSV_DropRemainUntilDepleted($value1, $index1, $index2, $indexArray, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug, $bIncludeHeroes, $bIncludeSpells) < 0 Then Return
+								Else
+									DropTroopFromINI($value1, $index1, $index2, $indexArray, $qty1, $qty2, $value4, $delaypoints1, $delaypoints2, $delaydrop1, $delaydrop2, $sleepdrop1, $sleepdrop2, $debug)
+								EndIf
 						EndIf
 						ReleaseClicks($g_iAndroidAdbClicksTroopDeploySize)
 						If _Sleep($DELAYRESPOND) Then Return ; check for pause/stop
@@ -754,6 +727,101 @@ Func ParseAttackCSV($debug = False)
 	EndIf
 EndFunc   ;==>ParseAttackCSV
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_ResetHeroAbilityOverride
+; Description ...: Resets CSV hero manual ability override state.
+; Syntax ........: AttackCSV_ResetHeroAbilityOverride()
+; Parameters ....:
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_ResetHeroAbilityOverride()
+	$g_bCSVHeroAbilityOverrideActive = False
+	For $i = 0 To UBound($g_abCSVHeroManualControl) - 1
+		$g_abCSVHeroManualControl[$i] = False
+		$g_abCSVHeroAbilityTriggered[$i] = False
+	Next
+EndFunc   ;==>AttackCSV_ResetHeroAbilityOverride
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_HeroShortNameToIndex
+; Description ...: Returns hero enum index from CSV troop short name, or -1 when not a hero.
+; Syntax ........: AttackCSV_HeroShortNameToIndex($sTroopName)
+; Parameters ....: $sTroopName
+; Return values .: Hero index (0..$eHeroCount-1) or -1.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_HeroShortNameToIndex($sTroopName)
+	For $i = 0 To UBound($g_asHeroShortNames) - 1
+		If $sTroopName = StringUpper($g_asHeroShortNames[$i]) Then Return $i
+	Next
+	Return -1
+EndFunc   ;==>AttackCSV_HeroShortNameToIndex
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_InitHeroAbilityOverride
+; Description ...: Detects duplicate hero DROP lines and enables CSV manual ability override per hero.
+; Syntax ........: AttackCSV_InitHeroAbilityOverride($sFilename, ByRef $aLines, ByRef $aTokens)
+; Parameters ....: $sFilename, $aLines, $aTokens
+; Return values .: 1 on success.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_InitHeroAbilityOverride($sFilename, ByRef $aLines, ByRef $aTokens)
+	Local $aiHeroDropCount[$eHeroCount] = [0, 0, 0, 0, 0]
+	Local $line, $acommand, $command
+	Local $sTroopName = ""
+
+	For $iLine = 0 To UBound($aLines) - 1
+		$line = $aLines[$iLine]
+		$acommand = $aTokens[$iLine]
+		If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
+		If $acommand[0] < 5 Then ContinueLoop
+
+		$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		If $command <> "DROP" Then ContinueLoop
+
+		$sTroopName = StringStripWS(StringUpper($acommand[5]), $STR_STRIPTRAILING) ; DROP value4
+		Local $iHeroIndex = AttackCSV_HeroShortNameToIndex($sTroopName)
+		If $iHeroIndex < 0 Then ContinueLoop
+		$aiHeroDropCount[$iHeroIndex] += 1
+	Next
+
+	Local $sManualHeroes = ""
+	For $i = 0 To UBound($aiHeroDropCount) - 1
+		If $aiHeroDropCount[$i] > 1 Then
+			$g_abCSVHeroManualControl[$i] = True
+			$g_bCSVHeroAbilityOverrideActive = True
+			If $sManualHeroes <> "" Then $sManualHeroes &= ", "
+			$sManualHeroes &= $g_asHeroShortNames[$i] & " x" & $aiHeroDropCount[$i]
+		EndIf
+	Next
+
+	If $g_bCSVHeroAbilityOverrideActive Then
+		SetLog("CSV hero ability override active: " & $sManualHeroes & " (" & $sFilename & ")", $COLOR_INFO)
+	ElseIf $g_bDebugAttackCSV Then
+		debugAttackCSV("CSV hero ability override inactive: no duplicate hero DROP lines (" & $sFilename & ")")
+	EndIf
+	Return 1
+EndFunc   ;==>AttackCSV_InitHeroAbilityOverride
+
 ; Side-effect: pure (index -> short name mapping)
 Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $bIncludeSpells = False)
 	If $iTroopIndex >= $eBarb And $iTroopIndex <= $eIWiza Then
@@ -764,19 +832,30 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	EndIf
 	If $iTroopIndex = $eCastle Then Return "Castle"
 	If $bIncludeHeroes And $iTroopIndex >= $eKing And $iTroopIndex <= $ePrince Then
-		; Skip already-deployed heroes whose ability is no longer available
-		Switch $iTroopIndex
-			Case $eKing
-				If $g_bDropKing And Not $g_bCheckKingPower Then Return ""
-			Case $eQueen
-				If $g_bDropQueen And Not $g_bCheckQueenPower Then Return ""
-			Case $eWarden
-				If $g_bDropWarden And Not $g_bCheckWardenPower Then Return ""
-			Case $eChampion
-				If $g_bDropChampion And Not $g_bCheckChampionPower Then Return ""
-			Case $ePrince
-				If $g_bDropPrince And Not $g_bCheckPrincePower Then Return ""
-		EndSwitch
+		Local $bDropped = AttackCSV_IsHeroDropped($iTroopIndex)
+		Local $bCheckPower = AttackCSV_IsHeroPowerCheckEnabled($iTroopIndex)
+		Local $iHeroArrayIndex = $iTroopIndex - $eKing
+		Local $bManualTriggered = False
+		If $iHeroArrayIndex >= 0 And $iHeroArrayIndex < UBound($g_abCSVHeroAbilityTriggered) Then $bManualTriggered = $g_abCSVHeroAbilityTriggered[$iHeroArrayIndex]
+		If $g_bDebugSetlog Then
+			SetDebugLog("Drop|Remain: hero candidate " & GetTroopName($iTroopIndex) & _
+					" dropped=" & $bDropped & _
+					" checkPower=" & $bCheckPower & _
+					" csvTriggered=" & $bManualTriggered, $COLOR_DEBUG)
+		EndIf
+
+		; REMAIN+heroes should only deploy heroes that are not dropped yet.
+		; Ability activation is handled by hero checks/CSV logic, not REMAIN.
+		If $bDropped Then
+			If $g_bDebugSetlog Then SetDebugLog("Drop|Remain: skip " & GetTroopName($iTroopIndex) & " because already dropped", $COLOR_DEBUG)
+			Return ""
+		EndIf
+
+		If Not AttackCSV_IsHeroAbilityAvailableOnBar($iTroopIndex) Then
+			If $g_bDebugSetlog Then SetDebugLog("Drop|Remain: skip " & GetTroopName($iTroopIndex) & " because attack bar reports unavailable", $COLOR_DEBUG)
+			Return ""
+		EndIf
+
 		Return $g_asHeroShortNames[$iTroopIndex - $eKing]
 	EndIf
 	If $bIncludeSpells And $iTroopIndex >= $eLSpell And $iTroopIndex <= $eIBSpell Then
@@ -784,6 +863,308 @@ Func AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes = False, $b
 	EndIf
 	Return ""
 EndFunc   ;==>AttackCSV_GetRemainTroopShortName
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_IsHeroPowerCheckEnabled
+; Description ...: Returns current hero ability-check flag state.
+; Syntax ........: AttackCSV_IsHeroPowerCheckEnabled($iTroopIndex)
+; Parameters ....: $iTroopIndex
+; Return values .: True if hero check-power flag is enabled, otherwise False.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_IsHeroPowerCheckEnabled($iTroopIndex)
+	Switch $iTroopIndex
+		Case $eKing
+			Return $g_bCheckKingPower
+		Case $eQueen
+			Return $g_bCheckQueenPower
+		Case $eWarden
+			Return $g_bCheckWardenPower
+		Case $eChampion
+			Return $g_bCheckChampionPower
+		Case $ePrince
+			Return $g_bCheckPrincePower
+	EndSwitch
+	Return False
+EndFunc   ;==>AttackCSV_IsHeroPowerCheckEnabled
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_IsHeroDropped
+; Description ...: Returns True if the hero has already been deployed.
+; Syntax ........: AttackCSV_IsHeroDropped($iTroopIndex)
+; Parameters ....: $iTroopIndex
+; Return values .: True if hero was dropped, otherwise False.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_IsHeroDropped($iTroopIndex)
+	Switch $iTroopIndex
+		Case $eKing
+			Return $g_bDropKing
+		Case $eQueen
+			Return $g_bDropQueen
+		Case $eWarden
+			Return $g_bDropWarden
+		Case $eChampion
+			Return $g_bDropChampion
+		Case $ePrince
+			Return $g_bDropPrince
+	EndSwitch
+	Return False
+EndFunc   ;==>AttackCSV_IsHeroDropped
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_IsHeroAbilityAvailableOnBar
+; Description ...: Verifies hero button is still deployable (not grayed/consumed) on attack bar.
+; Syntax ........: AttackCSV_IsHeroAbilityAvailableOnBar($iTroopIndex)
+; Parameters ....: $iTroopIndex
+; Return values .: True when ability appears deployable, otherwise False.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_IsHeroAbilityAvailableOnBar($iTroopIndex)
+	If $iTroopIndex < $eKing Or $iTroopIndex > $ePrince Then Return True
+
+	Local $bDropped = AttackCSV_IsHeroDropped($iTroopIndex)
+	Local $bCheckPower = AttackCSV_IsHeroPowerCheckEnabled($iTroopIndex)
+	Local $iSlot = _ArraySearch($g_avAttackTroops, $iTroopIndex, 0, 0, 0, 0, 0, 0)
+	If $g_bDebugSetlog Then
+		SetDebugLog("Drop|Remain: bar-check " & GetTroopName($iTroopIndex) & _
+				" slot=" & $iSlot & _
+				" dropped=" & $bDropped & _
+				" checkPower=" & $bCheckPower, $COLOR_DEBUG)
+	EndIf
+
+	If $iSlot < 0 Then
+		If $bDropped Then
+			If $g_bDebugSetlog Then SetDebugLog("Drop|Remain: hero " & GetTroopName($iTroopIndex) & " not present on attack bar, skip", $COLOR_DEBUG)
+			Return False
+		EndIf
+		Return True
+	EndIf
+
+	Local $iOcrX = Number($g_avAttackTroops[$iSlot][4])
+	Local $iOcrY = Number($g_avAttackTroops[$iSlot][5])
+	If $iOcrX <= 0 Or $iOcrY <= 0 Then
+		Local $aSlotPos = GetSlotPosition($iSlot, True)
+		$iOcrX = Number($aSlotPos[0])
+		$iOcrY = Number($aSlotPos[1])
+	EndIf
+
+	If $iOcrX <= 0 Or $iOcrY <= 0 Then Return True
+	Local $aHeroStatePixel = $aTroopIsDeployed
+	$aHeroStatePixel[0] = $iOcrX - 15
+	$aHeroStatePixel[1] = $iOcrY
+	If $g_bDebugSetlog Then
+		Local $sPixelColor = _GetPixelColor($aHeroStatePixel[0], $aHeroStatePixel[1], $g_bCapturePixel)
+		SetDebugLog("Drop|Remain: bar-pixel " & GetTroopName($iTroopIndex) & _
+				" at (" & $aHeroStatePixel[0] & "," & $aHeroStatePixel[1] & ")" & _
+				" color=" & $sPixelColor, $COLOR_DEBUG)
+	EndIf
+	If _CheckPixel($aHeroStatePixel, True) Then
+		If $g_bDebugSetlog Then SetDebugLog("Drop|Remain: hero " & GetTroopName($iTroopIndex) & " is grayed/consumed, skip", $COLOR_DEBUG)
+		Return False
+	EndIf
+	Return True
+EndFunc   ;==>AttackCSV_IsHeroAbilityAvailableOnBar
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_CountRemainCandidates
+; Description ...: Counts remaining deployable entries for REMAIN logic.
+; Syntax ........: AttackCSV_CountRemainCandidates($bIncludeHeroes = False, $bIncludeSpells = False, $bIncludeUnknownSlots = True)
+; Parameters ....: $bIncludeHeroes, $bIncludeSpells, $bIncludeUnknownSlots
+; Return values .: Number of remaining candidates.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_CountRemainCandidates($bIncludeHeroes = False, $bIncludeSpells = False, $bIncludeUnknownSlots = True)
+	Local $iCount = 0
+	For $i = 0 To UBound($g_avAttackTroops, 1) - 1
+		Local $iTroopIndex = $g_avAttackTroops[$i][0]
+		Local $iTroopQty = $g_avAttackTroops[$i][1]
+		If $iTroopQty <= 0 Then ContinueLoop
+		If AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells) = "" Then ContinueLoop
+		$iCount += 1
+	Next
+
+	If $bIncludeUnknownSlots And IsArray($g_avAttackUnknownSlots) And UBound($g_avAttackUnknownSlots, 1) > 0 Then
+		For $i = 0 To UBound($g_avAttackUnknownSlots, 1) - 1
+			If $g_avAttackUnknownSlots[$i][5] > 0 Then $iCount += 1
+		Next
+	EndIf
+	Return $iCount
+EndFunc   ;==>AttackCSV_CountRemainCandidates
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_DropRemainKnownSlots
+; Description ...: Drops known remaining troop entries from current attack bar scan.
+; Syntax ........: AttackCSV_DropRemainKnownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax[, $bDebug = False[, $bIncludeHeroes = False[, $bIncludeSpells = False]]])
+; Parameters ....: $sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, $bIncludeHeroes, $bIncludeSpells
+; Return values .: Number of known slots dropped. Sets @error = 1 if interrupted by _Sleep.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_DropRemainKnownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug = False, $bIncludeHeroes = False, $bIncludeSpells = False)
+	Local $iDropped = 0
+	For $x = 0 To UBound($g_avAttackTroops, 1) - 1
+		Local $iTroopIndex = $g_avAttackTroops[$x][0]
+		Local $iTroopCount = $g_avAttackTroops[$x][1]
+		If $iTroopCount <= 0 Then ContinueLoop
+
+		Local $sShortName = AttackCSV_GetRemainTroopShortName($iTroopIndex, $bIncludeHeroes, $bIncludeSpells)
+		If $sShortName = "" Then
+			If $g_bDebugSetlog Then
+				SetDebugLog("Drop|Remain: skip slot[" & $x & "] " & GetTroopName($iTroopIndex) & _
+						" qty=" & $iTroopCount & " (no remain short name)", $COLOR_DEBUG)
+			EndIf
+			ContinueLoop
+		EndIf
+
+		Local $sTroopName = GetTroopName($iTroopIndex, $iTroopCount)
+		Local $iOverDrop = 0
+		If $iTroopIndex >= $eBarb And $iTroopIndex <= $eIWiza Then
+			$iOverDrop = ($iTroopCount >= 10) ? 2 : 1
+		EndIf
+		If $g_bDebugSetlog Then
+			SetDebugLog("Drop|Remain: drop slot[" & $x & "] idx=" & $iTroopIndex & " short=" & $sShortName & _
+					" qty=" & $iTroopCount & " overDrop=" & $iOverDrop, $COLOR_DEBUG)
+		EndIf
+		SetLog("Drop Remaining " & $sTroopName & " x" & $iTroopCount, $COLOR_DEBUG)
+		DropTroopFromINI($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $iTroopCount, $iTroopCount, $sShortName, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, False, $iOverDrop, True)
+		$iDropped += 1
+		If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return SetError(1, 0, $iDropped)
+	Next
+	Return $iDropped
+EndFunc   ;==>AttackCSV_DropRemainKnownSlots
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_DropRemainUntilDepleted
+; Description ...: Repeats REMAIN drops until no candidates remain or retry limit is reached.
+; Syntax ........: AttackCSV_DropRemainUntilDepleted($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax[, $bDebug = False[, $bIncludeHeroes = False[, $bIncludeSpells = False]]])
+; Parameters ....: $sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, $bIncludeHeroes, $bIncludeSpells
+; Return values .: 1 on full depletion, 0 on retry limit/no-progress, -1 if interrupted by _Sleep.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_DropRemainUntilDepleted($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug = False, $bIncludeHeroes = False, $bIncludeSpells = False)
+	Local Const $iMaxRemainPasses = 8
+	Local Const $iMaxNoProgressPasses = 2
+	Local $iNoProgressPasses = 0
+	Local $bDropUnknownSlots = (Not $bIncludeHeroes) Or $bIncludeSpells
+
+	For $iPass = 1 To $iMaxRemainPasses
+		Local $aRemainBackup = $g_avAttackTroops
+		Local $aUnknownBackup = $g_avAttackUnknownSlots
+		Local $iRemainTroops = PrepareAttack($g_iMatchMode, True)
+		If $iRemainTroops <= 0 Then
+			SetLog("Drop|Remain: attack bar refresh failed, using cached troop data", $COLOR_WARNING)
+			$g_avAttackTroops = $aRemainBackup
+			$g_avAttackUnknownSlots = $aUnknownBackup
+		Else
+			Local $iRestored = AttackCSV_MergeRemainTroops($g_avAttackTroops, $aRemainBackup)
+			If $iRestored > 0 Then SetLog("Drop|Remain: restored " & $iRestored & " cached troop slots", $COLOR_WARNING)
+		EndIf
+		If $bIncludeHeroes And $g_bDebugSetlog Then AttackCSV_DebugLogRemainHeroStates("pre-pass " & $iPass)
+
+		Local $iKnownDropped = AttackCSV_DropRemainKnownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, $bIncludeHeroes, $bIncludeSpells)
+		If @error Then Return -1
+		Local $iUnknownDropped = 0
+		If $bDropUnknownSlots Then
+			$iUnknownDropped = AttackCSV_DropUnknownSlots($sVectors, $iStartIndex, $iEndIndex, $aIndexArray, $delayPointMin, $delayPointMax, $delayDropMin, $delayDropMax, $sleepAfterMin, $sleepAfterMax, $bDebug, $bIncludeSpells)
+		EndIf
+		Local $iPassDropped = $iKnownDropped + $iUnknownDropped
+
+		Local $aPostPassBackup = $g_avAttackTroops
+		Local $aPostPassUnknownBackup = $g_avAttackUnknownSlots
+		Local $iPostRemain = PrepareAttack($g_iMatchMode, True)
+		If $iPostRemain <= 0 Then
+			$g_avAttackTroops = $aPostPassBackup
+			$g_avAttackUnknownSlots = $aPostPassUnknownBackup
+		Else
+			AttackCSV_MergeRemainTroops($g_avAttackTroops, $aPostPassBackup)
+		EndIf
+
+		Local $iCandidatesLeft = AttackCSV_CountRemainCandidates($bIncludeHeroes, $bIncludeSpells, $bDropUnknownSlots)
+		SetDebugLog("Drop|Remain: pass " & $iPass & " dropped=" & $iPassDropped & ", left=" & $iCandidatesLeft, $COLOR_DEBUG)
+		If $bIncludeHeroes And $g_bDebugSetlog Then AttackCSV_DebugLogRemainHeroStates("post-pass " & $iPass)
+		If $iCandidatesLeft <= 0 Then Return 1
+
+		If $iPassDropped <= 0 Then
+			$iNoProgressPasses += 1
+			If $iNoProgressPasses >= $iMaxNoProgressPasses Then ExitLoop
+		Else
+			$iNoProgressPasses = 0
+		EndIf
+
+		If _Sleep($DELAYALGORITHM_ALLTROOPS5) Then Return -1
+	Next
+
+	Local $iFinalLeft = AttackCSV_CountRemainCandidates($bIncludeHeroes, $bIncludeSpells, $bDropUnknownSlots)
+	If $iFinalLeft > 0 Then SetLog("Drop|Remain: retry limit reached, remaining candidates=" & $iFinalLeft, $COLOR_WARNING)
+	Return ($iFinalLeft <= 0 ? 1 : 0)
+EndFunc   ;==>AttackCSV_DropRemainUntilDepleted
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_DebugLogRemainHeroStates
+; Description ...: Logs REMAIN hero state snapshots for debugging.
+; Syntax ........: AttackCSV_DebugLogRemainHeroStates($sStage)
+; Parameters ....: $sStage
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func AttackCSV_DebugLogRemainHeroStates($sStage)
+	For $iHero = $eKing To $ePrince
+		Local $iSlot = _ArraySearch($g_avAttackTroops, $iHero, 0, 0, 0, 0, 0, 0)
+		Local $iQty = -1
+		If $iSlot >= 0 Then $iQty = Number($g_avAttackTroops[$iSlot][1])
+		Local $iHeroArrayIndex = $iHero - $eKing
+		Local $bManualTriggered = False
+		If $iHeroArrayIndex >= 0 And $iHeroArrayIndex < UBound($g_abCSVHeroAbilityTriggered) Then $bManualTriggered = $g_abCSVHeroAbilityTriggered[$iHeroArrayIndex]
+		SetDebugLog("Drop|Remain: " & $sStage & " hero=" & GetTroopName($iHero) & _
+				" slot=" & $iSlot & _
+				" qty=" & $iQty & _
+				" dropped=" & AttackCSV_IsHeroDropped($iHero) & _
+				" checkPower=" & AttackCSV_IsHeroPowerCheckEnabled($iHero) & _
+				" csvTriggered=" & $bManualTriggered, $COLOR_DEBUG)
+	Next
+EndFunc   ;==>AttackCSV_DebugLogRemainHeroStates
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_DropUnknownSlots

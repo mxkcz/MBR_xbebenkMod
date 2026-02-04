@@ -126,9 +126,16 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	Local $aiOCRY = [-1, -1]
 	If Not $bRemaining Then $aiOCRY = GetOCRYLocation($aSlotAmountX)
 	Local $iSlotCount = UBound($aSlotAmountX, 1)
-	Local $aSlotSeen[0]
-	If $iSlotCount > 0 Then ReDim $aSlotSeen[$iSlotCount]
-	Local $sKeepRemainTroops = "(King)|(Queen)|(Warden)|(Champion)|(Prince)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)"
+	Local $aSlotFinalIndex[0], $aSlotBestScore[0]
+	If $iSlotCount > 0 Then
+		ReDim $aSlotFinalIndex[$iSlotCount]
+		ReDim $aSlotBestScore[$iSlotCount]
+		For $i = 0 To $iSlotCount - 1
+			$aSlotFinalIndex[$i] = -1
+			$aSlotBestScore[$i] = 2147483647
+		Next
+	EndIf
+	Local $sKeepRemainTroops = "(King)|(Queen)|(Warden)|(Champion)|(Prince)|(Castle)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)"
 	Local $sKeepSieges = "(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)|(BattleD)"
 
 	For $i = 0 To UBound($aAttackBar, 1) - 1
@@ -187,16 +194,34 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 				EndIf
 			EndIf
 			Local $iSlotIndex = $aAttackBar[$i][3]
+			Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
+			Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
 			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount Then
-				If $aSlotSeen[$iSlotIndex] Then
-					SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0], $COLOR_WARNING)
+				If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
+					If $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
+						Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
+						SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
+						$aFinalAttackBar[$iReplace][0] = $iTroopIndex
+						$aFinalAttackBar[$iReplace][1] = $aAttackBar[$i][3]
+						$aFinalAttackBar[$iReplace][2] = $aAttackBar[$i][4]
+						$aFinalAttackBar[$iReplace][3] = $aAttackBar[$i][1]
+						$aFinalAttackBar[$iReplace][4] = $aAttackBar[$i][2]
+						$aFinalAttackBar[$iReplace][5] = $aAttackBar[$i][5]
+						$aFinalAttackBar[$iReplace][6] = $aAttackBar[$i][6]
+						$aSlotBestScore[$iSlotIndex] = $iCandidateScore
+					Else
+						SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0], $COLOR_WARNING)
+					EndIf
 					ContinueLoop
 				EndIf
-				$aSlotSeen[$iSlotIndex] = 1
 			EndIf
 			; 0: Index, 1: Slot, 2: Amount, 3: X-Coord, 4: Y-Coord, 5: OCR X-Coord, 6: OCR Y-Coord
-			Local $aTempFinalArray[1][7] = [[TroopIndexLookup($aAttackBar[$i][0]), $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
+			Local $aTempFinalArray[1][7] = [[$iTroopIndex, $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
 			_ArrayAdd($aFinalAttackBar, $aTempFinalArray)
+			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount Then
+				$aSlotFinalIndex[$iSlotIndex] = UBound($aFinalAttackBar, 1) - 1
+				$aSlotBestScore[$iSlotIndex] = $iCandidateScore
+			EndIf
 		EndIf
 	Next
 
@@ -331,8 +356,16 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 	EndIf
 
 	Local $iSlotCount = UBound($aSlotAmountX, 1)
-	Local $aSlotSeen[0]
-	If $iSlotCount > 0 Then ReDim $aSlotSeen[$iSlotCount]
+	Local $aSlotFinalIndex[0], $aSlotBestScore[0]
+	Local $iSlotMapSize = $iSlotCount + $iLastSlotNumber + 1
+	If $iSlotMapSize > 0 Then
+		ReDim $aSlotFinalIndex[$iSlotMapSize]
+		ReDim $aSlotBestScore[$iSlotMapSize]
+		For $i = 0 To $iSlotMapSize - 1
+			$aSlotFinalIndex[$i] = -1
+			$aSlotBestScore[$i] = 2147483647
+		Next
+	EndIf
 
 	For $i = 0 To UBound($aAttackBar, 1) - 1
 		If $aAttackBar[$i][1] > 0 Then
@@ -385,19 +418,34 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 				EndIf
 			EndIf
 			Local $iSlotIndex = $aAttackBar[$i][3]
-			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount + $iLastSlotNumber + 1 Then
-				Local $iLocalSlot = $iSlotIndex - ($iLastSlotNumber + 1)
-				If $iLocalSlot >= 0 And $iLocalSlot < $iSlotCount Then
-					If $aSlotSeen[$iLocalSlot] Then
+			Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
+			Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
+			If $iSlotMapSize > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotMapSize Then
+				If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
+					If $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
+						Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
+						SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
+						$aFinalAttackBar[$iReplace][0] = $iTroopIndex
+						$aFinalAttackBar[$iReplace][1] = $aAttackBar[$i][3]
+						$aFinalAttackBar[$iReplace][2] = $aAttackBar[$i][4]
+						$aFinalAttackBar[$iReplace][3] = $aAttackBar[$i][1]
+						$aFinalAttackBar[$iReplace][4] = $aAttackBar[$i][2]
+						$aFinalAttackBar[$iReplace][5] = $aAttackBar[$i][5]
+						$aFinalAttackBar[$iReplace][6] = $aAttackBar[$i][6]
+						$aSlotBestScore[$iSlotIndex] = $iCandidateScore
+					Else
 						SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0], $COLOR_WARNING)
-						ContinueLoop
 					EndIf
-					$aSlotSeen[$iLocalSlot] = 1
+					ContinueLoop
 				EndIf
 			EndIf
 			; 0: Index, 1: Slot, 2: Amount, 3: X-Coord, 4: Y-Coord, 5: OCR X-Coord, 6: OCR Y-Coord
-			Local $aTempFinalArray[1][7] = [[TroopIndexLookup($aAttackBar[$i][0]), $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
+			Local $aTempFinalArray[1][7] = [[$iTroopIndex, $aAttackBar[$i][3], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6]]]
 			_ArrayAdd($aFinalAttackBar, $aTempFinalArray)
+			If $iSlotMapSize > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotMapSize Then
+				$aSlotFinalIndex[$iSlotIndex] = UBound($aFinalAttackBar, 1) - 1
+				$aSlotBestScore[$iSlotIndex] = $iCandidateScore
+			EndIf
 		EndIf
 	Next
 
@@ -482,7 +530,7 @@ Func RemoveDuplicateHeroDetections(ByRef $aAttackBar, ByRef $aSlotAmountX, $sCon
 			Local $iDeltaX = Abs($aAttackBar[$i][1] - $aAttackBar[$j][1])
 			Local $iDeltaY = Abs($aAttackBar[$i][2] - $aAttackBar[$j][2])
 			If $iDeltaX <= $iHeroProximityThreshold And $iDeltaY <= $iHeroProximityThreshold Then
-				RemoveNearestAttackBarSlot($aSlotAmountX, $aAttackBar[$i][1], $aAttackBar[$i][2], $iHeroProximityThreshold)
+				RemoveNearestAttackBarSlot($aSlotAmountX, $aAttackBar[$i][1], $aAttackBar[$i][2], $iHeroProximityThreshold, Number($aAttackBar[$i][7]))
 				SetDebugLog($sContext & " Removing duplicate " & $aAttackBar[$i][0] & " detection at (" & $aAttackBar[$i][1] & "," & $aAttackBar[$i][2] & ")", $COLOR_WARNING)
 				_ArrayDelete($aAttackBar, $i)
 				ExitLoop
@@ -493,9 +541,9 @@ EndFunc   ;==>RemoveDuplicateHeroDetections
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: RemoveNearestAttackBarSlot
-; Description ...: Removes the nearest slot marker for duplicate hero detections.
-; Syntax ........: RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold)
-; Parameters ....: $aSlotAmountX, $iPosX, $iPosY, $iThreshold
+; Description ...: Removes a duplicate slot marker nearest to a duplicate hero detection.
+; Syntax ........: RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold, $iRow = -1)
+; Parameters ....: $aSlotAmountX, $iPosX, $iPosY, $iThreshold, $iRow
 ; Return values .: None
 ; Author ........: mxkcz
 ; Modified ......:
@@ -505,16 +553,18 @@ EndFunc   ;==>RemoveDuplicateHeroDetections
 ; Link ..........:
 ; Example .......:
 ; =====================================================================================================================
-Func RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold)
-	If UBound($aSlotAmountX, 0) <> 2 Or UBound($aSlotAmountX, 1) = 0 Then Return
+Func RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold, $iRow = -1)
+	If UBound($aSlotAmountX, 0) <> 2 Or UBound($aSlotAmountX, 1) <= 1 Then Return
 
-	Local $iDelete = -1
-	Local $iBestDistance = 0
+	Local $aCandidates[0], $iDelete = -1, $iBestDistance = 0
 	For $i = 0 To UBound($aSlotAmountX, 1) - 1
+		If $iRow <> -1 And Number($aSlotAmountX[$i][2]) <> $iRow Then ContinueLoop
+
 		Local $iDeltaX = Abs($aSlotAmountX[$i][0] - $iPosX)
 		Local $iDeltaY = Abs($aSlotAmountX[$i][1] - $iPosY)
 		If $iDeltaX > $iThreshold Or $iDeltaY > $iThreshold Then ContinueLoop
 
+		_ArrayAdd($aCandidates, $i)
 		Local $iDistance = $iDeltaX + $iDeltaY
 		If $iDelete = -1 Or $iDistance < $iBestDistance Then
 			$iDelete = $i
@@ -522,7 +572,8 @@ Func RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold
 		EndIf
 	Next
 
-	If $iDelete <> -1 Then _ArrayDelete($aSlotAmountX, $iDelete)
+	; Only remove when we can prove duplicate slot markers exist nearby.
+	If UBound($aCandidates) >= 2 And $iDelete <> -1 Then _ArrayDelete($aSlotAmountX, $iDelete)
 EndFunc   ;==>RemoveNearestAttackBarSlot
 
 ; #FUNCTION# ====================================================================================================================
@@ -699,6 +750,26 @@ Func AttackSlot($iPosX, $iRow, $aSlots)
 
 	Return $aTempSlot
 EndFunc   ;==>AttackSlot
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ComputeAttackBarSlotCandidateScore
+; Description ...: Scores competing troop detections for the same slot; lower score is preferred.
+; Syntax ........: ComputeAttackBarSlotCandidateScore($sName, $iAmount, $iIconX, $iIconY, $iOcrX, $iOcrY)
+; Parameters ....: $sName, $iAmount, $iIconX, $iIconY, $iOcrX, $iOcrY
+; Return values .: Integer score
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func ComputeAttackBarSlotCandidateScore($sName, $iAmount, $iIconX, $iIconY, $iOcrX, $iOcrY)
+	Local $iScore = Abs(Number($iIconX) - (Number($iOcrX) + 15)) + Abs(Number($iIconY) - (Number($iOcrY) + 7))
+	If $sName = "Castle" And Number($iAmount) > 1 Then $iScore += 200 ; CC icon cannot be x2+, penalize false-positive reads
+	Return $iScore
+EndFunc   ;==>ComputeAttackBarSlotCandidateScore
 
 Func DebugAttackBarImage($aAttackBarResult)
 	#comments-start
