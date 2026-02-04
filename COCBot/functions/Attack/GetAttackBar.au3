@@ -77,6 +77,8 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 			Next
 		Next
 
+		RemoveDuplicateHeroDetections($aAttackBar, $aSlotAmountX, "GetAttackBar():")
+
 		If UBound($aAttackBar, 1) = 0 Then
 			SetLog("Error in GetAttackBar(): $aAttackBar has no results in it", $COLOR_ERROR)
 			Return ""
@@ -281,6 +283,8 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 			Next
 		Next
 
+		RemoveDuplicateHeroDetections($aAttackBar, $aSlotAmountX, "AttackBarCheck():")
+
 		If UBound($aAttackBar, 1) = 0 Then
 			SetLog("Error in AttackBarCheck(): $aAttackBar has no results in it", $COLOR_ERROR)
 			Return ""
@@ -449,6 +453,77 @@ Func SortDoubleRowXElements($aArray)
 
 	Return $aNewSlotAmountX
 EndFunc   ;==>SortDoubleRowXElements
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: RemoveDuplicateHeroDetections
+; Description ...: Removes duplicate hero detections across templates and matching slot markers.
+; Syntax ........: RemoveDuplicateHeroDetections(ByRef $aAttackBar, ByRef $aSlotAmountX, $sContext = "")
+; Parameters ....: $aAttackBar, $aSlotAmountX, $sContext
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func RemoveDuplicateHeroDetections(ByRef $aAttackBar, ByRef $aSlotAmountX, $sContext = "")
+	If UBound($aAttackBar, 0) <> 2 Or UBound($aAttackBar, 1) <= 1 Then Return
+
+	Local Const $iHeroProximityThreshold = 50
+	Local Const $sHeroPattern = "(King)|(Queen)|(Warden)|(Champion)|(Prince)"
+
+	For $i = UBound($aAttackBar, 1) - 1 To 1 Step -1
+		If StringRegExp($aAttackBar[$i][0], $sHeroPattern, 0) = 0 Then ContinueLoop
+		For $j = 0 To $i - 1
+			If $aAttackBar[$j][0] <> $aAttackBar[$i][0] Then ContinueLoop
+
+			Local $iDeltaX = Abs($aAttackBar[$i][1] - $aAttackBar[$j][1])
+			Local $iDeltaY = Abs($aAttackBar[$i][2] - $aAttackBar[$j][2])
+			If $iDeltaX <= $iHeroProximityThreshold And $iDeltaY <= $iHeroProximityThreshold Then
+				RemoveNearestAttackBarSlot($aSlotAmountX, $aAttackBar[$i][1], $aAttackBar[$i][2], $iHeroProximityThreshold)
+				SetDebugLog($sContext & " Removing duplicate " & $aAttackBar[$i][0] & " detection at (" & $aAttackBar[$i][1] & "," & $aAttackBar[$i][2] & ")", $COLOR_WARNING)
+				_ArrayDelete($aAttackBar, $i)
+				ExitLoop
+			EndIf
+		Next
+	Next
+EndFunc   ;==>RemoveDuplicateHeroDetections
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: RemoveNearestAttackBarSlot
+; Description ...: Removes the nearest slot marker for duplicate hero detections.
+; Syntax ........: RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold)
+; Parameters ....: $aSlotAmountX, $iPosX, $iPosY, $iThreshold
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func RemoveNearestAttackBarSlot(ByRef $aSlotAmountX, $iPosX, $iPosY, $iThreshold)
+	If UBound($aSlotAmountX, 0) <> 2 Or UBound($aSlotAmountX, 1) = 0 Then Return
+
+	Local $iDelete = -1
+	Local $iBestDistance = 0
+	For $i = 0 To UBound($aSlotAmountX, 1) - 1
+		Local $iDeltaX = Abs($aSlotAmountX[$i][0] - $iPosX)
+		Local $iDeltaY = Abs($aSlotAmountX[$i][1] - $iPosY)
+		If $iDeltaX > $iThreshold Or $iDeltaY > $iThreshold Then ContinueLoop
+
+		Local $iDistance = $iDeltaX + $iDeltaY
+		If $iDelete = -1 Or $iDistance < $iBestDistance Then
+			$iDelete = $i
+			$iBestDistance = $iDistance
+		EndIf
+	Next
+
+	If $iDelete <> -1 Then _ArrayDelete($aSlotAmountX, $iDelete)
+EndFunc   ;==>RemoveNearestAttackBarSlot
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: BuildAttackBarSlotMap

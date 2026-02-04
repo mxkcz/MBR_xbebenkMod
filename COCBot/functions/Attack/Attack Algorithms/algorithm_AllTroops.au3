@@ -368,6 +368,20 @@ Func algorithm_AllTroops() ;Attack Algorithm for all existing troops
 	SetLog("Finished Attacking, waiting for the battle to end")
 EndFunc   ;==>algorithm_AllTroops
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SetSlotSpecialTroops
+; Description ...: Assigns special troop and hero slots from attack bar data.
+; Syntax ........: SetSlotSpecialTroops()
+; Parameters ....:
+; Return values .: None
+; Author ........:
+; Modified ......: mxkcz
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func SetSlotSpecialTroops()
 	$g_iKingSlot = -1
 	$g_iQueenSlot = -1
@@ -381,14 +395,19 @@ Func SetSlotSpecialTroops()
 								Or $g_avAttackTroops[$i][0] = $eSiegeB Or $g_avAttackTroops[$i][0] = $eLogL Or $g_avAttackTroops[$i][0] = $eFlameF Or $g_avAttackTroops[$i][0] = $eBattleD Or $g_avAttackTroops[$i][0] = $eTroopL Then
 			$g_iClanCastleSlot = $i
 		ElseIf $g_avAttackTroops[$i][0] = $eKing Then
+			If $g_iKingSlot <> -1 Then SetDebugLog("SetSlotSpecialTroops(): Duplicate King at slot " & $i & " (first at " & $g_iKingSlot & ")", $COLOR_WARNING)
 			$g_iKingSlot = $i
 		ElseIf $g_avAttackTroops[$i][0] = $eQueen Then
+			If $g_iQueenSlot <> -1 Then SetDebugLog("SetSlotSpecialTroops(): Duplicate Queen at slot " & $i & " (first at " & $g_iQueenSlot & ")", $COLOR_WARNING)
 			$g_iQueenSlot = $i
 		ElseIf $g_avAttackTroops[$i][0] = $eWarden Then
+			If $g_iWardenSlot <> -1 Then SetDebugLog("SetSlotSpecialTroops(): Duplicate Warden at slot " & $i & " (first at " & $g_iWardenSlot & ")", $COLOR_WARNING)
 			$g_iWardenSlot = $i
 		ElseIf $g_avAttackTroops[$i][0] = $eChampion Then
+			If $g_iChampionSlot <> -1 Then SetDebugLog("SetSlotSpecialTroops(): Duplicate Champion at slot " & $i & " (first at " & $g_iChampionSlot & ")", $COLOR_WARNING)
 			$g_iChampionSlot = $i
 		ElseIf $g_avAttackTroops[$i][0] = $ePrince Then
+			If $g_iPrinceSlot <> -1 Then SetDebugLog("SetSlotSpecialTroops(): Duplicate Prince at slot " & $i & " (first at " & $g_iPrinceSlot & ")", $COLOR_WARNING)
 			$g_iPrinceSlot = $i
 		EndIf
 	Next

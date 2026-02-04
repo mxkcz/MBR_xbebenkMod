@@ -421,17 +421,20 @@ Func ParseAttackCSV($debug = False)
 
 						; validate index values against actual vector length
 						Local $iVectorMax = UBound($vectCheck)
+						Local $iCsvRow = $iLine + 1
 						If IsArray($indexArray) Then
 							For $i = $index1 To $index2
 								If $indexArray[$i] < 1 Or $indexArray[$i] > $iVectorMax Then
 									$sErrorText &= "Invalid INDEX for vector length"
-									SetDebugLog("$indexArray[" & $i & "]=" & $indexArray[$i] & ", max=" & $iVectorMax, $COLOR_ERROR)
+									SetDebugLog("$indexArray[" & $i & "]=" & $indexArray[$i] & ", max=" & $iVectorMax & ", vector=" & $value1 & ", row=" & $iCsvRow, $COLOR_ERROR)
+									SetLog("Vector " & $value1 & " has " & $iVectorMax & " points, INDEX " & $indexArray[$i] & " is out of range (row " & $iCsvRow & ")", $COLOR_WARNING)
 									ExitLoop
 								EndIf
 							Next
 						ElseIf $index1 < 1 Or $index2 < 1 Or $index1 > $iVectorMax Or $index2 > $iVectorMax Then
 							$sErrorText &= "Invalid INDEX for vector length"
-							SetDebugLog("$index1: " & $index1 & ", $index2: " & $index2 & ", max=" & $iVectorMax, $COLOR_ERROR)
+							SetDebugLog("$index1: " & $index1 & ", $index2: " & $index2 & ", max=" & $iVectorMax & ", vector=" & $value1 & ", row=" & $iCsvRow, $COLOR_ERROR)
+							SetLog("Vector " & $value1 & " has " & $iVectorMax & " points, INDEX " & $index1 & "-" & $index2 & " is out of range (row " & $iCsvRow & ")", $COLOR_WARNING)
 						EndIf
 						
 						Local $bRemain = False

@@ -187,12 +187,12 @@ Func CheckHeroesHealth()
 
 		If $g_iActivatePrince = 0 Or $g_iActivatePrince = 2 And ($g_aHeroesTimerActivation[$eHeroMinionPrince] = 0 Or __TimerDiff($g_aHeroesTimerActivation[$eHeroMinionPrince]) > $DELAYCHECKHEROESHEALTH) Then
 			If $g_bCheckPrincePower Then
-				Local $aPrinceHealthCopy = $aMPrinceealth
+				Local $aPrinceHealthCopy = $aPrinceHealth
 				Local $aSlotPosition = GetSlotPosition($TempPrinceSlot)
-				$aPrinceHealthCopy[0] = $aSlotPosition[0] - $aMPrinceealthCopy[4] ; Slot11+
-				Local $PrincePixelColor = _GetPixelColor($aMPrinceealthCopy[0], $aMiPrincealthCopy[1], $g_bCapturePixel)
-				SetDebugLog("Minion Prince _GetPixelColor(" & $aPrinceHealthCopy[0] & "," & $aMPrinceealthCopy[1] & "): " & $MiPrincexelColor, $COLOR_DEBUG)
-				If Not _CheckPixel2($aPrinceHealthCopy, $MPrinceixelColor, "Red+Blue") Then
+				$aPrinceHealthCopy[0] = $aSlotPosition[0] - $aPrinceHealthCopy[4] ; Slot11+
+				Local $PrincePixelColor = _GetPixelColor($aPrinceHealthCopy[0], $aPrinceHealthCopy[1], $g_bCapturePixel)
+				SetDebugLog("Minion Prince _GetPixelColor(" & $aPrinceHealthCopy[0] & "," & $aPrinceHealthCopy[1] & "): " & $PrincePixelColor, $COLOR_DEBUG)
+				If Not _CheckPixel2($aPrinceHealthCopy, $PrincePixelColor, "Red+Blue") Then
 					SetLog("Minion Prince is getting weak, Activating Minion Prince's ability", $COLOR_INFO)
 					SelectDropTroop($TempPrinceSlot, 2, Default, False) ; Slot11+
 					$g_iCSVLastTroopPositionDropTroopFromINI = $g_iPrinceSlot

@@ -445,8 +445,16 @@ Func DropTroopFromINI_ExecuteDrop($iTroopIndex, $sTroopName, $iVectorCount, $iSt
 			;delay time between 2 drops in different point
 			Local $delayDropLast = 0
 			If $j = $iVectorCount Then $delayDropLast = $delayDrop
-			If $index <= UBound(Execute("$" & Eval("vector" & $j))) Then
-				Local $pixel = Execute("$" & Eval("vector" & $j) & "[" & $index - 1 & "]")
+			Local $sVectorName = Eval("vector" & $j)
+			Local $aVector = Execute("$" & $sVectorName)
+			If Not IsArray($aVector) Then
+				SetDebugLog("DropTroopFromINI: Vector " & $sVectorName & " is not initialized", $COLOR_ERROR)
+				ContinueLoop
+			EndIf
+
+			Local $iVectorUBound = UBound($aVector)
+			If $index >= 1 And $index <= $iVectorUBound Then
+				Local $pixel = $aVector[$index - 1]
 				Local $qty2 = $qtyxpoint
 				If $index < $iStartIndex + $extraunit Then $qty2 += 1
 
@@ -497,9 +505,9 @@ Func DropTroopFromINI_ExecuteDrop($iTroopIndex, $sTroopName, $iVectorCount, $iSt
 						EndIf
 					Case $ePrince
 						If $bDebug Then
-							SetLog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ",-1, -1, -1," & $troopPosition & ") ")
+							SetLog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ", -1, -1, -1, -1, " & $troopPosition & ") ")
 						Else
-							dropHeroes($pixel[0], $pixel[1], -1, -1, -1, $troopPosition) ; was $g_iPrinceSlot, Slot11+
+							dropHeroes($pixel[0], $pixel[1], -1, -1, -1, -1, $troopPosition) ; was $g_iPrinceSlot, Slot11+
 						EndIf
 					Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF
 						If $bDebug Then
@@ -522,6 +530,9 @@ Func DropTroopFromINI_ExecuteDrop($iTroopIndex, $sTroopName, $iVectorCount, $iSt
 						SetLog("Error parsing line")
 				EndSwitch
 				debugAttackCSV($sTroopName & " qty " & $qty2 & " in (" & $pixel[0] & "," & $pixel[1] & ") delay " & $delayPoint)
+			Else
+				SetDebugLog("DropTroopFromINI: Index " & $index & " out of bounds for vector " & $sVectorName & " (max=" & $iVectorUBound & ")", $COLOR_ERROR)
+				ContinueLoop
 			EndIf
 			;;;;if $j <> $iVectorCount Then _sleep(5) ;little delay by passing from a vector to another vector
 		Next

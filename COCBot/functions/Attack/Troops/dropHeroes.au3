@@ -30,7 +30,7 @@ Func dropHeroes($iX, $iY, $iKingSlotNumber = -1, $iQueenSlotNumber = -1, $iWarde
 	If $iQueenSlotNumber <> -1 Then $bDropQueen = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroQueen) = $eHeroQueen) Then $bDropQueen = True
 	If $iWardenSlotNumber <> -1 Then $bDropWarden = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroWarden) = $eHeroWarden) Then $bDropWarden = True
 	If $iChampionSlotNumber <> -1 Then $bDropChampion = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroChampion) = $eHeroChampion) Then $bDropChampion = True
-	If $iPrinceSlotNumber <> -1 Then $bDropPrince = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroMPrince = $eHeroMiPrinceThen $bDropPrince = True
+	If $iPrinceSlotNumber <> -1 Then $bDropPrince = True ;And (($g_iMatchMode <> $DB And $g_iMatchMode <> $LB) Or BitAND($g_aiAttackUseHeroes[$g_iMatchMode], $eHeroPrince = $eHeroPrince Then $bDropPrince = True
 	
 
 	SetDebugLog("drop KING = " & $bDropKing, $COLOR_DEBUG)
