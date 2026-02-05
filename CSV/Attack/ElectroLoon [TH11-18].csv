@@ -42,7 +42,7 @@ CCREQ |           |           |           |           |           |           | 
       |EXTR. GOLD |EXTR.ELIXIR|EXTR. DARK |DEPO. GOLD |DEPO.ELIXIR|DEPO. DARK |TOWNHALL   |FORCED SIDE|___________|___________|___________|___________|___________|___________|___________|
 SIDE  |0          |0          |0          |0          |0          |0          |8         |  |           |           |           |           |           |           |           |
       |EAGLE      |INFERNO    |XBOW       |SUPERWIZTW |MORTAR     |AIRDEFENSE |SCATTER    |SWEEPER    |MONOLITH   |FIRESPITTER|MULTIARCHER|RICOCHETCA |REVENGETW  |GEMBOX     |
-SIDEB |7          |8          |0          |0          |0          |5          |0         |3          |10         |0          |0          |0          |0          | 10 |
+SIDEB |7          |8          |0          |0          |0          |5          |0         |6          |10         |0          |0          |0          |0          | 10 |
       |                                                                                                                                                           |
       |VECTOR_____|SIDE_______|DROP_POINTS|ADDTILES___|VERSUS_____|RANDOMX_PX_|RANDOMY_PX_|BUILDING___|___________|___________|___________|___________|___________|___________|___________|
 MAKE  |A          |FRONT-LEFT |10         |0          |EXT-INT    |5          |5          |  |           |           |           |           |           |           |
