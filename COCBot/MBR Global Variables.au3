@@ -1635,6 +1635,11 @@ Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= thres
 Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
 Global $g_bCSVAttackActive = False ; CSV timing: set True during active CSV attacks
 Global $g_bCSVFirstDropLogged = False ; CSV timing: guard for first drop log
+Global $g_iBattleSearchCount = -1 ; battle-scoped cache key (search count when battle started)
+Global $g_bBattleZoomReady = False ; battle-scoped zoom/size cache valid
+Global $g_bBattleBarCached = False ; battle-scoped attackbar cache valid
+Global $g_sBattleBarHash = "" ; battle-scoped attackbar hash string
+Global $g_aBattleAttackBarCache[0][7] ; cached attackbar result for current battle
 Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
 Global Const $g_iCSVPrecacheConservative = 0
 Global Const $g_iCSVPrecacheAggressive = 1

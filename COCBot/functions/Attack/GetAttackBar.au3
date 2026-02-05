@@ -1,4 +1,33 @@
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _GetAttackBarHash
+; Description ...: Builds a lightweight hash for attackbar pixels for CSV cache reuse.
+; Syntax ........: _GetAttackBarHash($bDoubleRow, $bCheckSlot12)
+; Parameters ....: $bDoubleRow   - True when double-row attackbar is active.
+;                  $bCheckSlot12 - True when 12th slot check is enabled.
+; Return values .: String hash of sampled pixels and layout flags.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _GetAttackBarHash($bDoubleRow, $bCheckSlot12)
+	If Not $g_bRunState Then Return ""
+	_CaptureRegion(0, 580, $g_iGAME_WIDTH, 660)
+	Local $sHash = ""
+	Local $sColor1 = _GetPixelColor(120, 632, False)
+	Local $sColor2 = _GetPixelColor(300, 632, False)
+	Local $sColor3 = _GetPixelColor(480, 632, False)
+	Local $sColor4 = _GetPixelColor(660, 632, False)
+	Local $sColor5 = _GetPixelColor(840, 632, False)
+	$sHash = $sColor1 & ":" & $sColor2 & ":" & $sColor3 & ":" & $sColor4 & ":" & $sColor5 & ":" & _
+			($bDoubleRow ? "1" : "0") & ":" & ($bCheckSlot12 ? "1" : "0")
+	Return $sHash
+EndFunc   ;==>_GetAttackBarHash
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: GetAttackBar
 ; Description ...: Detects army in the attack bar and returns slot data (index, slot, amount, coords).
 ; Syntax ........: GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
@@ -18,6 +47,7 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	Local Static $bDoubleRow = False, $bCheckSlot12 = False
 	Local $sSearchDiamond = GetDiamondFromRect("0, 580, " & $g_iGAME_WIDTH & ", 660")
 	Local $iYBelowRowOne = 630, $aiOCRLocation[2] = [-1, -1], $aSlotAmountX[0][3]
+	Local $sHash = ""
 	Local $aEmptyUnknown[0][6]
 	$g_avAttackUnknownSlots = $aEmptyUnknown
 
@@ -45,6 +75,16 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	EndIf
 
 	If Not $g_bRunState Then Return
+
+	If Not $bRemaining And $g_bCSVAttackActive And $g_bBattleBarCached And $g_iBattleSearchCount = $g_iSearchCount And $g_sBattleBarHash <> "" Then
+		If IsArray($g_aBattleAttackBarCache) And UBound($g_aBattleAttackBarCache, 1) > 0 Then
+			$sHash = _GetAttackBarHash($bDoubleRow, $bCheckSlot12)
+			If $sHash <> "" And $sHash = $g_sBattleBarHash Then
+				If $g_bDebugSetlog Then SetDebugLog("GetAttackBar(): cache hit (CSV)", $COLOR_DEBUG)
+				Return $g_aBattleAttackBarCache
+			EndIf
+		EndIf
+	EndIf
 
 	If UBound($aAttackBar) = 0 Or Not $bRemaining Then
 		Local $iAttackbarStart = __TimerInit()
@@ -262,6 +302,14 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 	EndIf
 
 	_ArraySort($aFinalAttackBar, 0, 0, 0, 1) ; Sort Final Array by Slot Number
+	If Not $bRemaining And $g_bCSVAttackActive And $g_iBattleSearchCount = $g_iSearchCount Then
+		If $sHash = "" Then $sHash = _GetAttackBarHash($bDoubleRow, $bCheckSlot12)
+		If $sHash <> "" Then
+			$g_sBattleBarHash = $sHash
+			$g_bBattleBarCached = True
+			$g_aBattleAttackBarCache = $aFinalAttackBar
+		EndIf
+	EndIf
 	Return $aFinalAttackBar
 
 EndFunc   ;==>GetBarCheck

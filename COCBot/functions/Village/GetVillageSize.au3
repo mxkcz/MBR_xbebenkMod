@@ -16,7 +16,7 @@
 ;                      8 = Y coordinate of tree
 ;                      9 = tree image file name
 ; Author ........: Cosote (Oct 17th 2016)
-; Modified ......: xbebenk (June 2022)
+; Modified ......: xbebenk (June 2022), mxkcz (2026)
 ; Removed Fix village measurement if using shared_prefs as I dont know how it works :(
 ; Change the logic for measure village size, zoomlevel now measured from tree to stone
 ; And then compare it with Reference size
@@ -37,6 +37,13 @@ Func GetVillageSize($DebugLog = Default, $sStonePrefix = Default, $sTreePrefix =
 	
 	If $bOnBuilderBase = Default Then
 		$bOnBuilderBase = isOnBuilderBase()
+	EndIf
+
+	If $g_bCSVAttackActive And Not $bOnBuilderBase And $g_bBattleZoomReady And $g_iBattleSearchCount = $g_iSearchCount Then
+		If IsArray($g_aVillageSize) And UBound($g_aVillageSize) > 0 And $g_aVillageSize[0] > 0 Then
+			If $g_bDebugSetLog Then SetDebugLog("GetVillageSize: cache hit (CSV battle)", $COLOR_DEBUG)
+			Return FuncReturn($g_aVillageSize)
+		EndIf
 	EndIf
 	
 	Local $sDirectory
@@ -252,6 +259,10 @@ Func GetVillageSize($DebugLog = Default, $sStonePrefix = Default, $sTreePrefix =
 		$aResult[9] = $tree[5]
 
 		$g_aVillageSize = $aResult
+		If $g_bCSVAttackActive And Not $bOnBuilderBase Then
+			$g_bBattleZoomReady = True
+			$g_iBattleSearchCount = $g_iSearchCount
+		EndIf
 		ConvertInternalExternArea()
 		Return FuncReturn($aResult)
 	EndIf

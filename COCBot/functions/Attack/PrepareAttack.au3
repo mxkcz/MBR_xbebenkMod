@@ -25,6 +25,12 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 	EndIf
 
 	If Not $bRemaining Then ; reset Hero variables before attack if not checking remaining troops
+		$g_iBattleSearchCount = $g_iSearchCount
+		$g_bBattleZoomReady = False
+		$g_bBattleBarCached = False
+		$g_sBattleBarHash = ""
+		Local $aEmptyAttackBar[0][7]
+		$g_aBattleAttackBarCache = $aEmptyAttackBar
 		$g_bDropKing = False ; reset hero dropped flags
 		$g_bDropQueen = False
 		$g_bDropWarden = False
