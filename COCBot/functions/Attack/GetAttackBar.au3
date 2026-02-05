@@ -172,10 +172,10 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 				;If StringRegExp($aAttackBar[$i][0], "(King)|(Queen)|(Warden)|(Champion)|(Prince)", 0) And $aiOCRY[$aAttackBar[$i][7] - 1] <> -1 Then $aAttackBar[$i][6] = ($aiOCRY[$aAttackBar[$i][7] - 1] - 7)
 			EndIf
 
-			If StringRegExp($aAttackBar[$i][0], $sKeepRemainTroops, 0) Then
-				If Not $bRemoved Then $aAttackBar[$i][4] = 1
-				If StringRegExp($aAttackBar[$i][0], $sKeepSieges, 0) Then
-					$g_iSiegeLevel = Number(getTroopsSpellsLevel(Number($aAttackBar[$i][5]) - 30, 645))
+				If StringRegExp($aAttackBar[$i][0], $sKeepRemainTroops, 0) Then
+					If Not $bRemoved Then $aAttackBar[$i][4] = 1
+					If StringRegExp($aAttackBar[$i][0], $sKeepSieges, 0) Then
+						$g_iSiegeLevel = Number(getTroopsSpellsLevel(Number($aAttackBar[$i][5]) - 30, 645))
 					If $g_iSiegeLevel = "" Then $g_iSiegeLevel = 1
 					SetDebugLog($aAttackBar[$i][0] & " Level: " & $g_iSiegeLevel)
 				EndIf
@@ -190,18 +190,37 @@ Func GetAttackBar($bRemaining = False, $pMatchMode = $DB, $bDebug = False)
 				ElseIf StringRegExp($aAttackBar[$i][0], "(ESpell)", 0) And $g_bEarthQuakeZap Then
 					Local $iESpellLevel = Number(getTroopsSpellsLevel(Number($aAttackBar[$i][5]) - 30, 645))
 					SetDebugLog("ESpell Level:" & $iESpellLevel)
-					If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
+						If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
+					EndIf
 				EndIf
-			EndIf
-			Local $iSlotIndex = $aAttackBar[$i][3]
-			Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
-			Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
-			If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount Then
-				If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
-					If $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
-						Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
-						SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
-						$aFinalAttackBar[$iReplace][0] = $iTroopIndex
+				Local $iScoreAmount = Number($aAttackBar[$i][4])
+				If $aAttackBar[$i][0] = "Castle" And Not $bRemoved Then
+					$iScoreAmount = Number(getTroopCount(Number($aAttackBar[$i][5]), 580))
+					If $g_bDebugSetlog Then SetDebugLog("GetAttackBar(): Castle score count at slot " & $aAttackBar[$i][3] & " = " & $iScoreAmount, $COLOR_DEBUG)
+				EndIf
+				Local $iSlotIndex = $aAttackBar[$i][3]
+				Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
+				Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $iScoreAmount, $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
+				If $iSlotCount > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotCount Then
+						If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
+							Local $iExistingRow = $aSlotFinalIndex[$iSlotIndex]
+							Local $iExistingTroopIndex = $aFinalAttackBar[$iExistingRow][0]
+							Local $bPreferCurrent = False
+						If $iExistingTroopIndex = $eCastle And $aAttackBar[$i][0] <> "Castle" Then
+							If Number($iScoreAmount) > 1 Then
+								$bPreferCurrent = True
+								If $g_bDebugSetlog Then SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " preferring " & $aAttackBar[$i][0] & " over Castle", $COLOR_WARNING)
+							EndIf
+						EndIf
+						If $g_bDebugSetlog Then
+							SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " compare current=" & $aAttackBar[$i][0] & _
+									" score=" & $iCandidateScore & " vs existing=" & GetTroopName($aFinalAttackBar[$aSlotFinalIndex[$iSlotIndex]][0]) & _
+									" score=" & $aSlotBestScore[$iSlotIndex], $COLOR_DEBUG)
+						EndIf
+						If $bPreferCurrent Or $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
+							Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
+							SetDebugLog("GetAttackBar(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
+							$aFinalAttackBar[$iReplace][0] = $iTroopIndex
 						$aFinalAttackBar[$iReplace][1] = $aAttackBar[$i][3]
 						$aFinalAttackBar[$iReplace][2] = $aAttackBar[$i][4]
 						$aFinalAttackBar[$iReplace][3] = $aAttackBar[$i][1]
@@ -401,11 +420,11 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 				If StringRegExp($aAttackBar[$i][0], "(King)|(Queen)|(Warden)|(Champion)|(Prince)", 0) And $aiOCRY[$aAttackBar[$i][7] - 1] <> -1 Then $aAttackBar[$i][6] = ($aiOCRY[$aAttackBar[$i][7] - 1] - 7)
 			EndIf
 
-			If StringRegExp($aAttackBar[$i][0], "(King)|(Queen)|(Warden)|(Champion)|(Castle)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)", 0) Then
-				If Not $bRemoved Then $aAttackBar[$i][4] = 1
-			Else
-				If Not $bRemoved Then
-					$aAttackBar[$i][4] = Number(getTroopCount(Number($aAttackBar[$i][5]), 580))
+				If StringRegExp($aAttackBar[$i][0], "(King)|(Queen)|(Warden)|(Champion)|(Castle)|(WallW)|(BattleB)|(StoneS)|(SiegeB)|(LogL)|(FlameF)", 0) Then
+					If Not $bRemoved Then $aAttackBar[$i][4] = 1
+				Else
+					If Not $bRemoved Then
+						$aAttackBar[$i][4] = Number(getTroopCount(Number($aAttackBar[$i][5]), 580))
 				EndIf
 				If StringRegExp($aAttackBar[$i][0], "(LSpell)", 0) And $g_bSmartZapEnable Then
 					Local $iLSpellLevel = Number(getTroopsSpellsLevel(Number($aAttackBar[$i][5]) - 30, 645))
@@ -414,18 +433,37 @@ Func ExtendedAttackBarCheck($aAttackBarFirstSearch, $bRemaining, $sSearchDiamond
 				ElseIf StringRegExp($aAttackBar[$i][0], "(ESpell)", 0) And $g_bEarthQuakeZap Then
 					Local $iESpellLevel = Number(getTroopsSpellsLevel(Number($aAttackBar[$i][5]) - 30, 645))
 					SetDebugLog("ESpell Level:" & $iESpellLevel)
-					If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
+						If $iESpellLevel > 0 And $iESpellLevel <= 5 Then $g_iESpellLevel = $iESpellLevel
+					EndIf
 				EndIf
-			EndIf
-			Local $iSlotIndex = $aAttackBar[$i][3]
-			Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
-			Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $aAttackBar[$i][4], $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
-			If $iSlotMapSize > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotMapSize Then
-				If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
-					If $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
-						Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
-						SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
-						$aFinalAttackBar[$iReplace][0] = $iTroopIndex
+				Local $iScoreAmount = Number($aAttackBar[$i][4])
+				If $aAttackBar[$i][0] = "Castle" And Not $bRemoved Then
+					$iScoreAmount = Number(getTroopCount(Number($aAttackBar[$i][5]), 580))
+					If $g_bDebugSetlog Then SetDebugLog("AttackBarCheck(): Castle score count at slot " & $aAttackBar[$i][3] & " = " & $iScoreAmount, $COLOR_DEBUG)
+				EndIf
+				Local $iSlotIndex = $aAttackBar[$i][3]
+				Local $iTroopIndex = TroopIndexLookup($aAttackBar[$i][0])
+				Local $iCandidateScore = ComputeAttackBarSlotCandidateScore($aAttackBar[$i][0], $iScoreAmount, $aAttackBar[$i][1], $aAttackBar[$i][2], $aAttackBar[$i][5], $aAttackBar[$i][6])
+				If $iSlotMapSize > 0 And $iSlotIndex >= 0 And $iSlotIndex < $iSlotMapSize Then
+						If $aSlotFinalIndex[$iSlotIndex] <> -1 Then
+							Local $iExistingRow = $aSlotFinalIndex[$iSlotIndex]
+							Local $iExistingTroopIndex = $aFinalAttackBar[$iExistingRow][0]
+							Local $bPreferCurrent = False
+						If $iExistingTroopIndex = $eCastle And $aAttackBar[$i][0] <> "Castle" Then
+							If Number($iScoreAmount) > 1 Then
+								$bPreferCurrent = True
+								If $g_bDebugSetlog Then SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " preferring " & $aAttackBar[$i][0] & " over Castle", $COLOR_WARNING)
+							EndIf
+						EndIf
+						If $g_bDebugSetlog Then
+							SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " compare current=" & $aAttackBar[$i][0] & _
+									" score=" & $iCandidateScore & " vs existing=" & GetTroopName($aFinalAttackBar[$aSlotFinalIndex[$iSlotIndex]][0]) & _
+									" score=" & $aSlotBestScore[$iSlotIndex], $COLOR_DEBUG)
+						EndIf
+						If $bPreferCurrent Or $iCandidateScore < $aSlotBestScore[$iSlotIndex] Then
+							Local $iReplace = $aSlotFinalIndex[$iSlotIndex]
+							SetDebugLog("AttackBarCheck(): Duplicate slot " & $iSlotIndex & " for " & $aAttackBar[$i][0] & ", replacing " & GetTroopName($aFinalAttackBar[$iReplace][0]), $COLOR_WARNING)
+							$aFinalAttackBar[$iReplace][0] = $iTroopIndex
 						$aFinalAttackBar[$iReplace][1] = $aAttackBar[$i][3]
 						$aFinalAttackBar[$iReplace][2] = $aAttackBar[$i][4]
 						$aFinalAttackBar[$iReplace][3] = $aAttackBar[$i][1]
@@ -767,7 +805,8 @@ EndFunc   ;==>AttackSlot
 ; =====================================================================================================================
 Func ComputeAttackBarSlotCandidateScore($sName, $iAmount, $iIconX, $iIconY, $iOcrX, $iOcrY)
 	Local $iScore = Abs(Number($iIconX) - (Number($iOcrX) + 15)) + Abs(Number($iIconY) - (Number($iOcrY) + 7))
-	If $sName = "Castle" And Number($iAmount) > 1 Then $iScore += 200 ; CC icon cannot be x2+, penalize false-positive reads
+	If $sName = "Castle" And Number($iAmount) > 1 Then $iScore += 800 ; CC icon cannot be x2+, strongly penalize false-positive reads
+	If $sName <> "Castle" And Number($iAmount) > 1 Then $iScore -= 40 ; Prefer non-CC candidates with valid troop counts
 	Return $iScore
 EndFunc   ;==>ComputeAttackBarSlotCandidateScore
 
