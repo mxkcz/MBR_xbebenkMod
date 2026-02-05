@@ -578,7 +578,7 @@ EndFunc   ;==>_CSVEstimateMainSide
 ; Parameters ....: $testattack          - [optional]
 ; Return values .: None
 ; Author ........: Sardo (2016)
-; Modified ......: CodeSlinger69 (2017)
+; Modified ......: CodeSlinger69 (2017), mxkcz (2026)
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2018
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -592,14 +592,22 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	Local $g_aiPixelNearCollectorTopRight[0]
 	Local $g_aiPixelNearCollectorBottomRight[0]
 	Local $aResult
+	Local $bGoldCached = False
+	Local $bElixirCached = False
+	Local $iPreDropMs = 0
+	Local $fPreDropSeconds = 0
+
+	$g_bCSVAttackActive = True
+	$g_bCSVFirstDropLogged = False
 
 	;00 read attack file SIDE row and valorize variables
 Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
 _CSVResetCSVDiagnostics()
 _CSVInitTHContext($g_iSearchTH, "attack", True)
 $g_iCSVLastTroopPositionDropTroopFromINI = -1
-If _Sleep($DELAYRESPOND) Then Return
+If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
+CSV_LogTiming("pre-drop start", "mode=" & $g_asModeText[$g_iMatchMode])
 
 	; Pre-scan MAKE usage for targeted-only optimizations
 	Local $sMakeScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
@@ -658,7 +666,7 @@ Local $bAnyLocate = _CSVHasAnyLocateFlag($g_iMatchMode, $g_iSearchTH)
 		CSV_LogTiming("capture", "Algorithm_AttackCSV redline")
 		_CaptureRegion2() ; ensure full screen is captured (not ideal for debugging as clean image was already saved, but...)
 		If $captureredarea Then _GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
-		If _Sleep($DELAYRESPOND) Then Return
+		If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 
 		Local $htimerREDAREA = Round(__timerdiff($hTimer) / 1000, 2)
 		CSV_LogTiming("redline done", "Algorithm_AttackCSV")
@@ -683,8 +691,8 @@ If $g_bCSVLocateStorageTownHall = True Then
 	CSV_LogTiming("locate done", "townhall")
 Else
 	SetLog("> Townhall search not needed, skip")
-EndIf
-	If _Sleep($DELAYRESPOND) Then Return
+	EndIf
+	If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 
 	;04 - MINES, COLLECTORS, DRILLS -----------------------------------------------------------------------------------------------------------------------
 
@@ -702,6 +710,8 @@ If $g_bCSVLocateMine Or $g_bCSVLocateElixir Or $g_bCSVLocateDrill Then
 	CSV_LogTiming("locate start", "collectors")
 	SuspendAndroid()
 	$bCollectorsSuspended = True
+Else
+	CSV_LogTiming("locate skipped", "collectors")
 EndIf
 
 
@@ -711,7 +721,7 @@ EndIf
 		$g_aiPixelMine = GetLocationMine()
 		If _Sleep($DELAYRESPOND) Then
 			If $bCollectorsSuspended Then ResumeAndroid()
-			Return
+			Return CSV_AttackCleanup()
 		EndIf
 		CleanRedArea($g_aiPixelMine)
 		Local $htimerMine = Round(__timerdiff($hTimer) / 1000, 2)
@@ -746,7 +756,7 @@ EndIf
 	EndIf
 	If _Sleep($DELAYRESPOND) Then
 		If $bCollectorsSuspended Then ResumeAndroid()
-		Return
+		Return CSV_AttackCleanup()
 	EndIf
 
 	;04.02  If drop troop near elisir
@@ -755,7 +765,7 @@ EndIf
 		$g_aiPixelElixir = GetLocationElixir()
 		If _Sleep($DELAYRESPOND) Then
 			If $bCollectorsSuspended Then ResumeAndroid()
-			Return
+			Return CSV_AttackCleanup()
 		EndIf
 		CleanRedArea($g_aiPixelElixir)
 		Local $htimerMine = Round(__timerdiff($hTimer) / 1000, 2)
@@ -790,7 +800,7 @@ EndIf
 	EndIf
 	If _Sleep($DELAYRESPOND) Then
 		If $bCollectorsSuspended Then ResumeAndroid()
-		Return
+		Return CSV_AttackCleanup()
 	EndIf
 
 	;04.03 If drop troop near drill
@@ -800,7 +810,7 @@ EndIf
 		$g_aiPixelDarkElixir = GetLocationDarkElixir()
 		If _Sleep($DELAYRESPOND) Then
 			If $bCollectorsSuspended Then ResumeAndroid()
-			Return
+			Return CSV_AttackCleanup()
 		EndIf
 		CleanRedArea($g_aiPixelDarkElixir)
 		Local $htimerMine = Round(__timerdiff($hTimer) / 1000, 2)
@@ -837,7 +847,7 @@ EndIf
 		ResumeAndroid()
 		CSV_LogTiming("locate done", "collectors")
 	EndIf
-	If _Sleep($DELAYRESPOND) Then Return
+	If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 
 	If StringLen($g_aiPixelNearCollectorTopLeftSTR) > 0 Then $g_aiPixelNearCollectorTopLeftSTR = StringLeft($g_aiPixelNearCollectorTopLeftSTR, StringLen($g_aiPixelNearCollectorTopLeftSTR) - 1)
 	If StringLen($g_aiPixelNearCollectorTopRightSTR) > 0 Then $g_aiPixelNearCollectorTopRightSTR = StringLeft($g_aiPixelNearCollectorTopRightSTR, StringLen($g_aiPixelNearCollectorTopRightSTR) - 1)
@@ -853,43 +863,67 @@ EndIf
 
 	If $g_bCSVLocateStorageGold Or $g_bCSVLocateStorageElixir Or $g_bCSVLocateStorageDarkElixir Then
 		CSV_LogTiming("locate start", "storages")
+	Else
+		CSV_LogTiming("locate skipped", "storages")
 	EndIf
 	If $g_bCSVLocateStorageGold Then
-		$aResult = GetLocationBuilding($eBldgGoldS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
-		If $aResult <> -1 Then ; check if Monkey ate bad banana
-			If $aResult = 1 Then
-				SetLog("> " & $g_sBldgNames[$eBldgGoldS] & " Not found", $COLOR_WARNING)
-			Else
-				$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgGoldS & "_LOCATION")
-				If @error Then
-					_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgGoldS] & " _LOCATION", @error) ; Log errors
-					SetLog("> " & $g_sBldgNames[$eBldgGoldS] & " location not in dictionary", $COLOR_WARNING)
-				Else
-					If IsArray($aResult) Then $g_aiCSVGoldStoragePos = $aResult
-				EndIf
+		$bGoldCached = False
+		If _ObjSearch($g_oBldgAttackInfo, $eBldgGoldS & "_LOCATION") Then
+			$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgGoldS & "_LOCATION")
+			If Not @error And IsArray($aResult) Then
+				$g_aiCSVGoldStoragePos = $aResult
+				$bGoldCached = True
+				SetDebugLog("CSV storage cache hit: " & $g_sBldgNames[$eBldgGoldS], $COLOR_DEBUG)
 			EndIf
-		Else
-			SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgGoldS], $COLOR_ERROR)
+		EndIf
+		If Not $bGoldCached Then
+			$aResult = GetLocationBuilding($eBldgGoldS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
+			If $aResult <> -1 Then ; check if Monkey ate bad banana
+				If $aResult = 1 Then
+					SetLog("> " & $g_sBldgNames[$eBldgGoldS] & " Not found", $COLOR_WARNING)
+				Else
+					$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgGoldS & "_LOCATION")
+					If @error Then
+						_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgGoldS] & " _LOCATION", @error) ; Log errors
+						SetLog("> " & $g_sBldgNames[$eBldgGoldS] & " location not in dictionary", $COLOR_WARNING)
+					Else
+						If IsArray($aResult) Then $g_aiCSVGoldStoragePos = $aResult
+					EndIf
+				EndIf
+			Else
+				SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgGoldS], $COLOR_ERROR)
+			EndIf
 		EndIf
 	EndIf
 
 	If $g_bCSVLocateStorageElixir Then
-		$aResult = GetLocationBuilding($eBldgElixirS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
-		If @error And $g_bDebugSetlog Then _logErrorGetBuilding(@error)
-		If $aResult <> -1 Then ; check if Monkey ate bad banana
-			If $aResult = 1 Then
-				SetLog("> " & $g_sBldgNames[$eBldgElixirS] & " Not found", $COLOR_WARNING)
-			Else
-				$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgElixirS & "_LOCATION")
-				If @error Then
-					_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgElixirS] & " _LOCATION", @error) ; Log errors
-					SetLog("> " & $g_sBldgNames[$eBldgElixirS] & " location not in dictionary", $COLOR_WARNING)
-				Else
-					If IsArray($aResult) Then $g_aiCSVElixirStoragePos = $aResult
-				EndIf
+		$bElixirCached = False
+		If _ObjSearch($g_oBldgAttackInfo, $eBldgElixirS & "_LOCATION") Then
+			$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgElixirS & "_LOCATION")
+			If Not @error And IsArray($aResult) Then
+				$g_aiCSVElixirStoragePos = $aResult
+				$bElixirCached = True
+				SetDebugLog("CSV storage cache hit: " & $g_sBldgNames[$eBldgElixirS], $COLOR_DEBUG)
 			EndIf
-		Else
-			SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgElixirS], $COLOR_ERROR)
+		EndIf
+		If Not $bElixirCached Then
+			$aResult = GetLocationBuilding($eBldgElixirS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
+			If @error And $g_bDebugSetlog Then _logErrorGetBuilding(@error)
+			If $aResult <> -1 Then ; check if Monkey ate bad banana
+				If $aResult = 1 Then
+					SetLog("> " & $g_sBldgNames[$eBldgElixirS] & " Not found", $COLOR_WARNING)
+				Else
+					$aResult = _ObjGetValue($g_oBldgAttackInfo, $eBldgElixirS & "_LOCATION")
+					If @error Then
+						_ObjErrMsg("_ObjGetValue " & $g_sBldgNames[$eBldgElixirS] & " _LOCATION", @error) ; Log errors
+						SetLog("> " & $g_sBldgNames[$eBldgElixirS] & " location not in dictionary", $COLOR_WARNING)
+					Else
+						If IsArray($aResult) Then $g_aiCSVElixirStoragePos = $aResult
+					EndIf
+				EndIf
+			Else
+				SetLog("Monkey ate bad banana: " & "GetLocationBuilding " & $g_sBldgNames[$eBldgElixirS], $COLOR_ERROR)
+			EndIf
 		EndIf
 	EndIf
 
@@ -899,7 +933,7 @@ EndIf
 		; USES OLD OPENCV DETECTION
 		Local $g_aiPixelDarkElixirStorage = GetLocationDarkElixirStorageWithLevel()
 		ResumeAndroid()
-		If _Sleep($DELAYRESPOND) Then Return
+		If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 		CleanRedArea($g_aiPixelDarkElixirStorage)
 		Local $pixel = StringSplit($g_aiPixelDarkElixirStorage, "#", 2)
 		If UBound($pixel) >= 2 Then
@@ -925,6 +959,8 @@ EndIf
 		CSV_LogTiming("locate start", "defenses")
 		AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride)
 		CSV_LogTiming("locate done", "defenses")
+	Else
+		CSV_LogTiming("locate skipped", "defenses precache")
 	EndIf
 
 	; 06 - EAGLE ARTILLERY ------------------------------------------------------------------------
@@ -1302,7 +1338,7 @@ EndIf
 			If $g_bCSVPrioStrict Then
 				SetLog("CSV PRIOSTRICT: aborting attack due to missing targets", $COLOR_ERROR)
 				$g_bCSVAbortAttack = True
-				Return
+				Return CSV_AttackCleanup()
 			EndIf
 			$bAllMakeTargeted = False
 			$g_bCSVTargetedOnlyActive = False
@@ -1343,7 +1379,13 @@ EndIf
 	EndIf
 
 	; Log total CSV prep time
-	SetLog(">> Total time: " & Round(__timerdiff($hTimerTOTAL) / 1000, 2) & " seconds", $COLOR_INFO)
+	$iPreDropMs = Round(__timerdiff($hTimerTOTAL))
+	$fPreDropSeconds = Round($iPreDropMs / 1000, 2)
+	CSV_LogTiming("pre-drop done", "total=" & $fPreDropSeconds & "s")
+	If $g_iCSVPrecalcBudgetMs > 0 And $iPreDropMs > $g_iCSVPrecalcBudgetMs Then
+		SetLog("CSV pre-drop exceeded budget: " & $iPreDropMs & " ms (budget " & $g_iCSVPrecalcBudgetMs & " ms)", $COLOR_WARNING)
+	EndIf
+	SetLog(">> Total time: " & $fPreDropSeconds & " seconds", $COLOR_INFO)
 	CSV_LogPrepSummary(3)
 
 	; 14 - DEBUGIMAGE ------------------------------------------------------------------------
@@ -1352,7 +1394,7 @@ EndIf
 
 	; 15 - LAUNCH PARSE FUNCTION -------------------------------------------------------------
 	SetSlotSpecialTroops()
-	If _Sleep($DELAYRESPOND) Then Return
+	If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
 	;If $sMainSide = "BOTTOM-RIGHT" Or $sMainSide = "BOTTOM-LEFT" Then
 	;	SetDebugLog("BOTTOM LEFT/RIGHT as MainSide, checking boost button")
 	;	For $i = 1 To 15
@@ -1369,7 +1411,29 @@ EndIf
 	ParseAttackCSV($testattack)
 
 	CheckHeroesHealth()
+	CSV_LogTiming("attack end", "mode=" & $g_asModeText[$g_iMatchMode])
+	CSV_AttackCleanup()
 EndFunc   ;==>Algorithm_AttackCSV
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSV_AttackCleanup
+; Description ...: Reset CSV attack timing flags.
+; Syntax ........: CSV_AttackCleanup()
+; Parameters ....: None
+; Return values .: Success: 0
+; Author ........: mxkcz
+; Modified ......: 
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func CSV_AttackCleanup()
+	$g_bCSVAttackActive = False
+	$g_bCSVFirstDropLogged = False
+	Return 0
+EndFunc   ;==>CSV_AttackCleanup
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_PrecacheBuildingsFromSearch
@@ -1441,6 +1505,7 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	CSV_LogTiming("capture", "precache search")
 	_CaptureRegion2()
 	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, $bForceRescanLocal)
+	CSV_LogPrepSummary(3)
 	$g_bCSVPrecacheDone[$iMode] = True
 
 	If _ObjSearch($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION") Then
@@ -1463,6 +1528,9 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	$g_iCSVLastPrecalcMs = Round(__timerdiff($hPrecacheTimer))
 	$g_sCSVLastPrecalcTime = @YEAR & "-" & StringFormat("%02d", @MON) & "-" & StringFormat("%02d", @MDAY) & " " & _
 			StringFormat("%02d", @HOUR) & ":" & StringFormat("%02d", @MIN) & ":" & StringFormat("%02d", @SEC)
+	If $g_iCSVPrecalcBudgetMs > 0 And $g_iCSVLastPrecalcMs > $g_iCSVPrecalcBudgetMs Then
+		SetLog("CSV precalc exceeded budget: " & $g_iCSVLastPrecalcMs & " ms (budget " & $g_iCSVPrecalcBudgetMs & " ms)", $COLOR_WARNING)
+	EndIf
 	Return 1
 EndFunc   ;==>AttackCSV_PrecacheBuildingsFromSearch
 

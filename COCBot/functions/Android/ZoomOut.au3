@@ -584,6 +584,24 @@ Func AndroidOnlyZoomOut() ;Zooms out
 	Return False
 EndFunc   ;==>AndroidOnlyZoomOut
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SearchZoomOut
+; Description ...: Verify zoom level, optionally center village, and update offsets.
+; Syntax ........: SearchZoomOut([$bCenterVillage = True[, $UpdateMyVillage = True[, $sSource = "Default"[, $CaptureRegion = True[, $DebugLog = $g_bDebugSetlog]]]]])
+; Parameters ....: $bCenterVillage     - [optional] Center the village if offset. Default is True.
+;                  $UpdateMyVillage    - [optional] Update cached offsets. Default is True.
+;                  $sSource            - [optional] Log source label. Default is "Default".
+;                  $CaptureRegion      - [optional] Capture screen region. Default is True.
+;                  $DebugLog           - [optional] Enable debug logging. Default is $g_bDebugSetlog.
+; Return values .: Array (see below).
+; Author ........: 
+; Modified ......: mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 ; SearchZoomOut Returns always an Array.
 ; If village can be measured and villages size < 500 pixel then it Returns in idx 0 a String starting with "zoomout:" and tries to center base
 ; Return Array:
@@ -600,6 +618,12 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 	Local $aVillage, $aScrollPos, $iVillageSize = 0
 	Local $x, $y, $z, $stone[2]
 	Local $bOnBuilderBase = False
+	Local $bLogZoom = $g_bCSVAttackActive
+	Local $hZoomTimer = 0
+	If $bLogZoom Then
+		$hZoomTimer = __TimerInit()
+		CSV_LogTiming("zoomout start", "source=" & $sSource)
+	EndIf
 	
 	If $CaptureRegion Then _CaptureRegion2()
 	$bOnBuilderBase = isOnBuilderBase()
@@ -607,7 +631,10 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 
 	Local $aResult[5] = ["", 0, 0, 0, 0] ; expected dummy value
 	Local $aResult2[4] = [0, 0, 0, 0]
-	If Not $g_bRunState Then Return FuncReturn($aResult)
+	If Not $g_bRunState Then
+		If $bLogZoom Then CSV_LogTiming("zoomout done", "source=" & $sSource & " ms=" & Round(__TimerDiff($hZoomTimer)))
+		Return FuncReturn($aResult)
+	EndIf
 	
 	$aVillage = GetVillageSize($DebugLog, "stone", "tree", $bOnBuilderBase)
 	If IsArray($aVillage) = 1 Then
@@ -636,6 +663,7 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 				$aResult2[3] = $aResult2[1] - $aResult[1]
 				$aResult2[4] = $aResult2[2] - $aResult[2]
 				SetDebugLog("Centered Village Offset" & $sSource & ": " & $aResult2[1] & ", " & $aResult2[2] & ", change: " & $aResult2[3] & ", " & $aResult2[4], $COLOR_DEBUG1)
+				If $bLogZoom Then CSV_LogTiming("zoomout done", "source=" & $sSource & " ms=" & Round(__TimerDiff($hZoomTimer)))
 				Return FuncReturn($aResult2)
 			EndIf
 
@@ -658,7 +686,8 @@ Func SearchZoomOut($bCenterVillage = True, $UpdateMyVillage = True, $sSource = "
 		SetLog("SearchZoomOut meet a problem, please wait Forced Coc Restart", $COLOR_DEBUG2)
 		CloseCoC(True)
 	EndIf
-	
+
+	If $bLogZoom Then CSV_LogTiming("zoomout done", "source=" & $sSource & " ms=" & Round(__TimerDiff($hZoomTimer)))
 	Return FuncReturn($aResult)
 EndFunc   ;==>SearchZoomOut
 

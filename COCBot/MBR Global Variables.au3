@@ -1633,6 +1633,8 @@ Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
 Global $g_bCSVPreDropVerify = True ; CSV DROP: verify troop count when low before dropping
 Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= threshold
 Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
+Global $g_bCSVAttackActive = False ; CSV timing: set True during active CSV attacks
+Global $g_bCSVFirstDropLogged = False ; CSV timing: guard for first drop log
 Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
 Global Const $g_iCSVPrecacheConservative = 0
 Global Const $g_iCSVPrecacheAggressive = 1

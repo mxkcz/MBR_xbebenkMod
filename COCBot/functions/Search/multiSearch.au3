@@ -260,9 +260,29 @@ Func returnLowestLevelSingleMatch($directory, $returnMax = 100, $redLines = "DCD
 	Return $return
 EndFunc   ;==>returnLowestLevelSingleMatch
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: returnMultipleMatches
+; Description ...: Wrapper for multiMatches to return multiple matches with optional capture control.
+; Syntax ........: returnMultipleMatches($directory[, $maxReturnPoints = 0[, $redLines = "DCD"[, $statFile = ""[, $minLevel = 0[, $maxLevel = 1000[, $forceCaptureRegion = True]]]]]])
+; Parameters ....: $directory          - Image directory.
+;                  $maxReturnPoints    - [optional] Max return points. Default is 0.
+;                  $redLines           - [optional] Redline data. Default is "DCD".
+;                  $statFile           - [optional] Stats file path. Default is "".
+;                  $minLevel           - [optional] Min level. Default is 0.
+;                  $maxLevel           - [optional] Max level. Default is 1000.
+;                  $forceCaptureRegion - [optional] Force capture before search. Default is True.
+; Return values .: Array of matches.
+; Author ........:
+; Modified ......: mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 Func returnMultipleMatches($directory, $maxReturnPoints = 0, $redLines = "DCD", $statFile = "", $minLevel = 0, $maxLevel = 1000, $forceCaptureRegion = True)
 	; This is simple, just do a multiMatches search specifying the Max return points parameter
-	Local $aResult = multiMatches($directory, $maxReturnPoints, "DCD", $redLines, $statFile, $minLevel, $maxLevel)
+	Local $aResult = multiMatches($directory, $maxReturnPoints, "DCD", $redLines, $statFile, $minLevel, $maxLevel, $forceCaptureRegion)
 
 	Return $aResult
 EndFunc   ;==>returnMultipleMatches

@@ -5,7 +5,7 @@
 ; Parameters ....:
 ; Return values .: String with locations
 ; Author ........:
-; Modified ......: ProMac (04-2016)
+; Modified ......: ProMac (04-2016), mxkcz (2026)
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -18,14 +18,27 @@ Func GetLocationMine()
 	Local $sDirectory = @ScriptDir & "\imgxml\Storages\GoldMines"
 	Local $sTxtName = "Mines"
 	Local $iMaxReturns = 7
+	Local $sRedline = "DCD"
+	Local $bForceCapture = True
 
 	; Snow Theme detected
 	If $g_iDetectedImageType = 1 Then
 		$sDirectory = @ScriptDir & "\imgxml\Storages\Mines_Snow"
 		$sTxtName = "SnowMines"
 	EndIf
+	If $g_sImglocRedline <> "" Then
+		$sRedline = $g_sImglocRedline
+		$bForceCapture = False
+	ElseIf IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Or $sRedline = "" Or $sRedline = "ECD" Then
+			$sRedline = "DCD"
+		Else
+			$bForceCapture = False
+		EndIf
+	EndIf
 
-	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns)
+	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns, $sRedline, "", 0, 1000, $bForceCapture)
 	Local $aEndResult = ConvertImgloc2MBR($aTempResult, $iMaxReturns)
 	If $g_bDebugBuildingPos Then SetLog("#*# GetLocation" & $sTxtName & ": " & $aEndResult, $COLOR_DEBUG)
 	If $g_bDebugGetLocation Then DebugImageGetLocation($aEndResult, $sTxtName)
@@ -33,18 +46,45 @@ Func GetLocationMine()
 	Return GetListPixel($aEndResult)
 EndFunc   ;==>GetLocationMine
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: GetLocationElixir
+; Description ...:
+; Syntax ........: GetLocationElixir()
+; Parameters ....:
+; Return values .: String with locations
+; Author ........: mxkcz
+; Modified ......: mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 Func GetLocationElixir()
 	Local $sDirectory = @ScriptDir & "\imgxml\Storages\Collectors"
 	Local $sTxtName = "Collectors"
 	Local $iMaxReturns = 7
+	Local $sRedline = "DCD"
+	Local $bForceCapture = True
 
 	; Snow Theme detected
 	If $g_iDetectedImageType = 1 Then
 		$sDirectory = @ScriptDir & "\imgxml\Storages\Collectors_Snow"
 		$sTxtName = "SnowCollectors"
 	EndIf
+	If $g_sImglocRedline <> "" Then
+		$sRedline = $g_sImglocRedline
+		$bForceCapture = False
+	ElseIf IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Or $sRedline = "" Or $sRedline = "ECD" Then
+			$sRedline = "DCD"
+		Else
+			$bForceCapture = False
+		EndIf
+	EndIf
 
-	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns)
+	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns, $sRedline, "", 0, 1000, $bForceCapture)
 	Local $aEndResult = ConvertImgloc2MBR($aTempResult, $iMaxReturns)
 	If $g_bDebugBuildingPos Then SetLog("#*# GetLocation" & $sTxtName & ": " & $aEndResult, $COLOR_DEBUG)
 	If $g_bDebugGetLocation Then DebugImageGetLocation($aEndResult, $sTxtName)
@@ -52,10 +92,37 @@ Func GetLocationElixir()
 	Return GetListPixel($aEndResult)
 EndFunc   ;==>GetLocationElixir
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: GetLocationDarkElixir
+; Description ...:
+; Syntax ........: GetLocationDarkElixir()
+; Parameters ....:
+; Return values .: String with locations
+; Author ........:
+; Modified ......: mxkcz
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
 Func GetLocationDarkElixir()
 	Local $sDirectory = @ScriptDir & "\imgxml\Storages\Drills"
 	Local $iMaxReturns = 3
-	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns)
+	Local $sRedline = "DCD"
+	Local $bForceCapture = True
+	If $g_sImglocRedline <> "" Then
+		$sRedline = $g_sImglocRedline
+		$bForceCapture = False
+	ElseIf IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+		If @error Or $sRedline = "" Or $sRedline = "ECD" Then
+			$sRedline = "DCD"
+		Else
+			$bForceCapture = False
+		EndIf
+	EndIf
+	Local $aTempResult = returnMultipleMatches($sDirectory, $iMaxReturns, $sRedline, "", 0, 1000, $bForceCapture)
 	Local $aEndResult = ConvertImgloc2MBR($aTempResult, $iMaxReturns)
 
 	If $g_bDebugBuildingPos Then SetLog("#*# GetLocationDarkElixir: " & $aEndResult, $COLOR_DEBUG)

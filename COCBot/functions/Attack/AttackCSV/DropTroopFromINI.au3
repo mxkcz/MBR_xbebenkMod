@@ -409,7 +409,7 @@ EndFunc   ;==>DropTroopFromSlot
 ;                  $delayDropMin, $delayDropMax, $bDebug, $troopPosition, $troopSlotConst, $vector1, $vector2, $vector3, $vector4
 ; Return values .: None
 ; Author ........: mxkcz
-; Modified ......:
+; Modified ......: 
 ; Remarks .......: This file is part of MyBotRun. Copyright 2016
 ;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -470,6 +470,10 @@ Func DropTroopFromINI_ExecuteDrop($iTroopIndex, $sTroopName, $iVectorCount, $iSt
 						If $bDebug Then
 							SetLog("AttackClick( " & $pixel[0] & ", " & $pixel[1] & " , " & $qty2 & ", " & $delayPoint & ",#0668)")
 						Else
+							If $g_bCSVAttackActive And Not $g_bCSVFirstDropLogged Then
+								$g_bCSVFirstDropLogged = True
+								CSV_LogTiming("first drop", "troop=" & $sTroopName)
+							EndIf
 							AttackClick($pixel[0], $pixel[1], $qty2, $delayPoint, $delayDropLast, "#0668")
 							If $g_bCSVTrackDropCounts Then
 								If UBound($g_avAttackTroops) > $troopSlotConst And $g_avAttackTroops[$troopSlotConst][1] > 0 And $qty2 > 0 Then
@@ -519,6 +523,10 @@ Func DropTroopFromINI_ExecuteDrop($iTroopIndex, $sTroopName, $iVectorCount, $iSt
 						If $bDebug Then
 							SetLog("Drop Spell AttackClick( " & $pixel[0] & ", " & $pixel[1] & " , " & $qty2 & ", " & $delayPoint & ",#0668)")
 						Else
+							If $g_bCSVAttackActive And Not $g_bCSVFirstDropLogged Then
+								$g_bCSVFirstDropLogged = True
+								CSV_LogTiming("first drop", "troop=" & $sTroopName)
+							EndIf
 							AttackClick($pixel[0], $pixel[1], $qty2, $delayPoint, $delayDropLast, "#0668")
 						EndIf
 						; assume spells get always dropped: adjust count so CC spells can be used without recalc
