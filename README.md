@@ -32,6 +32,7 @@ Documentation
   -------------
 - How to Start Bot - https://mybot.run/forums/index.php?/topic/4978-guide-how-to-use-the-bot/
 - How to Report Bug/Help - https://mybot.run/forums/index.php?/forum/20-bug-reporting/
+- CSVMod CSV Creation Guide - Help/CSVMod_GUIDE.md
   
 Licensing
   ---------
