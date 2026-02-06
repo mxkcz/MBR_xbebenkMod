@@ -1635,6 +1635,8 @@ Global $g_iCSVPreDropThreshold = 5 ; CSV DROP: verify when cached count <= thres
 Global $g_bCSVTrackDropCounts = True ; CSV DROP: decrement cached troop counts after drops
 Global $g_bCSVAttackActive = False ; CSV timing: set True during active CSV attacks
 Global $g_bCSVFirstDropLogged = False ; CSV timing: guard for first drop log
+Global Const $g_iCSVVectorCount = 26
+Global Const $g_iCSVTargetRecalcTolerance = 10 ; pixels
 Global $g_iBattleSearchCount = -1 ; battle-scoped cache key (search count when battle started)
 Global $g_bBattleZoomReady = False ; battle-scoped zoom/size cache valid
 Global $g_bBattleBarCached = False ; battle-scoped attackbar cache valid
@@ -1646,8 +1648,12 @@ Global Const $g_iCSVPrecacheAggressive = 1
 Global $g_iCSVPrecacheMode = $g_iCSVPrecacheConservative
 Global Const $g_iCSVPrecalcBudgetMsDefault = 30000
 Global $g_iCSVPrecalcBudgetMs = $g_iCSVPrecalcBudgetMsDefault
+Global Const $g_iCSVRecalcBudgetMsDefault = 2000
+Global $g_iCSVRecalcBudgetMs = $g_iCSVRecalcBudgetMsDefault
 Global $g_iCSVLastPrecalcMs = 0
 Global $g_sCSVLastPrecalcTime = ""
+Global $g_iCSVRescanLastDurationMs = 0
+Global $g_sCSVRescanLastReason = ""
 
 ; CSV prep caches (per mode)
 Global Enum $eCSVLocateMine, $eCSVLocateElixir, $eCSVLocateDrill, $eCSVLocateStorageGold, $eCSVLocateStorageElixir, $eCSVLocateStorageDarkElixir, $eCSVLocateStorageTownHall, _
@@ -1667,6 +1673,8 @@ Global $g_asCSVPrepTargetEnums[$g_iModeCount]
 Global $g_aiCSVPrepTargetEnumToLocate[0]
 Global $g_asCSVPrepName[$g_iModeCount]
 Global $g_asCSVPrepMTime[$g_iModeCount]
+Global $g_aCSVPrepVecUseMask[$g_iModeCount]
+Global $g_aiCSVPrepVecUseLineCount[$g_iModeCount]
 Global $g_sCSVPrioRedlineKey = ""
 Global $g_sCSVRedlineHash = ""
 Global $g_bCSVPrecacheDone[$g_iModeCount]
@@ -1690,6 +1698,22 @@ Global $g_abCSVHeroAbilityTriggered[$eHeroCount] = [False, False, False, False, 
 Global $g_sCSVLastMakeFallbackReason = ""
 Global $g_iCSVLastMakeFallbackCode = 0
 Global $g_sCSVLastMakeFallbackSide = ""
+Global $g_bCSVLastMakeTargetLocValid = False
+Global $g_aCSVLastMakeTargetLoc[2]
+Global $g_iCSVLastMakeResolvedEnum = 0
+Global Enum $eCSVVecTypeRedline, $eCSVVecTypeTarget, $eCSVVecTypePrio
+Global $g_aCSVMakeVecType[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecSide[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecPoints[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecAddTiles[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecVersus[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecRandomX[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecRandomY[$g_iCSVVectorCount]
+Global $g_asCSVMakeVecTargetName[$g_iCSVVectorCount]
+Global $g_aiCSVMakeVecTargetEnum[$g_iCSVVectorCount]
+Global $g_aiCSVMakeVecResolvedEnum[$g_iCSVVectorCount]
+Global $g_abCSVMakeVecTargetLocValid[$g_iCSVVectorCount]
+Global $g_aCSVMakeVecTargetLoc[$g_iCSVVectorCount][2]
 Global $g_bCSVTHContextKnown = False
 Global $g_iCSVTHContextLevel = 0
 Global $g_sCSVTHContextSide = ""

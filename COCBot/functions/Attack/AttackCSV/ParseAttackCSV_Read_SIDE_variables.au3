@@ -56,6 +56,61 @@ Func _CSVGetCachedLinesAndTokens($sFilename, ByRef $aLines, ByRef $aTokens)
 	Return 1
 EndFunc   ;==>_CSVGetCachedLinesAndTokens
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVVectorMaskFromList
+; Description ...: Convert a vector list string (e.g., A-B-C) into a bitmask.
+; Syntax ........: _CSVVectorMaskFromList($sVectors)
+; Parameters ....: $sVectors          - vector list string.
+; Return values .: Success: bitmask integer (0 when empty).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVVectorMaskFromList($sVectors)
+	Local $iMask = 0
+	If StringStripWS($sVectors, $STR_STRIPALL) = "" Then Return 0
+	Local $aList = StringSplit($sVectors, "-", $STR_NOCOUNT)
+	For $i = 0 To UBound($aList) - 1
+		Local $sKey = StringStripWS(StringUpper($aList[$i]), $STR_STRIPALL)
+		If StringLen($sKey) <> 1 Then ContinueLoop
+		Local $iIndex = Asc($sKey) - 65
+		If $iIndex < 0 Or $iIndex >= $g_iCSVVectorCount Then ContinueLoop
+		$iMask = BitOR($iMask, BitShift(1, -$iIndex))
+	Next
+	Return $iMask
+EndFunc   ;==>_CSVVectorMaskFromList
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_GetVecUseMaskForLine
+; Description ...: Return the precomputed vector usage mask after the given CSV line.
+; Syntax ........: AttackCSV_GetVecUseMaskForLine($iMode, $iLine)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iLine             - Zero-based CSV line index.
+; Return values .: Success: bitmask integer (0 when unavailable).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: impure-deterministic (reads prep cache)
+Func AttackCSV_GetVecUseMaskForLine($iMode, $iLine)
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return 0
+	If Not PrepareAttackCSV($iMode) Then Return 0
+	If Not IsArray($g_aCSVPrepVecUseMask[$iMode]) Then Return 0
+	Local $aMask = $g_aCSVPrepVecUseMask[$iMode]
+	If Not IsArray($aMask) Then Return 0
+	If $iLine < 0 Or $iLine >= UBound($aMask) Then Return 0
+	Return $aMask[$iLine]
+EndFunc   ;==>AttackCSV_GetVecUseMaskForLine
+
 Func ParseAttackCSV_Read_SIDE_variables()
 
 	$g_bCSVLocateMine = False
@@ -261,8 +316,10 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	If @error Then $sMTime = ""
 
 	If Not $bForce And $g_abCSVPrepValid[$iMode] And $g_asCSVPrepName[$iMode] = $sFilename And $g_asCSVPrepMTime[$iMode] = $sMTime Then
-		_CSVPrebuildTHLocateTableWindow($iMode)
-		Return 1
+		If IsArray($g_aCSVPrepVecUseMask[$iMode]) And $g_aiCSVPrepVecUseLineCount[$iMode] > 0 Then
+			_CSVPrebuildTHLocateTableWindow($iMode)
+			Return 1
+		EndIf
 	EndIf
 
 	Local $aLocate[$eCSVLocateCount]
@@ -351,6 +408,20 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 		$bAllMakeTargeted = False
 	EndIf
 
+	Local $aUseMask[UBound($aLines)]
+	Local $iMask = 0
+	For $iLine = UBound($aLines) - 1 To 0 Step -1
+		$aUseMask[$iLine] = $iMask
+		Local $aCmdTokens = $aTokens[$iLine]
+		If Not IsArray($aCmdTokens) Then $aCmdTokens = StringSplit($aLines[$iLine], "|")
+		If $aCmdTokens[0] < 2 Then ContinueLoop
+		Local $sCmd = StringStripWS(StringUpper($aCmdTokens[1]), $STR_STRIPTRAILING)
+		If $sCmd <> "DROP" Then ContinueLoop
+		Local $sVecList = ($aCmdTokens[0] >= 2 ? StringStripWS(StringUpper($aCmdTokens[2]), $STR_STRIPTRAILING) : "")
+		If $sVecList = "" Then ContinueLoop
+		$iMask = BitOR($iMask, _CSVVectorMaskFromList($sVecList))
+	Next
+
 	For $i = 0 To $eCSVLocateCount - 1
 		$g_abCSVPrepLocate[$iMode][$i] = $aLocate[$i]
 	Next
@@ -366,6 +437,8 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	$g_asCSVPrepTargetEnums[$iMode] = $sTargetEnums
 	$g_asCSVPrepName[$iMode] = $sFilename
 	$g_asCSVPrepMTime[$iMode] = $sMTime
+	$g_aCSVPrepVecUseMask[$iMode] = $aUseMask
+	$g_aiCSVPrepVecUseLineCount[$iMode] = UBound($aUseMask)
 
 	_CSVPrebuildTHLocateTableWindow($iMode)
 	SetDebugLog("CSV prep cached for " & $sFilename & " (mode " & $iMode & ")", $COLOR_DEBUG)
@@ -1163,6 +1236,9 @@ Func _CSVPrepResetMode($iMode)
 	$g_asCSVPrepTargetEnums[$iMode] = ""
 	$g_asCSVPrepName[$iMode] = ""
 	$g_asCSVPrepMTime[$iMode] = ""
+	$g_aiCSVPrepVecUseLineCount[$iMode] = 0
+	Local $aEmpty[0]
+	$g_aCSVPrepVecUseMask[$iMode] = $aEmpty
 EndFunc   ;==>_CSVPrepResetMode
 
 ; Side-effect: pure (reads max building counts)

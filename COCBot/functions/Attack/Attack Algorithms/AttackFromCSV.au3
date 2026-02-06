@@ -1436,6 +1436,385 @@ Func CSV_AttackCleanup()
 EndFunc   ;==>CSV_AttackCleanup
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_LightweightRescan
+; Description ...: Perform a bounded mid-attack rescan for missing/PRIO building enums only.
+; Syntax ........: AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, [$iBudgetMs = Default, $sReason = "", $bForceRescan = False])
+; Parameters ....: $aForcedEnums     - Array of building enums to rescan (empty array = auto).
+;                  $aRescannedEnums  - [out] Array of enums actually rescanned.
+;				   $iBudgetMs        - [optional] Time budget in ms. Default uses $g_iCSVRecalcBudgetMs.
+;                  $bForceRescan     - [optional] Force cache clearing (reserved).
+;                  $sReason          - [optional] Rescan trigger reason for diagnostics.
+; Return values .: Success: number of building enums rescanned.
+;                  Failure: 0 when rescan skipped or blocked.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: io (updates building caches, PRIO plan caches, and diagnostics)
+Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $iBudgetMs = Default, $sReason = "", $bForceRescan = False)
+	Local $iBudgetLocal = Int($iBudgetMs)
+	If $iBudgetMs = Default Or $iBudgetLocal <= 0 Then $iBudgetLocal = $g_iCSVRecalcBudgetMs
+	If $sReason = "" Then $sReason = "RESCAN"
+	$g_sCSVRescanLastReason = $sReason
+	$g_iCSVRescanLastDurationMs = 0
+	Local $aRescannedLocal[0]
+	If $bForceRescan Then SetDebugLog("Rescan: force list enabled", $COLOR_DEBUG)
+	$aRescannedEnums = $aRescannedLocal
+
+	If Not IsObj($g_oBldgAttackInfo) Then
+		SetDebugLog("Rescan fallback: keeping previous vectors (building cache missing)", $COLOR_WARNING)
+		Return 0
+	EndIf
+
+	Local $sRedline = ""
+	If _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS") Then
+		$sRedline = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS")
+	ElseIf $g_sImglocRedline <> "" Then
+		$sRedline = $g_sImglocRedline
+		_ObjAdd($g_oBldgAttackInfo, $eBldgRedLine & "_OBJECTPOINTS", $sRedline)
+		If @error Then _ObjErrMsg("_ObjAdd $g_oBldgAttackInfo redline", @error)
+		Local $aSplit = StringSplit($sRedline, "|", $STR_NOCOUNT)
+		If IsArray($aSplit) And UBound($aSplit) > 0 Then
+			_ObjAdd($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT", UBound($aSplit))
+			If @error Then _ObjErrMsg("_ObjAdd $g_oBldgAttackInfo redline count", @error)
+		EndIf
+	EndIf
+
+	If Not IsString($sRedline) Or $sRedline = "" Or $sRedline = "ECD" Then
+		SetDebugLog("Rescan fallback: keeping previous vectors (redline missing)", $COLOR_WARNING)
+		Return 0
+	EndIf
+
+	Local $aEnumsToRescan
+	If IsArray($aForcedEnums) And UBound($aForcedEnums) > 0 Then
+		$aEnumsToRescan = $aForcedEnums
+	Else
+		$aEnumsToRescan = _CSVRescanGetMissingEnums()
+	EndIf
+	If Not IsArray($aEnumsToRescan) Or UBound($aEnumsToRescan) = 0 Then
+		SetDebugLog("Rescan skipped: no missing/PRIO enums", $COLOR_DEBUG)
+		If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then _CSVPrioRebuildPlanFromLocations()
+		Return 0
+	EndIf
+
+	Local $iCSVMaxReturnPointsOverride = Default
+	If $g_bCSVTargetedOnlyActive And $g_iCSVTargetedMaxReturnPoints > 0 Then
+		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+	EndIf
+
+	_CaptureRegion2()
+	Local $hTimer = __TimerInit()
+	Local $iRescanned = 0
+	Local $bBudgetExceeded = False
+
+	For $i = 0 To UBound($aEnumsToRescan) - 1
+		If __TimerDiff($hTimer) > $iBudgetLocal Then
+			SetDebugLog("Rescan budget exceeded at " & $iRescanned & "/" & UBound($aEnumsToRescan), $COLOR_WARNING)
+			$bBudgetExceeded = True
+			ExitLoop
+		EndIf
+		Local $iEnum = $aEnumsToRescan[$i]
+		_CSVBatchClearBuildingCache($iEnum)
+		GetLocationBuilding($iEnum, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
+		$iRescanned += 1
+		Local $iSize = UBound($aRescannedLocal)
+		ReDim $aRescannedLocal[$iSize + 1]
+		$aRescannedLocal[$iSize] = $iEnum
+	Next
+
+	If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then _CSVPrioRebuildPlanFromLocations()
+
+	$g_iCSVRescanLastDurationMs = Round(__TimerDiff($hTimer))
+	If $bBudgetExceeded Then SetDebugLog("Rescan fallback: keeping previous vectors for remaining enums", $COLOR_WARNING)
+	SetDebugLog("Rescan complete: " & $iRescanned & " buildings in " & $g_iCSVRescanLastDurationMs & "ms", $COLOR_INFO)
+	If $aRescannedEnums <> Default Then $aRescannedEnums = $aRescannedLocal
+	Return SetExtended(($bBudgetExceeded ? 1 : 0), $iRescanned)
+EndFunc   ;==>AttackCSV_LightweightRescan
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVEnumInList
+; Description ...: Check if an enum exists in a list.
+; Syntax ........: _CSVEnumInList($aList, $iEnum)
+; Parameters ....: $aList             - enum list array.
+;                  $iEnum             - enum value to search.
+; Return values .: Success: True/False
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVEnumInList($aList, $iEnum)
+	If Not IsArray($aList) Then Return False
+	For $i = 0 To UBound($aList) - 1
+		If $aList[$i] = $iEnum Then Return True
+	Next
+	Return False
+EndFunc   ;==>_CSVEnumInList
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVIsTargetLocationStillDetected
+; Description ...: Check if a target location is still detected after rescan.
+; Syntax ........: _CSVIsTargetLocationStillDetected($iEnum, ByRef $aTargetLoc)
+; Parameters ....: $iEnum             - building enum.
+;                  $aTargetLoc        - [in] location array [x,y].
+; Return values .: Success: True/False
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVIsTargetLocationStillDetected($iEnum, ByRef $aTargetLoc)
+	If $iEnum <= 0 Then Return False
+	If Not IsObj($g_oBldgAttackInfo) Then Return False
+	If Not IsArray($aTargetLoc) Then Return False
+	Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iEnum & "_LOCATION")
+	If @error Or Not IsArray($aLoc) Then Return False
+	If UBound($aLoc, 1) > 1 And IsArray($aLoc[1]) Then
+		For $i = 0 To UBound($aLoc) - 1
+			Local $aPoint = $aLoc[$i]
+			If Not IsArray($aPoint) Then ContinueLoop
+			If GetPixelDistance($aPoint, $aTargetLoc) <= $g_iCSVTargetRecalcTolerance Then Return True
+		Next
+	Else
+		Local $aPoint = $aLoc[0]
+		If IsArray($aPoint) And GetPixelDistance($aPoint, $aTargetLoc) <= $g_iCSVTargetRecalcTolerance Then Return True
+	EndIf
+	Return False
+EndFunc   ;==>_CSVIsTargetLocationStillDetected
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_RecalcMakeVectors
+; Description ...: Rebuild PRIO/targeted MAKE vectors used after the current line.
+; Syntax ........: AttackCSV_RecalcMakeVectors([$iBudgetMs = Default[, $sReason = ""[, $bForceRebuild = False[, $iLine = -1]]]])
+; Parameters ....: $iBudgetMs         - [optional] rescan budget in ms.
+;                  $sReason           - [optional] rescan reason for diagnostics.
+;                  $bForceRebuild     - [optional] force rebuild even if targets still detected.
+;                  $iLine             - [optional] zero-based CSV line index.
+; Return values .: Success: number of rebuilt vectors.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: io (rescans buildings, updates vectors, logs)
+Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceRebuild = False, $iLine = -1)
+	Local $iBudgetLocal = Int($iBudgetMs)
+	If $iBudgetMs = Default Or $iBudgetLocal <= 0 Then $iBudgetLocal = $g_iCSVRecalcBudgetMs
+	If $sReason = "" Then $sReason = "RECALC"
+	If $iLine < 0 Then Return 0
+
+	Local $iMask = AttackCSV_GetVecUseMaskForLine($g_iMatchMode, $iLine)
+	If $iMask = 0 Then
+		SetDebugLog("RECALC: no vectors used after line " & ($iLine + 1), $COLOR_DEBUG)
+		Return 0
+	EndIf
+
+	Local $aVecIndex[0]
+	Local $aForcedEnums[0]
+	Local $bHasPrioVec = False
+	Local $iListSize = 0
+	For $i = 0 To $g_iCSVVectorCount - 1
+		If BitAND($iMask, BitShift(1, -$i)) = 0 Then ContinueLoop
+		Switch $g_aCSVMakeVecType[$i]
+			Case $eCSVVecTypeTarget
+				$iListSize = UBound($aVecIndex)
+				ReDim $aVecIndex[$iListSize + 1]
+				$aVecIndex[$iListSize] = $i
+				Local $iTargetEnum = $g_aiCSVMakeVecTargetEnum[$i]
+				If $iTargetEnum <= 0 Then $iTargetEnum = $g_aiCSVMakeVecResolvedEnum[$i]
+				If $iTargetEnum > 0 Then _CSVBatchAddUnique($aForcedEnums, $iTargetEnum)
+			Case $eCSVVecTypePrio
+				$iListSize = UBound($aVecIndex)
+				ReDim $aVecIndex[$iListSize + 1]
+				$aVecIndex[$iListSize] = $i
+				$bHasPrioVec = True
+		EndSwitch
+	Next
+
+	If UBound($aVecIndex) = 0 Then
+		SetDebugLog("RECALC: no targeted vectors after line " & ($iLine + 1), $COLOR_DEBUG)
+		Return 0
+	EndIf
+
+	If $bHasPrioVec Then
+		Local $aEnums, $aNames, $aWeightIndex
+		_CSVGetPrioCandidateMap($aEnums, $aNames, $aWeightIndex)
+		For $i = 0 To UBound($aEnums) - 1
+			Local $iWeightIdx = $aWeightIndex[$i]
+			If $iWeightIdx < 0 Or $iWeightIdx >= UBound($g_aiCSVSideBWeights) Then ContinueLoop
+			If $g_aiCSVSideBWeights[$iWeightIdx] <= 0 Then ContinueLoop
+			_CSVBatchAddUnique($aForcedEnums, $aEnums[$i])
+		Next
+		Local $iTHWeight = _CSVPrioGetTownHallWeight()
+		If $iTHWeight > 0 And _CSVPrioIsWeaponizedTownHall() Then _CSVBatchAddUnique($aForcedEnums, $eBldgTownHall)
+	EndIf
+
+	If UBound($aForcedEnums) = 0 Then
+		SetDebugLog("RECALC: no enums to rescan", $COLOR_DEBUG)
+		Return 0
+	EndIf
+
+	SetDebugLog("RECALC: rescan budget=" & $iBudgetLocal & "ms force=" & ($bForceRebuild ? "yes" : "no"), $COLOR_INFO)
+	Local $aRescanned[0]
+	Local $iRescanned = AttackCSV_LightweightRescan($aForcedEnums, $aRescanned, $iBudgetLocal, $sReason, True)
+	Local $bBudgetExceeded = (@extended = 1)
+
+	Local $iRebuilt = 0
+	Local $iKept = 0
+	Local $iCleared = 0
+
+	For $i = 0 To UBound($aVecIndex) - 1
+		Local $iVecIndex = $aVecIndex[$i]
+		Local $sVecKey = Chr(65 + $iVecIndex)
+		Local $bTargetDetected = False
+		Local $bCanEvaluate = False
+		Local $iResolvedEnum = $g_aiCSVMakeVecResolvedEnum[$iVecIndex]
+		Local $aTargetLoc[2] = [$g_aCSVMakeVecTargetLoc[$iVecIndex][0], $g_aCSVMakeVecTargetLoc[$iVecIndex][1]]
+
+		If $g_abCSVMakeVecTargetLocValid[$iVecIndex] And $iResolvedEnum > 0 Then
+			If _CSVEnumInList($aRescanned, $iResolvedEnum) Then
+				$bCanEvaluate = True
+				$bTargetDetected = _CSVIsTargetLocationStillDetected($iResolvedEnum, $aTargetLoc)
+			EndIf
+		EndIf
+
+		If $bForceRebuild Then
+			If Not $bCanEvaluate Then
+				SetDebugLog("RECALC: vec " & $sVecKey & " keep (enum not rescanned)", $COLOR_WARNING)
+				$iKept += 1
+				ContinueLoop
+			EndIf
+		Else
+			If $bCanEvaluate And $bTargetDetected Then
+				SetDebugLog("RECALC: vec " & $sVecKey & " keep (target still detected)", $COLOR_DEBUG)
+				$iKept += 1
+				ContinueLoop
+			EndIf
+			If Not $bCanEvaluate Then
+				SetDebugLog("RECALC: vec " & $sVecKey & " keep (enum not rescanned)", $COLOR_WARNING)
+				$iKept += 1
+				ContinueLoop
+			EndIf
+		EndIf
+
+		Local $sTarget = $g_asCSVMakeVecTargetName[$iVecIndex]
+		If $sTarget = "" Then
+			SetDebugLog("RECALC: vec " & $sVecKey & " keep (target name missing)", $COLOR_WARNING)
+			$iKept += 1
+			ContinueLoop
+		EndIf
+		Local $aNewVector = MakeTargetDropPoints($g_aCSVMakeVecSide[$iVecIndex], $g_aCSVMakeVecPoints[$iVecIndex], $g_aCSVMakeVecAddTiles[$iVecIndex], $sTarget)
+		If @error Or Not IsArray($aNewVector) Or UBound($aNewVector) = 0 Then
+			Assign("ATTACKVECTOR_" & $sVecKey, "")
+			$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
+			SetDebugLog("RECALC: vec " & $sVecKey & " cleared (target missing)", $COLOR_WARNING)
+			$iCleared += 1
+		Else
+			Assign("ATTACKVECTOR_" & $sVecKey, $aNewVector)
+			$g_aiCSVMakeVecResolvedEnum[$iVecIndex] = $g_iCSVLastMakeResolvedEnum
+			If $g_aCSVMakeVecType[$iVecIndex] = $eCSVVecTypeTarget Then $g_aiCSVMakeVecTargetEnum[$iVecIndex] = $g_iCSVLastMakeResolvedEnum
+			If $g_bCSVLastMakeTargetLocValid Then
+				$g_abCSVMakeVecTargetLocValid[$iVecIndex] = True
+				$g_aCSVMakeVecTargetLoc[$iVecIndex][0] = $g_aCSVLastMakeTargetLoc[0]
+				$g_aCSVMakeVecTargetLoc[$iVecIndex][1] = $g_aCSVLastMakeTargetLoc[1]
+			Else
+				$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
+			EndIf
+			SetDebugLog("RECALC: vec " & $sVecKey & " rebuilt target=" & $sTarget, $COLOR_INFO)
+			$iRebuilt += 1
+		EndIf
+	Next
+
+	If $bBudgetExceeded Then SetDebugLog("RECALC: budget exceeded, some vectors kept", $COLOR_WARNING)
+	SetDebugLog("RECALC: done rebuilt=" & $iRebuilt & " kept=" & $iKept & " cleared=" & $iCleared, $COLOR_INFO)
+	Return $iRebuilt
+EndFunc   ;==>AttackCSV_RecalcMakeVectors
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVRescanGetMissingEnums
+; Description ...: Build a list of enums that need a lightweight rescan.
+; Syntax ........: _CSVRescanGetMissingEnums()
+; Parameters ....: None
+; Return values .: Success: array of building enums to rescan (possibly empty).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVRescanGetMissingEnums()
+	Local $aMissing[0]
+	If Not IsObj($g_oBldgAttackInfo) Then Return $aMissing
+
+	Local $bHasSideBWeights = False
+	If IsArray($g_aiCSVSideBWeights) Then
+		For $w = 0 To UBound($g_aiCSVSideBWeights) - 1
+			If $g_aiCSVSideBWeights[$w] > 0 Then
+				$bHasSideBWeights = True
+				ExitLoop
+			EndIf
+		Next
+	EndIf
+
+	If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Or $bHasSideBWeights Then
+		Local $aEnums, $aNames, $aWeightIndex
+		_CSVGetPrioCandidateMap($aEnums, $aNames, $aWeightIndex)
+		For $i = 0 To UBound($aEnums) - 1
+			Local $iWeightIdx = $aWeightIndex[$i]
+			If $iWeightIdx < 0 Or $iWeightIdx >= UBound($g_aiCSVSideBWeights) Then ContinueLoop
+			If $g_aiCSVSideBWeights[$iWeightIdx] <= 0 Then ContinueLoop
+			_CSVBatchAddUnique($aMissing, $aEnums[$i])
+		Next
+
+		Local $iTHWeight = _CSVPrioGetTownHallWeight()
+		If $iTHWeight > 0 And _CSVPrioIsWeaponizedTownHall() Then _CSVBatchAddUnique($aMissing, $eBldgTownHall)
+	EndIf
+
+	Local $sTargetEnums = $g_asCSVPrepTargetEnums[$g_iMatchMode]
+	If $sTargetEnums <> "" Then
+		Local $aTargetEnums = StringSplit($sTargetEnums, "|", $STR_NOCOUNT)
+		For $i = 0 To UBound($aTargetEnums) - 1
+			Local $iEnum = Int($aTargetEnums[$i])
+			If $iEnum <= 0 Then ContinueLoop
+			If $iEnum = $eExternalWall Or $iEnum = $eInternalWall Then ContinueLoop
+
+			If Not _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
+				_CSVBatchAddUnique($aMissing, $iEnum)
+				ContinueLoop
+			EndIf
+			Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iEnum & "_LOCATION")
+			If @error Or Not IsArray($aLoc) Or UBound($aLoc) = 0 Then
+				_CSVBatchAddUnique($aMissing, $iEnum)
+				ContinueLoop
+			EndIf
+			If IsArray($aLoc[0]) Then ContinueLoop
+			If UBound($aLoc) >= 2 Then ContinueLoop
+			_CSVBatchAddUnique($aMissing, $iEnum)
+		Next
+	EndIf
+
+	Return $aMissing
+EndFunc   ;==>_CSVRescanGetMissingEnums
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_PrecacheBuildingsFromSearch
 ; Description ...: Pre-cache CSV building locations once redline is available during search.
 ; Syntax ........: AttackCSV_PrecacheBuildingsFromSearch($iMode[, $bForceRescan = False])

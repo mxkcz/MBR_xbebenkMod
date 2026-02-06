@@ -27,6 +27,21 @@ Func ParseAttackCSV($debug = False)
 		Assign("ATTACKVECTOR_" & Chr(65 + $v), "", $ASSIGN_EXISTFAIL) ; start with character "A" = ASCII 65
 		If @error Then SetLog("Failed to erase old vector: " & Chr(65 + $v) & ", ask code monkey to fix!", $COLOR_ERROR)
 	Next
+	For $v = 0 To $g_iCSVVectorCount - 1
+		$g_aCSVMakeVecType[$v] = $eCSVVecTypeRedline
+		$g_aCSVMakeVecSide[$v] = ""
+		$g_aCSVMakeVecPoints[$v] = 0
+		$g_aCSVMakeVecAddTiles[$v] = 0
+		$g_aCSVMakeVecVersus[$v] = ""
+		$g_aCSVMakeVecRandomX[$v] = 0
+		$g_aCSVMakeVecRandomY[$v] = 0
+		$g_asCSVMakeVecTargetName[$v] = ""
+		$g_aiCSVMakeVecTargetEnum[$v] = 0
+		$g_aiCSVMakeVecResolvedEnum[$v] = 0
+		$g_abCSVMakeVecTargetLocValid[$v] = False
+		$g_aCSVMakeVecTargetLoc[$v][0] = 0
+		$g_aCSVMakeVecTargetLoc[$v][1] = 0
+	Next
 
 	;Local $filename = "attack1"
 	If $g_iMatchMode = $DB Then
@@ -219,6 +234,39 @@ Func ParseAttackCSV($debug = False)
 											Local $sDiag = "CSV MAKE wave " & ($iLine + 1) & ": side=" & $sSideKey & " vec=" & $value1 & " points=" & $iPoints & " source=" & $sSource & " target=" & StringUpper($value8)
 											If $bFallback Then $sDiag &= " fallback=" & $sFallbackReason
 											_CSVAddDiagnosticLine($sDiag)
+											Local $sVecStore = StringUpper($value1)
+											If StringLen($sVecStore) = 1 Then
+												Local $iVecStore = Asc($sVecStore) - 65
+												If $iVecStore >= 0 And $iVecStore < $g_iCSVVectorCount Then
+													$g_aCSVMakeVecSide[$iVecStore] = Eval($sidex)
+													$g_aCSVMakeVecPoints[$iVecStore] = Int($value3)
+													$g_aCSVMakeVecRandomX[$iVecStore] = Int($value6)
+													$g_aCSVMakeVecRandomY[$iVecStore] = Int($value7)
+													If $bTargetedUsed Then
+														$g_aCSVMakeVecType[$iVecStore] = ($bPrio ? $eCSVVecTypePrio : $eCSVVecTypeTarget)
+														$g_aCSVMakeVecAddTiles[$iVecStore] = Int($bPrio ? $sAddTiles : $value4)
+														$g_aCSVMakeVecVersus[$iVecStore] = ""
+														$g_asCSVMakeVecTargetName[$iVecStore] = StringUpper($value8)
+														$g_aiCSVMakeVecResolvedEnum[$iVecStore] = $g_iCSVLastMakeResolvedEnum
+														If Not $bPrio Then $g_aiCSVMakeVecTargetEnum[$iVecStore] = $g_iCSVLastMakeResolvedEnum
+														If $g_bCSVLastMakeTargetLocValid Then
+															$g_abCSVMakeVecTargetLocValid[$iVecStore] = True
+															$g_aCSVMakeVecTargetLoc[$iVecStore][0] = $g_aCSVLastMakeTargetLoc[0]
+															$g_aCSVMakeVecTargetLoc[$iVecStore][1] = $g_aCSVLastMakeTargetLoc[1]
+														Else
+															$g_abCSVMakeVecTargetLocValid[$iVecStore] = False
+														EndIf
+													Else
+														$g_aCSVMakeVecType[$iVecStore] = $eCSVVecTypeRedline
+														$g_aCSVMakeVecAddTiles[$iVecStore] = Int($value4)
+														$g_aCSVMakeVecVersus[$iVecStore] = $sVersus
+														$g_asCSVMakeVecTargetName[$iVecStore] = ""
+														$g_aiCSVMakeVecTargetEnum[$iVecStore] = 0
+														$g_aiCSVMakeVecResolvedEnum[$iVecStore] = 0
+														$g_abCSVMakeVecTargetLocValid[$iVecStore] = False
+													EndIf
+												EndIf
+											EndIf
 										EndIf
 									Else
 										$sErrorText = "value 3"
@@ -233,6 +281,23 @@ Func ParseAttackCSV($debug = False)
 										If $iSideIdx >= 0 Then $g_aiCSVRedlineMakeCount[$iSideIdx] += $iPoints
 										Local $sDiag = "CSV MAKE wave " & ($iLine + 1) & ": side=" & $sSideKey & " vec=" & $value1 & " points=" & $iPoints & " source=REDLINE target=NONE"
 										_CSVAddDiagnosticLine($sDiag)
+										Local $sVecStore = StringUpper($value1)
+										If StringLen($sVecStore) = 1 Then
+											Local $iVecStore = Asc($sVecStore) - 65
+											If $iVecStore >= 0 And $iVecStore < $g_iCSVVectorCount Then
+												$g_aCSVMakeVecType[$iVecStore] = $eCSVVecTypeRedline
+												$g_aCSVMakeVecSide[$iVecStore] = Eval($sidex)
+												$g_aCSVMakeVecPoints[$iVecStore] = Int($value3)
+												$g_aCSVMakeVecAddTiles[$iVecStore] = Int($value4)
+												$g_aCSVMakeVecVersus[$iVecStore] = $value5
+												$g_aCSVMakeVecRandomX[$iVecStore] = Int($value6)
+												$g_aCSVMakeVecRandomY[$iVecStore] = Int($value7)
+												$g_asCSVMakeVecTargetName[$iVecStore] = ""
+												$g_aiCSVMakeVecTargetEnum[$iVecStore] = 0
+												$g_aiCSVMakeVecResolvedEnum[$iVecStore] = 0
+												$g_abCSVMakeVecTargetLocValid[$iVecStore] = False
+											EndIf
+										EndIf
 									EndIf
 								EndIf
 							Else
@@ -520,6 +585,7 @@ Func ParseAttackCSV($debug = False)
 						Local $bBreakOnAQandBKAct = False
 						Local $bBreakOnGWAct = False
 						Local $bBreakOnRCAct = False
+						Local $bDoRescan = False
 						Local $aSiegeSlotPos = [0,0]
 						Local $tempvalue2 = StringStripWS($value2, $STR_STRIPALL) ; remove all whitespaces from parameter
 						If StringLen($tempvalue2) > 0 Then ; If parameter is not empty
@@ -530,6 +596,9 @@ Func ParseAttackCSV($debug = False)
 									Case "TH"
 										$bBreakImmediately = False
 										$bBreakOnTH = True
+									Case "RESCAN"
+										$bDoRescan = True
+										$bBreakImmediately = False
 									Case "SIEGE"
 										$bBreakOnSiege = True
 									Case "TH+SIEGE"
@@ -603,6 +672,12 @@ Func ParseAttackCSV($debug = False)
 									$bBreakImmediately = False
 								EndIf
 							EndIf
+						EndIf
+						If $bDoRescan Then
+							SetDebugLog("WAIT-RESCAN: rescanning with " & $sleep & "ms budget")
+							Local $aNoForced[0]
+							Local $aRescanned[0]
+							AttackCSV_LightweightRescan($aNoForced, $aRescanned, $sleep, "WAIT-RESCAN")
 						EndIf
 						If $bBreakImmediately Then ContinueLoop ; Don't wait, when no condition fits
 						While __TimerDiff($hSleepTimer) < $sleep
@@ -686,7 +761,24 @@ Func ParseAttackCSV($debug = False)
 
 					Case "RECALC"
 						ReleaseClicks()
-						PrepareAttack($g_iMatchMode, True)
+						Local $iBudget = $g_iCSVRecalcBudgetMs
+						If StringStripWS($value1, $STR_STRIPALL) <> "" And StringIsInt($value1) Then
+							Local $iTmpBudget = Int($value1)
+							If $iTmpBudget > 0 Then $iBudget = $iTmpBudget
+						EndIf
+						Local $bForceRebuild = False
+						Local $sParams = StringStripWS($value2, $STR_STRIPALL)
+						If $sParams <> "" Then
+							Local $aParams = StringSplit($sParams, ",", $STR_NOCOUNT)
+							For $p = 0 To UBound($aParams) - 1
+								Switch StringUpper($aParams[$p])
+									Case "FORCE"
+										$bForceRebuild = True
+								EndSwitch
+							Next
+						EndIf
+						SetDebugLog("RECALC: rebuilding vectors (budget " & $iBudget & "ms" & ($bForceRebuild ? ", force" : "") & ")")
+						AttackCSV_RecalcMakeVectors($iBudget, "RECALC", $bForceRebuild, $iLine)
 
 					Case Else
 						Switch StringLeft($command, 1)

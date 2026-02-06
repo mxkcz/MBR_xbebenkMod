@@ -665,6 +665,10 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 	$g_sCSVLastMakeFallbackReason = ""
 	$g_iCSVLastMakeFallbackCode = 0
 	$g_sCSVLastMakeFallbackSide = ""
+	$g_bCSVLastMakeTargetLocValid = False
+	$g_iCSVLastMakeResolvedEnum = 0
+	$g_aCSVLastMakeTargetLoc[0] = 0
+	$g_aCSVLastMakeTargetLoc[1] = 0
 
 	Switch $building ; translate CSV building name into building enum
 		Case "PRIO"
@@ -678,6 +682,10 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 				SetError(@error, 0, "")
 				Return
 			EndIf
+			$g_iCSVLastMakeResolvedEnum = $BuildingEnum
+			$g_aCSVLastMakeTargetLoc[0] = $aLocation[0]
+			$g_aCSVLastMakeTargetLoc[1] = $aLocation[1]
+			$g_bCSVLastMakeTargetLocValid = True
 			$building = $sResolved
 			$bPrioLocation = True
 		Case "TOWNHALL"
@@ -765,6 +773,10 @@ Func MakeTargetDropPoints($side, $pointsQty, $addtiles, $building)
 			Else ; use only building found even if not on user chosen side?
 				_CSVPrioCopyPoint($aLocation, $aBuildingLoc[0])
 			EndIf
+			$g_iCSVLastMakeResolvedEnum = $BuildingEnum
+			$g_aCSVLastMakeTargetLoc[0] = $aLocation[0]
+			$g_aCSVLastMakeTargetLoc[1] = $aLocation[1]
+			$g_bCSVLastMakeTargetLocValid = True
 		Else
 			SetLog($g_sBldgNames[$BuildingEnum] & " _LOCATION not an array", $COLOR_ERROR)
 			$g_sCSVLastMakeFallbackReason = "TARGET_LOCATION_BAD"
@@ -967,6 +979,51 @@ Func _CSVPrioResetCache()
 	If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
 	If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
 EndFunc   ;==>_CSVPrioResetCache
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVPrioRebuildPlanFromLocations
+; Description ...: Rebuild PRIO plan caches using current building locations.
+; Syntax ........: _CSVPrioRebuildPlanFromLocations()
+; Parameters ....: None
+; Return values .: Success: 1
+;                  Failure: 0 and @error set.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+; Side-effect: io (clears and rebuilds PRIO caches)
+Func _CSVPrioRebuildPlanFromLocations()
+	If _CSVPrioSyncRedlineCache() = 0 Then
+		SetDebugLog("CSV PRIO rebuild skipped: redline missing", $COLOR_WARNING)
+		Return SetError(1, 0, 0)
+	EndIf
+
+	If IsObj($g_oCSVPrioTargets) Then $g_oCSVPrioTargets.RemoveAll()
+	If IsObj($g_oCSVPrioPlan) Then $g_oCSVPrioPlan.RemoveAll()
+	If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.RemoveAll()
+
+	If Not $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then Return 1
+
+	Local $sScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
+	If $sScript = "" Then Return SetError(2, 0, 0)
+
+	If AttackCSV_PreparePrioPlan($sScript) = 0 Then Return SetError(3, 0, 0)
+
+	Local $aSideKeys[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+	For $i = 0 To 3
+		Local $sSideKey = $aSideKeys[$i]
+		If IsObj($g_oCSVPrioPlan) And $g_oCSVPrioPlan.Exists($sSideKey) Then
+			Local $aPlan = $g_oCSVPrioPlan.Item($sSideKey)
+			If IsArray($aPlan) Then SetDebugLog("PRIO plan rebuilt: " & UBound($aPlan) & " targets on " & $sSideKey, $COLOR_DEBUG)
+		EndIf
+	Next
+
+	Return 1
+EndFunc   ;==>_CSVPrioRebuildPlanFromLocations
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVPrioResolveBuilding
