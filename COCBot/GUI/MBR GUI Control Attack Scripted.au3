@@ -573,6 +573,7 @@ EndFunc   ;==>OpenAttackCSVSettings
 
 Func CloseAttackCSVSettings()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
+	CSVSettings_RecalcOverridesChanged()
 	If $g_bCSVSettingsDirty Then
 		SetLog("Attack CSV settings: close requested with unsaved edits.", $COLOR_WARNING)
 	EndIf
@@ -589,6 +590,9 @@ Func AttackCSVSettings_ApplyToGUI()
 		SetLog("Attack CSV settings: no script selected.", $COLOR_ERROR)
 		Return
 	EndIf
+	CSVSettings_RecalcOverridesChanged()
+	SetDebugLog("CSV RECALC side override = " & $g_sCSVRecalcSideOverride, $COLOR_INFO)
+	SetDebugLog("CSV RECALC vector override = " & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets), $COLOR_INFO)
 	AttackCSVSettings_SaveToCSV($g_iAttackCSVSettingsMode)
 	If $g_iAttackCSVSettingsMode = $LB Then
 		ApplyScriptAB()
@@ -737,6 +741,7 @@ Func _AttackCSVSettings_RunTest($bDryRun)
 		SetLog("CSV settings test: no script selected.", $COLOR_ERROR)
 		Return
 	EndIf
+	CSVSettings_RecalcOverridesChanged()
 
 	Local $sModeLabel = ($iMode >= 0 And $iMode < UBound($g_asModeText) ? $g_asModeText[$iMode] : "mode " & $iMode)
 	SetLog("CSV settings test (" & ($bDryRun ? "dry" : "live") & "): " & $sScript & " (" & $sModeLabel & ")", $COLOR_INFO)
@@ -801,6 +806,7 @@ Func AttackCSVSettings_RebuildPrecalc()
 		SetLog("CSV precalc: no script selected.", $COLOR_ERROR)
 		Return
 	EndIf
+	CSVSettings_RecalcOverridesChanged()
 
 	Local $hTimer = __timerinit()
 	Local $bOk = PrepareAttackCSV($iMode, True)
@@ -855,6 +861,40 @@ Func CSVSettings_SetPrecacheMode()
 	EndIf
 	AttackCSVSettings_UpdatePrecalcStatus()
 EndFunc   ;==>CSVSettings_SetPrecacheMode
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVSettings_RecalcOverridesChanged
+; Description ...: Sync RECALC override controls into globals.
+; Syntax ........: CSVSettings_RecalcOverridesChanged()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: io (reads GUI state, updates globals)
+Func CSVSettings_RecalcOverridesChanged()
+	If $g_hGUI_AttackCSVSettings = 0 Then Return
+
+	If $g_hCmbCSVRecalcSideOverride <> 0 Then
+		Local $iSel = _GUICtrlComboBox_GetCurSel($g_hCmbCSVRecalcSideOverride)
+		Local $sSide = "NONE"
+		If $iSel >= 0 Then _GUICtrlComboBox_GetLBText($g_hCmbCSVRecalcSideOverride, $iSel, $sSide)
+		$g_sCSVRecalcSideOverride = _CSVNormalizeRecalcSideOverride($sSide, True)
+	EndIf
+
+	If $g_hInpCSVRecalcVectors <> 0 Then
+		Local $hCtrl = GUICtrlGetHandle($g_hInpCSVRecalcVectors)
+		If $hCtrl <> 0 Then
+			Local $sRaw = ControlGetText($g_hGUI_AttackCSVSettings, "", $hCtrl)
+			$g_sCSVRecalcVectorTargets = StringStripWS($sRaw, $STR_STRIPALL)
+		EndIf
+	EndIf
+EndFunc   ;==>CSVSettings_RecalcOverridesChanged
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: CSVSettings_ToggleDebugFlag
@@ -1729,6 +1769,14 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	If $sRedlineValue <> "" Then AttackCSVSettings_SetComboIndex($g_hCmbCSVRedlinePreset, Number($sRedlineValue) - 1)
 	If $sDroplineValue <> "" Then AttackCSVSettings_SetComboIndex($g_hCmbCSVDroplinePreset, Number($sDroplineValue) - 1)
 	If $sCCReqValue <> "" Then GUICtrlSetData($g_hTxtCSVCCRequest, $sCCReqValue)
+	If $g_hCmbCSVRecalcSideOverride <> 0 Then
+		Local $sRecalcSide = _CSVNormalizeRecalcSideOverride($g_sCSVRecalcSideOverride, True)
+		$g_sCSVRecalcSideOverride = $sRecalcSide
+		Local $iRecalcIndex = _GUICtrlComboBox_FindStringExact($g_hCmbCSVRecalcSideOverride, $sRecalcSide)
+		If $iRecalcIndex < 0 Then $iRecalcIndex = 0
+		_GUICtrlComboBox_SetCurSel($g_hCmbCSVRecalcSideOverride, $iRecalcIndex)
+	EndIf
+	If $g_hInpCSVRecalcVectors <> 0 Then GUICtrlSetData($g_hInpCSVRecalcVectors, $g_sCSVRecalcVectorTargets)
 
 	AttackCSVSettings_LoadVectorFromLines($aLines)
 	CSVSettings_SetDirty(False)

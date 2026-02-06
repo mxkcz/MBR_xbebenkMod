@@ -54,6 +54,7 @@ Global $g_hLblCSVSidePreview = 0
 Global $g_hBtnAttackCSVSettingsCloseTop = 0
 Global $g_hRadCSVPrecacheConservative = 0, $g_hRadCSVPrecacheAggressive = 0
 Global $g_hLblCSVPrecacheBudget = 0, $g_hLblCSVPrecacheLast = 0
+Global $g_hCmbCSVRecalcSideOverride = 0, $g_hInpCSVRecalcVectors = 0
 Global $g_hBtnCSVRebuildPrecalc = 0
 Global $g_hTxtCSVPrecalcStatus = 0
 Global $g_hTxtCSVPrioPreview = 0
@@ -516,7 +517,7 @@ Func CreateAttackCSVSettingsGUI()
 		$x = $iTabLeft
 		$y = $iTabTop
 		Local $iPrioSettingsW = $iTabInnerW
-		Local $iPrioSettingsH = 120
+		Local $iPrioSettingsH = 160
 		Local $iPrioSettingsX = $iGroupLeft
 		Local $iPrioSettingsY = $y - 20
 		Local $iPrioX = $iPrioSettingsX + 10
@@ -530,6 +531,20 @@ Func CreateAttackCSVSettingsGUI()
 				GUICtrlSetOnEvent(-1, "CSVSettings_SetPrecacheMode")
 			$g_hLblCSVPrecacheBudget = GUICtrlCreateLabel("Precalc budget: -", $iPrioX, $iPrioY + 30, 200, 18)
 			$g_hLblCSVPrecacheLast = GUICtrlCreateLabel("Last precalc: -", $iPrioX, $iPrioY + 50, $iTabInnerW - 40, 18)
+			Local $sRecalcSideList = "NONE|MAIN|TOP-LEFT|TOP-RIGHT|BOTTOM-LEFT|BOTTOM-RIGHT|FRONT-LEFT|FRONT-RIGHT|RIGHT-FRONT|RIGHT-BACK|LEFT-FRONT|LEFT-BACK|BACK-LEFT|BACK-RIGHT"
+			Local $iRecalcLabelW = 140
+			Local $iRecalcValueX = $iPrioX + $iRecalcLabelW + 10
+			Local $iRecalcRow1Y = $iPrioY + 72
+			Local $iRecalcRow2Y = $iPrioY + 96
+			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_RecalcSide", "RECALC side override"), $iPrioX, $iRecalcRow1Y, $iRecalcLabelW, 18)
+			$g_hCmbCSVRecalcSideOverride = GUICtrlCreateCombo("", $iRecalcValueX, $iRecalcRow1Y - 2, 240, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+				GUICtrlSetData(-1, $sRecalcSideList, "NONE")
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Cmb_AttackCSVSettings_RecalcSide_Info", "Applies only to RECALC rebuilds for PRIO/targeted MAKE vectors. NONE keeps original vector side."))
+				GUICtrlSetOnEvent(-1, "CSVSettings_RecalcOverridesChanged")
+			GUICtrlCreateLabel(GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Lbl_AttackCSVSettings_RecalcVectors", "RECALC vector targets"), $iPrioX, $iRecalcRow2Y, $iRecalcLabelW, 18)
+			$g_hInpCSVRecalcVectors = GUICtrlCreateInput("", $iRecalcValueX, $iRecalcRow2Y - 2, 240, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_AUTOHSCROLL))
+				_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Attack - Attack", "Inp_AttackCSVSettings_RecalcVectors_Info", "Optional. Limits RECALC rebuilds to specific vectors (A-D, A,C,F, 1-4). Leave empty or AUTO to use normal usage mask."))
+				GUICtrlSetOnEvent(-1, "CSVSettings_RecalcOverridesChanged")
 		GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 		Local $iStatusGroupH = 200

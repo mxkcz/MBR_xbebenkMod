@@ -1246,6 +1246,8 @@ Func ReadConfig_AttackCSV()
 	Local $sSideOverride = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_side_override", $g_sCSVRecalcSideOverrideDefault)
 	$g_sCSVRecalcSideOverride = _CSVNormalizeRecalcSideOverride($sSideOverride, True)
 	$g_sCSVRecalcVectorTargets = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargetsDefault)
+	SetDebugLog("CSV RECALC side override = " & $g_sCSVRecalcSideOverride, $COLOR_INFO)
+	SetDebugLog("CSV RECALC vector override = " & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets), $COLOR_INFO)
 EndFunc   ;==>ReadConfig_AttackCSV
 
 Func ReadConfig_600_31()
