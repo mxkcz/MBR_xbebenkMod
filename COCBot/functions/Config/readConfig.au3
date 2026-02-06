@@ -1239,7 +1239,7 @@ EndFunc   ;==>ReadConfig_600_30_LB
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: mxkcz
-; Modified ......:
+; Modified ......: 
 ; Remarks .......: This file is part of MyBotRun. Copyright 2016
 ;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -1250,8 +1250,16 @@ Func ReadConfig_AttackCSV()
 	Local $sSideOverride = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_side_override", $g_sCSVRecalcSideOverrideDefault)
 	$g_sCSVRecalcSideOverride = _CSVNormalizeRecalcSideOverride($sSideOverride, True)
 	$g_sCSVRecalcVectorTargets = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargetsDefault)
+	Local $iPrecacheMode = Number(IniRead($g_sProfileConfigPath, "attackcsv", "precache_mode", $g_iCSVPrecacheMode))
+	Switch $iPrecacheMode
+		Case $g_iCSVPrecacheConservative, $g_iCSVPrecacheAggressive
+			$g_iCSVPrecacheMode = $iPrecacheMode
+		Case Else
+			$g_iCSVPrecacheMode = $g_iCSVPrecacheConservative
+	EndSwitch
 	SetDebugLog("CSV RECALC side override = " & $g_sCSVRecalcSideOverride, $COLOR_INFO)
 	SetDebugLog("CSV RECALC vector override = " & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets), $COLOR_INFO)
+	SetDebugLog("CSV precache mode = " & ($g_iCSVPrecacheMode = $g_iCSVPrecacheAggressive ? "Aggressive" : "Conservative"), $COLOR_INFO)
 EndFunc   ;==>ReadConfig_AttackCSV
 
 Func ReadConfig_600_31()

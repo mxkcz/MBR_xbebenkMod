@@ -1065,7 +1065,7 @@ EndFunc   ;==>SaveConfig_600_30_LB
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: mxkcz
-; Modified ......:
+; Modified ......: 
 ; Remarks .......: This file is part of MyBotRun. Copyright 2016
 ;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -1075,6 +1075,7 @@ EndFunc   ;==>SaveConfig_600_30_LB
 Func SaveConfig_AttackCSV()
 	_Ini_Add("attackcsv", "recalc_side_override", $g_sCSVRecalcSideOverride)
 	_Ini_Add("attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargets)
+	_Ini_Add("attackcsv", "precache_mode", $g_iCSVPrecacheMode)
 EndFunc   ;==>SaveConfig_AttackCSV
 
 Func SaveConfig_600_31()
