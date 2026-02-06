@@ -17,22 +17,18 @@ Func ParseAttackCSV_Settings_variables(ByRef $aiCSVTroops, ByRef $aiCSVSpells, B
 	If $g_bDebugAttackCSV Then SetLog("ParseAttackCSV_Settings_variables()", $COLOR_DEBUG)
 
 	Local $asCommand
-	If FileExists($g_sCSVAttacksPath & "\" & $sFilename & ".csv") Then
-		Local $asLine = FileReadToArray($g_sCSVAttacksPath & "\" & $sFilename & ".csv")
-		If @error Then
-			SetLog("Attack CSV script not found: " & $g_sCSVAttacksPath & "\" & $sFilename & ".csv", $COLOR_ERROR)
-			Return
-		EndIf
-
+	Local $aLines, $aTokens
+	If _CSVGetCachedLinesAndTokens($sFilename, $aLines, $aTokens) Then
 		Local $sLine
 		Local $iTHCol = 0, $iTH = 0
 		Local $iTroopIndex, $iFlexTroopIndex = 999
 		Local $iCommandCol = 1, $iTroopNameCol = 2, $iFlexCol = 3, $iTHBeginCol = 4
 		Local $iHeroRadioItemTotal = 3, $iHeroTimedLimit = 100
 
-		For $iLine = 0 To UBound($asLine) - 1
-			$sLine = $asLine[$iLine]
-			$asCommand = StringSplit($sLine, "|")
+		For $iLine = 0 To UBound($aLines) - 1
+			$sLine = $aLines[$iLine]
+			$asCommand = $aTokens[$iLine]
+			If Not IsArray($asCommand) Then $asCommand = StringSplit($sLine, "|")
 			If $asCommand[0] >= 8 Then
 				$asCommand[$iCommandCol] = StringStripWS(StringUpper($asCommand[$iCommandCol]), $STR_STRIPTRAILING)
 				If Not StringRegExp($asCommand[$iCommandCol], "(TRAIN)|(REDLN)|(DRPLN)|(CCREQ)|(BOOST)", $STR_REGEXPMATCH) Then ContinueLoop

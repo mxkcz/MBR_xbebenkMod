@@ -22,28 +22,14 @@ Func CheckCsvValues($instruction, $variablenumber, $variable)
 					If $variable = "RANDOM" Then
 						Return True ;exit true if value=RANDOM
 					Else
-						Local $vect1 = StringSplit($variable, "-", 2) ;make vect with split values
-						If UBound($vect1) = 0 Then ;single value
-							If StringLen($vect1) = 1 Then ;check lenght of value
-								If (Asc($vect1[$i]) >= 65 And Asc($vect1[$i]) <= 90) Then
-									Return True ;if A-Z return true
-								Else
-									Return False ;lenght >1 or not A-Z return false
-								EndIf
-							Else
-								Return False ;length >1 return false
-							EndIf
-						Else
-							For $i = 0 To UBound($vect1) - 1 ;for all values check length and A-Z
-								Local $tempstr = $vect1[$i]
-								If StringLen($tempstr) <> 1 Then
-									Return False ;exit length>1
-								Else
-									If Not (Asc($vect1[$i]) >= 65 And Asc($vect1[$i]) <= 90) Then Return False ;exit not A-Z
-								EndIf
-							Next
-							Return True ;all check passed
-						EndIf
+						Local $vect1 = StringSplit($variable, "-", $STR_NOCOUNT) ;make vect with split values
+						If UBound($vect1) = 0 Then Return False
+						For $i = 0 To UBound($vect1) - 1 ;for all values check length and A-Z
+							Local $tempstr = $vect1[$i]
+							If StringLen($tempstr) <> 1 Then Return False ;exit length>1
+							If Not (Asc($tempstr) >= 65 And Asc($tempstr) <= 90) Then Return False ;exit not A-Z
+						Next
+						Return True ;all check passed
 					EndIf
 				Case 2 ;SIDE_______
 					Switch $variable

@@ -451,13 +451,14 @@ Func AttackCSV_ScanMakeUsage($sFilename, ByRef $aSidesUsed, ByRef $bAllMakeTarge
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $acommand = $aTokens[$iLine]
 		If Not IsArray($acommand) Then $acommand = StringSplit($aLines[$iLine], "|")
-		If $acommand[0] < 8 Then ContinueLoop
-		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		Local $command = ""
+		Local $aValues
+		If Not _CSVParseLineTokens($aLines, $aTokens, $iLine, $command, $aValues, 8, True) Then ContinueLoop
 		If $command <> "MAKE" Then ContinueLoop
 
 		$bFoundMake = True
-		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
-		Local $value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
+		Local $value2 = ($aValues[0] >= 2 ? $aValues[2] : "")
+		Local $value8 = ($aValues[0] >= 8 ? $aValues[8] : "")
 		Local $bTargeted = CheckCsvValues("MAKE", 8, $value8)
 		If $bTargeted Then ContinueLoop
 

@@ -76,8 +76,8 @@ Func ParseAttackCSV($debug = False)
 			debugAttackCSV("[" & $iLine + 1 & "] line content: " & $line)
 			$acommand = $aTokens[$iLine]
 			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
-			If $acommand[0] >= 8 Then
-				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+			Local $aValues
+			If _CSVParseLineTokens($aLines, $aTokens, $iLine, $command, $aValues, 8, True) Then
 				If $command = "" Then
 					debugAttackCSV("comment line")
 					ContinueLoop
@@ -86,9 +86,9 @@ Func ParseAttackCSV($debug = False)
 				If $command = "TRAIN" Or $command = "REDLN" Or $command = "DRPLN" Or $command = "CCREQ" Or $command = "PRIOCAP" Then ContinueLoop ; discard setting commands
 				If $command = "SIDE" Or $command = "SIDEB" Then ContinueLoop ; discard attack side commands
 				; Set values
-				For $i = 2 To (UBound($acommand) - 1)
-					Assign("value" & Number($i - 1), StringStripWS(StringUpper($acommand[$i]), $STR_STRIPTRAILING))
-					If $g_bDebugSetlog Then SetLog("value" & Number($i - 1) & " = " & StringStripWS(StringUpper($acommand[$i]), $STR_STRIPTRAILING), $COLOR_DEBUG1)
+				For $i = 1 To $aValues[0]
+					Assign("value" & $i, $aValues[$i])
+					If $g_bDebugSetlog Then SetLog("value" & $i & " = " & $aValues[$i], $COLOR_DEBUG1)
 				Next
 
 				If $debug And $command <> "MAKE" Then
@@ -160,7 +160,7 @@ Func ParseAttackCSV($debug = False)
 							EndIf
 							Local $iSideIdx = _CSVPrioSideIndex($sSideKey)
 							If CheckCsvValues("MAKE", 1, $value1) And CheckCsvValues("MAKE", 5, $value5) Then
-								$sTargetVectors = StringReplace($sTargetVectors, $value3, "", Default, $STR_NOCASESENSEBASIC) ; if re-making a vector, must remove from target vector string
+								$sTargetVectors = StringReplace($sTargetVectors, $value1, "", Default, $STR_NOCASESENSEBASIC) ; if re-making a vector, must remove from target vector string
 								If CheckCsvValues("MAKE", 8, $value8) Then ; Vector is targeted towards building
 									Local $bPrio = (StringUpper($value8) = "PRIO")
 									Local $sAddTiles = $value4
@@ -307,8 +307,7 @@ Func ParseAttackCSV($debug = False)
 							$sErrorText = "value2"
 						EndIf
 						If $sErrorText <> "" Then ; log error message
-							SetLog("Discard row " & $iLine + 1 & ", bad parameter: " & $sErrorText)
-							debugAttackCSV("Discard row " & $iLine + 1 & ", bad parameter: " & $sErrorText)
+							_CSVLogRowError($iLine, "bad parameter: " & $sErrorText)
 						Else ; debuglog vectors
 							Local $dbgVec = Execute("$ATTACKVECTOR_" & $value1)
 							If IsArray($dbgVec) Then
@@ -323,113 +322,20 @@ Func ParseAttackCSV($debug = False)
 					Case "DROP"
 						KeepClicks()
 						;index...
-						Local $index1, $index2, $indexArray, $indexvect
-						$indexvect = StringSplit($value2, "-", 2)
-						If UBound($indexvect) > 1 Then
-							$indexArray = 0
-							If Int($indexvect[0]) > 0 And Int($indexvect[1]) > 0 Then
-								$index1 = Int($indexvect[0])
-								$index2 = Int($indexvect[1])
-							Else
-								$index1 = 1
-								$index2 = 1
-							EndIf
-						Else
-							$indexArray = StringSplit($value2, ",", 2)
-							If UBound($indexArray) > 1 Then
-								$index1 = 0
-								$index2 = UBound($indexArray) - 1
-							Else
-								$indexArray = 0
-								If Int($value2) > 0 Then
-									$index1 = Int($value2)
-									$index2 = Int($value2)
-								Else
-									$index1 = 1
-									$index2 = 1
-								EndIf
-							EndIf
-						EndIf
+						Local $index1, $index2, $indexArray
+						_CSVParseIndexList($value2, $index1, $index2, $indexArray, 1)
 						;qty...
-						Local $qty1, $qty2, $qtyvect
-						$qtyvect = StringSplit($value3, "-", 2)
-						If UBound($qtyvect) > 1 Then
-							If Int($qtyvect[0]) > 0 And Int($qtyvect[1]) > 0 Then
-								$qty1 = Int($qtyvect[0])
-								$qty2 = Int($qtyvect[1])
-							Else
-								$index1 = 1
-								$qty2 = 1
-							EndIf
-						Else
-							If Int($value3) > 0 Then
-								$qty1 = Int($value3)
-								$qty2 = Int($value3)
-							Else
-								$qty1 = 1
-								$qty2 = 1
-							EndIf
-						EndIf
+						Local $qty1, $qty2
+						_CSVParseIntRange($value3, $qty1, $qty2, 1, 1, False)
 						;delay between points
-						Local $delaypoints1, $delaypoints2, $delaypointsvect
-						$delaypointsvect = StringSplit($value5, "-", 2)
-						If UBound($delaypointsvect) > 1 Then
-							If Int($delaypointsvect[0]) >= 0 And Int($delaypointsvect[1]) >= 0 Then
-								$delaypoints1 = Int($delaypointsvect[0])
-								$delaypoints2 = Int($delaypointsvect[1])
-							Else
-								$delaypoints1 = 1
-								$delaypoints2 = 1
-							EndIf
-						Else
-							If Int($value5) >= 0 Then
-								$delaypoints1 = Int($value5)
-								$delaypoints2 = Int($value5)
-							Else
-								$delaypoints1 = 1
-								$delaypoints2 = 1
-							EndIf
-						EndIf
-						;delay between  drops in same point
-						Local $delaydrop1, $delaydrop2, $delaydropvect
-						$delaydropvect = StringSplit($value6, "-", 2)
-						If UBound($delaydropvect) > 1 Then
-							If Int($delaydropvect[0]) >= 0 And Int($delaydropvect[1]) >= 0 Then
-								$delaydrop1 = Int($delaydropvect[0])
-								$delaydrop2 = Int($delaydropvect[1])
-							Else
-								$delaydrop1 = 1
-								$delaydrop2 = 1
-							EndIf
-						Else
-							If Int($value6) >= 0 Then
-								$delaydrop1 = Int($value6)
-								$delaydrop2 = Int($value6)
-							Else
-								$delaydrop1 = 1
-								$delaydrop2 = 1
-							EndIf
-						EndIf
+						Local $delaypoints1, $delaypoints2
+						_CSVParseIntRange($value5, $delaypoints1, $delaypoints2, 1, 1, True)
+						;delay between drops in same point
+						Local $delaydrop1, $delaydrop2
+						_CSVParseIntRange($value6, $delaydrop1, $delaydrop2, 1, 1, True)
 						;sleep time after drop
-						Local $sleepdrop1, $sleepdrop2, $sleepdroppvect
-						$sleepdroppvect = StringSplit($value7, "-", 2)
-						If UBound($sleepdroppvect) > 1 Then
-							If Int($sleepdroppvect[0]) >= 0 And Int($sleepdroppvect[1]) >= 0 Then
-								$sleepdrop1 = Int($sleepdroppvect[0])
-								$sleepdrop2 = Int($sleepdroppvect[1])
-							Else
-								$index1 = 1
-								$sleepdrop2 = 1
-							EndIf
-						Else
-							If Int($value7) >= 0 Then
-								$sleepdrop1 = Int($value7)
-								$sleepdrop2 = Int($value7)
-							Else
-								$sleepdrop1 = 1
-								$sleepdrop2 = 1
-							EndIf
-						EndIf
+						Local $sleepdrop1, $sleepdrop2
+						_CSVParseIntRange($value7, $sleepdrop1, $sleepdrop2, 1, 1, True)
 						
 						; check for targeted vectors and validate index numbers, need too many values for check logic to use CheckCSVValues()
 						Local $tmpVectorList = StringSplit($value1, "-", $STR_NOCOUNT) ; get array with all vector(s) used
@@ -509,8 +415,7 @@ Func ParseAttackCSV($debug = False)
 						Local $bIncludeSpells = False
 						Local $sUnknownRemainFlags = ""
 						If $sErrorText <> "" Then
-							SetLog("Discard row, " & $sErrorText & ": row " & $iLine + 1)
-							debugAttackCSV("Discard row, " & $sErrorText & ": row " & $iLine + 1)
+							_CSVLogRowError($iLine, $sErrorText)
 						Else
 								$bRemain = AttackCSV_ParseRemainFlags($value4, $bIncludeHeroes, $bIncludeSpells, $sUnknownRemainFlags)
 								; REMAIN CMD from @chalicucu
@@ -541,25 +446,8 @@ Func ParseAttackCSV($debug = False)
 						Local $hSleepTimer = __TimerInit() ; Initialize the timer at first
 						ReleaseClicks()
 						;sleep time
-						Local $sleep1, $sleep2, $sleepvect
-						$sleepvect = StringSplit($value1, "-", 2)
-						If UBound($sleepvect) > 1 Then
-							If Int($sleepvect[0]) > 0 And Int($sleepvect[1]) > 0 Then
-								$sleep1 = Int($sleepvect[0])
-								$sleep2 = Int($sleepvect[1])
-							Else
-								$sleep1 = 1
-								$sleep2 = 1
-							EndIf
-						Else
-							If Int($value1) > 0 Then
-								$sleep1 = Int($value1)
-								$sleep2 = Int($value1)
-							Else
-								$sleep1 = 1
-								$sleep2 = 1
-							EndIf
-						EndIf
+						Local $sleep1, $sleep2
+						_CSVParseIntRange($value1, $sleep1, $sleep2, 1, 1, False)
 						If $sleep1 <> $sleep2 Then
 							Local $sleep = Random(Int($sleep1), Int($sleep2), 1)
 						Else
@@ -818,6 +706,28 @@ Func ParseAttackCSV($debug = False)
 		SetLog("Cannot find attack file " & $g_sCSVAttacksPath & "\" & $filename & ".csv", $COLOR_ERROR)
 	EndIf
 EndFunc   ;==>ParseAttackCSV
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVLogRowError
+; Description ...: Log a discard reason for a CSV row to SetLog and debug log.
+; Syntax ........: _CSVLogRowError($iLine, $sReason)
+; Parameters ....: $iLine            - Zero-based line index.
+;                  $sReason          - Error reason string.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+; Side-effect: impure-deterministic (logs)
+Func _CSVLogRowError($iLine, $sReason)
+	Local $sMsg = "Discard row " & ($iLine + 1) & ": " & $sReason
+	SetLog($sMsg)
+	debugAttackCSV($sMsg)
+EndFunc   ;==>_CSVLogRowError
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_ResetHeroAbilityOverride
@@ -1448,12 +1358,12 @@ Func ParseAttackCSV_MainSide($debug = False)
 			debugAttackCSV("line content: " & $line)
 			$acommand = $aTokens[$iLine]
 			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
-			If $acommand[0] >= 8 Then
-				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+			Local $aValues
+			If _CSVParseLineTokens($aLines, $aTokens, $iLine, $command, $aValues, 8, True) Then
 				If $command <> "SIDE" And $command <> "SIDEB" Then ContinueLoop ; Only deal with SIDE and SIDEB commands
 				; Set values
-				For $i = 2 To (UBound($acommand) - 1)
-					Assign("value" & Number($i - 1), StringStripWS(StringUpper($acommand[$i]), $STR_STRIPTRAILING))
+				For $i = 1 To $aValues[0]
+					Assign("value" & $i, $aValues[$i])
 				Next
 
 				Switch $command

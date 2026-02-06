@@ -57,6 +57,167 @@ Func _CSVGetCachedLinesAndTokens($sFilename, ByRef $aLines, ByRef $aTokens)
 EndFunc   ;==>_CSVGetCachedLinesAndTokens
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParseLineTokens
+; Description ...: Parse CSV line tokens into an uppercase command and trimmed values array.
+; Syntax ........: _CSVParseLineTokens(ByRef $aLines, ByRef $aTokens, $iLine, ByRef $sCommand, ByRef $aValues[, $iMinCols = 8[, $bUpperValues = True]])
+; Parameters ....: $aLines           - CSV lines array.
+;                  $aTokens          - Tokenized CSV lines (StringSplit arrays).
+;                  $iLine            - Zero-based line index.
+;                  $sCommand         - [out] Parsed command (uppercase).
+;                  $aValues          - [out] Values array, 1-based with [0] = count.
+;                  $iMinCols         - [optional] Minimum token count to accept.
+;                  $bUpperValues     - [optional] Uppercase values when True.
+; Return values .: Success: 1
+;                  Failure: 0
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure (reads arrays, returns parsed values)
+Func _CSVParseLineTokens(ByRef $aLines, ByRef $aTokens, $iLine, ByRef $sCommand, ByRef $aValues, $iMinCols = 8, $bUpperValues = True)
+	$sCommand = ""
+	Local $aInit[1]
+	$aInit[0] = 0
+	$aValues = $aInit
+
+	If Not IsArray($aLines) Or Not IsArray($aTokens) Then Return 0
+	If $iLine < 0 Or $iLine >= UBound($aLines) Then Return 0
+
+	Local $aCmdTokens = $aTokens[$iLine]
+	If Not IsArray($aCmdTokens) Then $aCmdTokens = StringSplit($aLines[$iLine], "|")
+	If Not IsArray($aCmdTokens) Or $aCmdTokens[0] < $iMinCols Then Return 0
+
+	$sCommand = StringStripWS(StringUpper($aCmdTokens[1]), $STR_STRIPTRAILING)
+	If $sCommand = "" Then Return 0
+
+	Local $iCount = $aCmdTokens[0] - 1
+	If $iCount < 1 Then Return 1
+
+	ReDim $aValues[$iCount + 1]
+	$aValues[0] = $iCount
+	For $i = 1 To $iCount
+		Local $sValue = StringStripWS($aCmdTokens[$i + 1], $STR_STRIPTRAILING)
+		If $bUpperValues Then $sValue = StringUpper($sValue)
+		$aValues[$i] = $sValue
+	Next
+	Return 1
+EndFunc   ;==>_CSVParseLineTokens
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParseIntRange
+; Description ...: Parse an integer or integer range (min-max) into outputs with defaults.
+; Syntax ........: _CSVParseIntRange($sValue, ByRef $iOutMin, ByRef $iOutMax, $iDefaultMin, $iDefaultMax[, $bAllowZero = True])
+; Parameters ....: $sValue           - Raw value string.
+;                  $iOutMin          - [out] Parsed minimum.
+;                  $iOutMax          - [out] Parsed maximum.
+;                  $iDefaultMin      - Default minimum when invalid.
+;                  $iDefaultMax      - Default maximum when invalid.
+;                  $bAllowZero       - [optional] Allow zero and above when True.
+; Return values .: Success: 1 when parsed, 0 when defaults applied.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVParseIntRange($sValue, ByRef $iOutMin, ByRef $iOutMax, $iDefaultMin, $iDefaultMax, $bAllowZero = True)
+	Local $aParts = StringSplit($sValue, "-", $STR_NOCOUNT)
+	If UBound($aParts) > 1 Then
+		Local $sMin = StringStripWS($aParts[0], $STR_STRIPALL)
+		Local $sMax = StringStripWS($aParts[1], $STR_STRIPALL)
+		If StringIsInt($sMin) And StringIsInt($sMax) Then
+			Local $iMin = Int($sMin)
+			Local $iMax = Int($sMax)
+			If ($bAllowZero And $iMin >= 0 And $iMax >= 0) Or (Not $bAllowZero And $iMin > 0 And $iMax > 0) Then
+				$iOutMin = $iMin
+				$iOutMax = $iMax
+				Return 1
+			EndIf
+		EndIf
+	Else
+		Local $sSingle = StringStripWS($sValue, $STR_STRIPALL)
+		If StringIsInt($sSingle) Then
+			Local $iVal = Int($sSingle)
+			If ($bAllowZero And $iVal >= 0) Or (Not $bAllowZero And $iVal > 0) Then
+				$iOutMin = $iVal
+				$iOutMax = $iVal
+				Return 1
+			EndIf
+		EndIf
+	EndIf
+
+	$iOutMin = $iDefaultMin
+	$iOutMax = $iDefaultMax
+	Return 0
+EndFunc   ;==>_CSVParseIntRange
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParseIndexList
+; Description ...: Parse index spec into range or list.
+; Syntax ........: _CSVParseIndexList($sValue, ByRef $iStart, ByRef $iEnd, ByRef $aIndexArray[, $iDefault = 1])
+; Parameters ....: $sValue           - Raw index string.
+;                  $iStart           - [out] Range start or list start index.
+;                  $iEnd             - [out] Range end or list end index.
+;                  $aIndexArray      - [out] Array of explicit indices, or 0 when not used.
+;                  $iDefault         - [optional] Default index when invalid.
+; Return values .: Success: 1 when parsed, 0 when defaults applied.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+; Side-effect: pure
+Func _CSVParseIndexList($sValue, ByRef $iStart, ByRef $iEnd, ByRef $aIndexArray, $iDefault = 1)
+	$aIndexArray = 0
+	Local $aRange = StringSplit($sValue, "-", $STR_NOCOUNT)
+	If UBound($aRange) > 1 Then
+		Local $sMin = StringStripWS($aRange[0], $STR_STRIPALL)
+		Local $sMax = StringStripWS($aRange[1], $STR_STRIPALL)
+		If StringIsInt($sMin) And StringIsInt($sMax) Then
+			Local $iMin = Int($sMin)
+			Local $iMax = Int($sMax)
+			If $iMin > 0 And $iMax > 0 Then
+				$iStart = $iMin
+				$iEnd = $iMax
+				Return 1
+			EndIf
+		EndIf
+		$iStart = $iDefault
+		$iEnd = $iDefault
+		Return 0
+	EndIf
+
+	Local $aList = StringSplit($sValue, ",", $STR_NOCOUNT)
+	If UBound($aList) > 1 Then
+		$aIndexArray = $aList
+		$iStart = 0
+		$iEnd = UBound($aList) - 1
+		Return 1
+	EndIf
+
+	Local $sSingle = StringStripWS($sValue, $STR_STRIPALL)
+	If StringIsInt($sSingle) And Int($sSingle) > 0 Then
+		$iStart = Int($sSingle)
+		$iEnd = Int($sSingle)
+		Return 1
+	EndIf
+
+	$iStart = $iDefault
+	$iEnd = $iDefault
+	Return 0
+EndFunc   ;==>_CSVParseIndexList
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _CSVVectorMaskFromList
 ; Description ...: Convert a vector list string (e.g., A-B-C) into a bitmask.
 ; Syntax ........: _CSVVectorMaskFromList($sVectors)
@@ -196,27 +357,26 @@ Func ParseAttackCSV_Read_SIDE_variables()
 			$line = $aLines[$iLine]
 			$acommand = $aTokens[$iLine]
 			If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
-			If $acommand[0] >= 8 Then
-				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
-
+			Local $aValues
+			If _CSVParseLineTokens($aLines, $aTokens, $iLine, $command, $aValues, 8, True) Then
 				If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" And $command <> "PRIOCAP" Then ContinueLoop
 
-				$value1 = ($acommand[0] >= 2 ? StringStripWS(StringUpper($acommand[2]), $STR_STRIPTRAILING) : "")
-				$value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
-				$value3 = ($acommand[0] >= 4 ? StringStripWS(StringUpper($acommand[4]), $STR_STRIPTRAILING) : "")
-				$value4 = ($acommand[0] >= 5 ? StringStripWS(StringUpper($acommand[5]), $STR_STRIPTRAILING) : "")
-				$value5 = ($acommand[0] >= 6 ? StringStripWS(StringUpper($acommand[6]), $STR_STRIPTRAILING) : "")
-				$value6 = ($acommand[0] >= 7 ? StringStripWS(StringUpper($acommand[7]), $STR_STRIPTRAILING) : "")
-				$value7 = ($acommand[0] >= 8 ? StringStripWS(StringUpper($acommand[8]), $STR_STRIPTRAILING) : "")
-				$value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
-				$value9 = ($acommand[0] >= 10 ? StringStripWS(StringUpper($acommand[10]), $STR_STRIPTRAILING) : "")
-				$value10 = ($acommand[0] >= 11 ? StringStripWS(StringUpper($acommand[11]), $STR_STRIPTRAILING) : "")
-				$value11 = ($acommand[0] >= 12 ? StringStripWS(StringUpper($acommand[12]), $STR_STRIPTRAILING) : "")
-				$value12 = ($acommand[0] >= 13 ? StringStripWS(StringUpper($acommand[13]), $STR_STRIPTRAILING) : "")
-				$value13 = ($acommand[0] >= 14 ? StringStripWS(StringUpper($acommand[14]), $STR_STRIPTRAILING) : "")
-				$value14 = ($acommand[0] >= 15 ? StringStripWS(StringUpper($acommand[15]), $STR_STRIPTRAILING) : "")
+				$value1 = ($aValues[0] >= 1 ? $aValues[1] : "")
+				$value2 = ($aValues[0] >= 2 ? $aValues[2] : "")
+				$value3 = ($aValues[0] >= 3 ? $aValues[3] : "")
+				$value4 = ($aValues[0] >= 4 ? $aValues[4] : "")
+				$value5 = ($aValues[0] >= 5 ? $aValues[5] : "")
+				$value6 = ($aValues[0] >= 6 ? $aValues[6] : "")
+				$value7 = ($aValues[0] >= 7 ? $aValues[7] : "")
+				$value8 = ($aValues[0] >= 8 ? $aValues[8] : "")
+				$value9 = ($aValues[0] >= 9 ? $aValues[9] : "")
+				$value10 = ($aValues[0] >= 10 ? $aValues[10] : "")
+				$value11 = ($aValues[0] >= 11 ? $aValues[11] : "")
+				$value12 = ($aValues[0] >= 12 ? $aValues[12] : "")
+				$value13 = ($aValues[0] >= 13 ? $aValues[13] : "")
+				$value14 = ($aValues[0] >= 14 ? $aValues[14] : "")
 
-				If $command = "SIDE" And StringUpper($value8) = "TOP-LEFT" Or StringUpper($value8) = "TOP-RIGHT" Or StringUpper($value8) = "BOTTOM-LEFT" Or StringUpper($value8) = "BOTTOM-RIGHT" Then
+				If $command = "SIDE" And ($value8 = "TOP-LEFT" Or $value8 = "TOP-RIGHT" Or $value8 = "BOTTOM-LEFT" Or $value8 = "BOTTOM-RIGHT") Then
 					$bForceSideExist = True ;keep original values
 				EndIf
 
@@ -382,27 +542,27 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 		Local $line = $aLines[$iLine]
 		Local $acommand = $aTokens[$iLine]
 		If Not IsArray($acommand) Then $acommand = StringSplit($line, "|")
-		If $acommand[0] < 8 Then ContinueLoop
-
-		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
+		Local $command = ""
+		Local $aValues
+		If Not _CSVParseLineTokens($aLines, $aTokens, $iLine, $command, $aValues, 8, True) Then ContinueLoop
 		If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" And $command <> "PRIOCAP" Then ContinueLoop
 
-		Local $value1 = ($acommand[0] >= 2 ? StringStripWS(StringUpper($acommand[2]), $STR_STRIPTRAILING) : "")
-		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
-		Local $value3 = ($acommand[0] >= 4 ? StringStripWS(StringUpper($acommand[4]), $STR_STRIPTRAILING) : "")
-		Local $value4 = ($acommand[0] >= 5 ? StringStripWS(StringUpper($acommand[5]), $STR_STRIPTRAILING) : "")
-		Local $value5 = ($acommand[0] >= 6 ? StringStripWS(StringUpper($acommand[6]), $STR_STRIPTRAILING) : "")
-		Local $value6 = ($acommand[0] >= 7 ? StringStripWS(StringUpper($acommand[7]), $STR_STRIPTRAILING) : "")
-		Local $value7 = ($acommand[0] >= 8 ? StringStripWS(StringUpper($acommand[8]), $STR_STRIPTRAILING) : "")
-		Local $value8 = ($acommand[0] >= 9 ? StringStripWS(StringUpper($acommand[9]), $STR_STRIPTRAILING) : "")
-		Local $value9 = ($acommand[0] >= 10 ? StringStripWS(StringUpper($acommand[10]), $STR_STRIPTRAILING) : "")
-		Local $value10 = ($acommand[0] >= 11 ? StringStripWS(StringUpper($acommand[11]), $STR_STRIPTRAILING) : "")
-		Local $value11 = ($acommand[0] >= 12 ? StringStripWS(StringUpper($acommand[12]), $STR_STRIPTRAILING) : "")
-		Local $value12 = ($acommand[0] >= 13 ? StringStripWS(StringUpper($acommand[13]), $STR_STRIPTRAILING) : "")
-		Local $value13 = ($acommand[0] >= 14 ? StringStripWS(StringUpper($acommand[14]), $STR_STRIPTRAILING) : "")
-		Local $value14 = ($acommand[0] >= 15 ? StringStripWS(StringUpper($acommand[15]), $STR_STRIPTRAILING) : "")
+		Local $value1 = ($aValues[0] >= 1 ? $aValues[1] : "")
+		Local $value2 = ($aValues[0] >= 2 ? $aValues[2] : "")
+		Local $value3 = ($aValues[0] >= 3 ? $aValues[3] : "")
+		Local $value4 = ($aValues[0] >= 4 ? $aValues[4] : "")
+		Local $value5 = ($aValues[0] >= 5 ? $aValues[5] : "")
+		Local $value6 = ($aValues[0] >= 6 ? $aValues[6] : "")
+		Local $value7 = ($aValues[0] >= 7 ? $aValues[7] : "")
+		Local $value8 = ($aValues[0] >= 8 ? $aValues[8] : "")
+		Local $value9 = ($aValues[0] >= 9 ? $aValues[9] : "")
+		Local $value10 = ($aValues[0] >= 10 ? $aValues[10] : "")
+		Local $value11 = ($aValues[0] >= 11 ? $aValues[11] : "")
+		Local $value12 = ($aValues[0] >= 12 ? $aValues[12] : "")
+		Local $value13 = ($aValues[0] >= 13 ? $aValues[13] : "")
+		Local $value14 = ($aValues[0] >= 14 ? $aValues[14] : "")
 
-		If $command = "SIDE" And (StringUpper($value8) = "TOP-LEFT" Or StringUpper($value8) = "TOP-RIGHT" Or StringUpper($value8) = "BOTTOM-LEFT" Or StringUpper($value8) = "BOTTOM-RIGHT") Then
+		If $command = "SIDE" And ($value8 = "TOP-LEFT" Or $value8 = "TOP-RIGHT" Or $value8 = "BOTTOM-LEFT" Or $value8 = "BOTTOM-RIGHT") Then
 			$bForceSideExist = True ; keep original values
 		EndIf
 
