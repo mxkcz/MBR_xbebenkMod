@@ -170,6 +170,20 @@ Func GetCollectorIndexByFillLevel($level)
 	Return 0
 EndFunc   ;==>GetCollectorIndexByFillLevel
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: imglocIsDeadBase
+; Description ...:
+; Syntax ........: imglocIsDeadBase(ByRef $aPos, $FillLevel = 100, $minCollectorLevel = 0, $maxCollectorLevel = 1000, $CheckConfig = False, $bForceCapture = True)
+; Parameters ....:
+; Return values .:
+; Author ........:
+; Modified ......: mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func imglocIsDeadBase(ByRef $aPos, $FillLevel = 100, $minCollectorLevel = 0, $maxCollectorLevel = 1000, $CheckConfig = False, $bForceCapture = True)
 	;only supports 50 and 100
 	;accepts "regular,dark,spells"
@@ -184,6 +198,7 @@ Func imglocIsDeadBase(ByRef $aPos, $FillLevel = 100, $minCollectorLevel = 0, $ma
 	Local $matchedValues
 	Local $TotalMatched = 0
 	Local $fillIndex = GetCollectorIndexByFillLevel($FillLevel)
+	Local $maxCollectorIndex = UBound($g_abCollectorLevelEnabled) - 1
 
 	SetDebugLog("IMGLOC : Searching Deadbase for FillLevel/MinLevel/MaxLevel: " & $FillLevel & "/" & $minLevel & "/" & $maxLevel & " using " & $sDirectory, $COLOR_INFO)
 
@@ -195,6 +210,10 @@ Func imglocIsDeadBase(ByRef $aPos, $FillLevel = 100, $minCollectorLevel = 0, $ma
 
 			If $CheckConfig = True Then
 				Local $level = Number($matchedValues[2])
+				If $level > $maxCollectorIndex Then
+					SetDebugLog("IMGLOC : Collector level " & $level & " out of range; clamped to " & $maxCollectorIndex & " for " & $matchedValues[0], $COLOR_WARNING)
+					$level = $maxCollectorIndex
+				EndIf
 				If $g_abCollectorLevelEnabled[$level] Then
 					If $fillIndex < $g_aiCollectorLevelFill[$level] Then
 						; collector fill level not reached
@@ -241,6 +260,20 @@ Func imglocIsDeadBase(ByRef $aPos, $FillLevel = 100, $minCollectorLevel = 0, $ma
 
 EndFunc   ;==>imglocIsDeadBase
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: checkDeadBaseSuperNew
+; Description ...:
+; Syntax ........: checkDeadBaseSuperNew($bForceCapture = True, $sFillDirectory = @ScriptDir & "\imgxml\deadbase\elix\fill\", $sLvlDirectory = @ScriptDir & "\imgxml\deadbase\elix\lvl\")
+; Parameters ....:
+; Return values .:
+; Author ........:
+; Modified ......: mxkcz (2026)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func checkDeadBaseSuperNew($bForceCapture = True, $sFillDirectory = @ScriptDir & "\imgxml\deadbase\elix\fill\", $sLvlDirectory = @ScriptDir & "\imgxml\deadbase\elix\lvl\")
 
 	If $g_bCollectorFilterDisable Then
@@ -269,6 +302,7 @@ Func checkDeadBaseSuperNew($bForceCapture = True, $sFillDirectory = @ScriptDir &
 	Local $TotalMatched = 0
 	Local $Matched[2] = [-1, -1]
 	Local $aPoints[0]
+	Local $maxCollectorIndex = UBound($g_abCollectorLevelEnabled) - 1
 
 	; found fill positions (deduped)
 	Local $aPos[0]
@@ -353,6 +387,11 @@ Func checkDeadBaseSuperNew($bForceCapture = True, $sFillDirectory = @ScriptDir &
 				; collector level not identified
 				SetDebugLog("IMGLOC : Searching Deadbase no collector identified with fill level " & $fill & " at " & $x & ", " & $y, $COLOR_INFO)
 				ContinueLoop ; jump to next collector
+			EndIf
+
+			If $lvl > $maxCollectorIndex Then
+				SetDebugLog("IMGLOC : Collector level " & $lvl & " out of range; clamped to " & $maxCollectorIndex & " at " & $x & ", " & $y, $COLOR_WARNING)
+				$lvl = $maxCollectorIndex
 			EndIf
 
 			; check if this collector level with fill level is enabled
