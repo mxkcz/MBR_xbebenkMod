@@ -234,6 +234,8 @@ Func ReadRegularConfig()
 	ReadConfig_600_30_DB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
 	ReadConfig_600_30_LB()
+	; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
+	ReadConfig_AttackCSV()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
 	ReadConfig_600_31()
 	ReadConfig_600_32()
@@ -1225,6 +1227,26 @@ Func ReadConfig_600_30_LB()
 	IniReadS($g_abStopAtkPctNoChangeEnable[$LB], $g_sProfileConfigPath, "endbattle", "chkABPercentageChange", False, "Bool")
 	IniReadS($g_aiStopAtkPctNoChangeTime[$LB], $g_sProfileConfigPath, "endbattle", "txtABPercentageChange", 15, "int")
 EndFunc   ;==>ReadConfig_600_30_LB
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ReadConfig_AttackCSV
+; Description ...: Load CSV RECALC override settings from config.
+; Syntax ........: ReadConfig_AttackCSV()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func ReadConfig_AttackCSV()
+	Local $sSideOverride = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_side_override", $g_sCSVRecalcSideOverrideDefault)
+	$g_sCSVRecalcSideOverride = _CSVNormalizeRecalcSideOverride($sSideOverride, True)
+	$g_sCSVRecalcVectorTargets = IniRead($g_sProfileConfigPath, "attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargetsDefault)
+EndFunc   ;==>ReadConfig_AttackCSV
 
 Func ReadConfig_600_31()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>

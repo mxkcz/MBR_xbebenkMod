@@ -242,6 +242,8 @@ Func SaveRegularConfig()
 	SaveConfig_600_30_DB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
 	SaveConfig_600_30_LB()
+	; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
+	SaveConfig_AttackCSV()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
 	SaveConfig_600_31()
 	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
@@ -1053,6 +1055,25 @@ Func SaveConfig_600_30_LB()
 	_Ini_Add("endbattle", "chkABPercentageChange", $g_abStopAtkPctNoChangeEnable[$LB] ? 1 : 0)
 	_Ini_Add("endbattle", "txtABPercentageChange", $g_aiStopAtkPctNoChangeTime[$LB])
 EndFunc   ;==>SaveConfig_600_30_LB
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SaveConfig_AttackCSV
+; Description ...: Persist CSV RECALC override settings to config.
+; Syntax ........: SaveConfig_AttackCSV()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func SaveConfig_AttackCSV()
+	_Ini_Add("attackcsv", "recalc_side_override", $g_sCSVRecalcSideOverride)
+	_Ini_Add("attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargets)
+EndFunc   ;==>SaveConfig_AttackCSV
 
 Func SaveConfig_600_31()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>

@@ -83,7 +83,7 @@ Func ParseAttackCSV($debug = False)
 					ContinueLoop
 				EndIf
 				If $command = "NOTE" Then ContinueLoop ; informational line
-				If $command = "TRAIN" Or $command = "REDLN" Or $command = "DRPLN" Or $command = "CCREQ" Then ContinueLoop ; discard setting commands
+				If $command = "TRAIN" Or $command = "REDLN" Or $command = "DRPLN" Or $command = "CCREQ" Or $command = "PRIOCAP" Then ContinueLoop ; discard setting commands
 				If $command = "SIDE" Or $command = "SIDEB" Then ContinueLoop ; discard attack side commands
 				; Set values
 				For $i = 2 To (UBound($acommand) - 1)

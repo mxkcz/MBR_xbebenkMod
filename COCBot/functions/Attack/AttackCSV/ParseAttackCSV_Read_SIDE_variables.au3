@@ -86,6 +86,41 @@ Func _CSVVectorMaskFromList($sVectors)
 EndFunc   ;==>_CSVVectorMaskFromList
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParsePrioCapLine
+; Description ...: Parse PRIOCAP values into a per-side cap array.
+; Syntax ........: _CSVParsePrioCapLine(ByRef $aCaps, $sTL, $sTR, $sBL, $sBR[, $bLogInvalid = False])
+; Parameters ....: $aCaps            - [in/out] cap array [TL, TR, BL, BR].
+;                  $sTL              - top-left cap value.
+;                  $sTR              - top-right cap value.
+;                  $sBL              - bottom-left cap value.
+;                  $sBR              - bottom-right cap value.
+;                  $bLogInvalid      - [optional] log invalid values when True.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _CSVParsePrioCapLine(ByRef $aCaps, $sTL, $sTR, $sBL, $sBR, $bLogInvalid = False)
+	Local $aVals[4] = [$sTL, $sTR, $sBL, $sBR]
+	Local $aLabels[4] = ["TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT"]
+	For $i = 0 To 3
+		Local $sVal = StringStripWS($aVals[$i], $STR_STRIPALL)
+		If $sVal = "" Then ContinueLoop
+		If Not StringIsInt($sVal) Then
+			If $bLogInvalid Then SetDebugLog("PRIOCAP invalid value for " & $aLabels[$i] & ": " & $sVal, $COLOR_WARNING)
+			ContinueLoop
+		EndIf
+		Local $iCap = Int($sVal)
+		If $iCap < 0 Then $iCap = 0
+		$aCaps[$i] = $iCap
+	Next
+EndFunc   ;==>_CSVParsePrioCapLine
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_GetVecUseMaskForLine
 ; Description ...: Return the precomputed vector usage mask after the given CSV line.
 ; Syntax ........: AttackCSV_GetVecUseMaskForLine($iMode, $iLine)
@@ -141,6 +176,9 @@ Func ParseAttackCSV_Read_SIDE_variables()
 	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
 		$g_aiCSVSideBWeights[$i] = 0
 	Next
+	For $i = 0 To 3
+		$g_aiCSVPrioCap[$i] = 0
+	Next
 
 	If $g_iMatchMode = $DB Then
 		Local $filename = $g_sAttackScrScriptName[$DB]
@@ -161,7 +199,7 @@ Func ParseAttackCSV_Read_SIDE_variables()
 			If $acommand[0] >= 8 Then
 				$command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
 
-				If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" Then ContinueLoop
+				If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" And $command <> "PRIOCAP" Then ContinueLoop
 
 				$value1 = ($acommand[0] >= 2 ? StringStripWS(StringUpper($acommand[2]), $STR_STRIPTRAILING) : "")
 				$value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
@@ -209,6 +247,8 @@ Func ParseAttackCSV_Read_SIDE_variables()
 						$g_aiCSVSideBWeights[11] = Int($value12)
 						$g_aiCSVSideBWeights[12] = Int($value13)
 						$g_aiCSVSideBWeights[13] = Int($value14)
+					Case "PRIOCAP"
+						_CSVParsePrioCapLine($g_aiCSVPrioCap, $value1, $value2, $value3, $value4, True)
 					Case "MAKE" ; check if targeted building vectors are used im MAKE commands >> starting in V7.2+
 						If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then ; check for empty string?
 							Switch $value8
@@ -325,6 +365,7 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	Local $aLocate[$eCSVLocateCount]
 	Local $aWeights[14]
 	Local $aSidesUsed[4] = [False, False, False, False]
+	Local $aPrioCap[4]
 	Local $bAllMakeTargeted = False
 	Local $bPrioMakeFound = False
 	Local $sTargetEnums = ""
@@ -344,7 +385,7 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 		If $acommand[0] < 8 Then ContinueLoop
 
 		Local $command = StringStripWS(StringUpper($acommand[1]), $STR_STRIPTRAILING)
-		If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" Then ContinueLoop
+		If $command <> "SIDE" And $command <> "SIDEB" And $command <> "MAKE" And $command <> "PRIOCAP" Then ContinueLoop
 
 		Local $value1 = ($acommand[0] >= 2 ? StringStripWS(StringUpper($acommand[2]), $STR_STRIPTRAILING) : "")
 		Local $value2 = ($acommand[0] >= 3 ? StringStripWS(StringUpper($acommand[3]), $STR_STRIPTRAILING) : "")
@@ -391,6 +432,8 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 				$aWeights[11] = Int($value12)
 				$aWeights[12] = Int($value13)
 				$aWeights[13] = Int($value14)
+			Case "PRIOCAP"
+				_CSVParsePrioCapLine($aPrioCap, $value1, $value2, $value3, $value4, True)
 			Case "MAKE"
 				If StringLen(StringStripWS($value8, $STR_STRIPALL)) > 0 Then
 					If Not _CSVScanMakeTargets($aLocate, $value8, $bPrioMakeFound, $sTargetEnums) Then
@@ -427,6 +470,9 @@ Func PrepareAttackCSV($iMode, $bForce = False)
 	Next
 	For $i = 0 To 13
 		$g_aiCSVPrepSideBWeights[$iMode][$i] = $aWeights[$i]
+	Next
+	For $i = 0 To 3
+		$g_aiCSVPrepPrioCap[$iMode][$i] = $aPrioCap[$i]
 	Next
 	For $i = 0 To 3
 		$g_abCSVPrepMakeSidesUsed[$iMode][$i] = $aSidesUsed[$i]
@@ -514,6 +560,9 @@ Func AttackCSV_ApplyPrepared($iMode, $iTH)
 	For $i = 0 To UBound($g_aiCSVSideBWeights) - 1
 		$g_aiCSVSideBWeights[$i] = $g_aiCSVPrepSideBWeights[$iMode][$i]
 	Next
+	For $i = 0 To 3
+		$g_aiCSVPrioCap[$i] = $g_aiCSVPrepPrioCap[$iMode][$i]
+	Next
 
 	PrepareCSVBuildingsTH($iTH, True)
 	Return 1
@@ -549,6 +598,38 @@ Func AttackCSV_GetPreparedMakeUsage($iMode, ByRef $aSidesUsed, ByRef $bAllMakeTa
 	$bAllMakeTargeted = $g_abCSVPrepAllMakeTargeted[$iMode]
 	Return 1
 EndFunc   ;==>AttackCSV_GetPreparedMakeUsage
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSV_GetTargetedOnlyCap
+; Description ...: Resolve the targeted-only cap using per-side overrides.
+; Syntax ........: AttackCSV_GetTargetedOnlyCap($iMode, $iDefaultCap)
+; Parameters ....: $iMode             - Match mode index ($DB/$LB).
+;                  $iDefaultCap       - default cap when no per-side override is set.
+; Return values .: Success: effective cap (>=0).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func AttackCSV_GetTargetedOnlyCap($iMode, $iDefaultCap)
+	Local $iDefault = Int($iDefaultCap)
+	If $iDefault <= 0 Then Return 0
+	If $iMode < 0 Or $iMode >= $g_iModeCount Then Return $iDefault
+	If Not PrepareAttackCSV($iMode) Then Return $iDefault
+
+	Local $iCap = 0
+	For $i = 0 To 3
+		If Not $g_abCSVPrepMakeSidesUsed[$iMode][$i] Then ContinueLoop
+		Local $iSideCap = $g_aiCSVPrepPrioCap[$iMode][$i]
+		If $iSideCap <= 0 Then $iSideCap = $iDefault
+		If $iSideCap > $iCap Then $iCap = $iSideCap
+	Next
+	If $iCap <= 0 Then $iCap = $iDefault
+	Return $iCap
+EndFunc   ;==>AttackCSV_GetTargetedOnlyCap
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_GetTargetMaxReturnPoints
@@ -1225,6 +1306,9 @@ Func _CSVPrepResetMode($iMode)
 	Next
 	For $i = 0 To 13
 		$g_aiCSVPrepSideBWeights[$iMode][$i] = 0
+	Next
+	For $i = 0 To 3
+		$g_aiCSVPrepPrioCap[$iMode][$i] = 0
 	Next
 	For $i = 0 To 3
 		$g_abCSVPrepMakeSidesUsed[$iMode][$i] = False

@@ -1627,6 +1627,7 @@ Global $g_bCSVLocateMultiArcherTower = False
 Global $g_bCSVLocateMultiGearTower = False
 Global $g_bCSVLocateSuperWizTower = False
 Global $g_bCSVLocateRevengeTower = False
+Global $g_aiCSVPrioCap[4]
 Global $g_iCSVTargetedMaxReturnPoints = 4 ; CSV targeted MAKE: cap max return points (0=disable)
 Global $g_bCSVLocateWall = False
 Global $g_iCSVLastTroopPositionDropTroopFromINI = -1
@@ -1650,6 +1651,10 @@ Global Const $g_iCSVPrecalcBudgetMsDefault = 30000
 Global $g_iCSVPrecalcBudgetMs = $g_iCSVPrecalcBudgetMsDefault
 Global Const $g_iCSVRecalcBudgetMsDefault = 2000
 Global $g_iCSVRecalcBudgetMs = $g_iCSVRecalcBudgetMsDefault
+Global Const $g_sCSVRecalcSideOverrideDefault = "NONE"
+Global $g_sCSVRecalcSideOverride = $g_sCSVRecalcSideOverrideDefault
+Global Const $g_sCSVRecalcVectorTargetsDefault = ""
+Global $g_sCSVRecalcVectorTargets = $g_sCSVRecalcVectorTargetsDefault
 Global $g_iCSVLastPrecalcMs = 0
 Global $g_sCSVLastPrecalcTime = ""
 Global $g_iCSVRescanLastDurationMs = 0
@@ -1664,6 +1669,7 @@ Global $g_abCSVPrepLocate[$g_iModeCount][$eCSVLocateCount]
 Global $g_aCSVPrepLocateByTHWindow[$g_iModeCount][3][$eCSVLocateCount]
 Global $g_aCSVPrepTHWindow[3]
 Global $g_aiCSVPrepSideBWeights[$g_iModeCount][14]
+Global $g_aiCSVPrepPrioCap[$g_iModeCount][4]
 Global $g_abCSVPrepMakeSidesUsed[$g_iModeCount][4]
 Global $g_abCSVPrepAllMakeTargeted[$g_iModeCount]
 Global $g_abCSVPrepHasPrioMake[$g_iModeCount]

@@ -1361,6 +1361,19 @@ Func AttackCSV_PreparePrioPlan($sFilename)
 			EndIf
 		EndIf
 
+		Local $iPrioCap = $g_aiCSVPrioCap[$s]
+		If $g_bCSVTargetedOnlyActive And $iPrioCap > 0 Then
+			Local $iAllow = $iPrioCap - $iManualTotal
+			If $iAllow < 0 Then $iAllow = 0
+			If $iAllow <= 0 Then
+				Local $aEmpty[0][$iPlanCols]
+				$aPlan = $aEmpty
+			ElseIf UBound($aPlan) > $iAllow Then
+				ReDim $aPlan[$iAllow][$iPlanCols]
+			EndIf
+			SetDebugLog("CSV PRIO cap: side=" & $sSideKey & " cap=" & $iPrioCap & " manual=" & $iManualTotal & " prio=" & UBound($aPlan), $COLOR_DEBUG)
+		EndIf
+
 		$g_oCSVPrioPlan.Item($sSideKey) = $aPlan
 		If IsObj($g_oCSVPrioIndexes) Then $g_oCSVPrioIndexes.Item($sSideKey) = 0
 		SetDebugLog("CSV PRIO plan built for " & $sSideKey & ": " & UBound($aPlan) & " targets", $COLOR_DEBUG)

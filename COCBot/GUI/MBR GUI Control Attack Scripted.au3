@@ -1430,6 +1430,14 @@ Func AttackCSVSettings_ValidateCSV()
 						$iWarnings += 1
 					EndIf
 				Next
+			Case "PRIOCAP"
+				For $i = 1 To 4
+					Local $sVal = AttackCSVSettings_GetValue($aCols, $i)
+					If $sVal <> "" And Not AttackCSVSettings_IsNumericValue($sVal) Then
+						SetLog("CSV validate: line " & ($iLine + 1) & " PRIOCAP value invalid (" & $sVal & ")", $COLOR_WARNING)
+						$iWarnings += 1
+					EndIf
+				Next
 			Case "WAIT"
 				Local $sWait = AttackCSVSettings_GetValue($aCols, 1)
 				If $sWait <> "" And Not AttackCSVSettings_IsRangeValue($sWait) Then

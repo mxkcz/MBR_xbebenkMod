@@ -637,8 +637,9 @@ CSV_LogTiming("pre-drop start", "mode=" & $g_asModeText[$g_iMatchMode])
 			$g_bCSVTargetedOnlyActive = False
 		EndIf
 	EndIf
-	If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
-		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+	Local $iTargetedCap = AttackCSV_GetTargetedOnlyCap($g_iMatchMode, $g_iCSVTargetedMaxReturnPoints)
+	If $bAllMakeTargeted And $iTargetedCap > 0 Then
+		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $iTargetedCap)
 		If $iCSVMaxReturnPointsOverride <> Default Then
 			SetDebugLog("CSV targeted MAKE: capping building locate maxReturnPoints to " & $iCSVMaxReturnPointsOverride, $COLOR_DEBUG)
 		EndIf
@@ -1502,8 +1503,9 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 	EndIf
 
 	Local $iCSVMaxReturnPointsOverride = Default
-	If $g_bCSVTargetedOnlyActive And $g_iCSVTargetedMaxReturnPoints > 0 Then
-		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+	Local $iTargetedCap = AttackCSV_GetTargetedOnlyCap($g_iMatchMode, $g_iCSVTargetedMaxReturnPoints)
+	If $g_bCSVTargetedOnlyActive And $iTargetedCap > 0 Then
+		$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $iTargetedCap)
 	EndIf
 
 	_CaptureRegion2()
@@ -1595,6 +1597,151 @@ Func _CSVIsTargetLocationStillDetected($iEnum, ByRef $aTargetLoc)
 EndFunc   ;==>_CSVIsTargetLocationStillDetected
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVNormalizeRecalcSideOverride
+; Description ...: Normalize the RECALC side override string.
+; Syntax ........: _CSVNormalizeRecalcSideOverride($sValue[, $bLogInvalid = False])
+; Parameters ....: $sValue            - input string.
+;                  $bLogInvalid       - [optional] Log invalid values when True.
+; Return values .: Success: normalized value ("NONE", "MAIN", or side token).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _CSVNormalizeRecalcSideOverride($sValue, $bLogInvalid = False)
+	Local $sUpper = StringUpper(StringStripWS($sValue, $STR_STRIPALL))
+	If $sUpper = "" Or $sUpper = "NONE" Then Return "NONE"
+	If $sUpper = "MAIN" Then Return "MAIN"
+	Switch $sUpper
+		Case "TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT", _
+				"FRONT-LEFT", "FRONT-RIGHT", "RIGHT-FRONT", "RIGHT-BACK", _
+				"LEFT-FRONT", "LEFT-BACK", "BACK-LEFT", "BACK-RIGHT"
+			Return $sUpper
+	EndSwitch
+	If $bLogInvalid Then SetDebugLog("CSV RECALC: invalid side override '" & $sValue & "', using NONE", $COLOR_WARNING)
+	Return "NONE"
+EndFunc   ;==>_CSVNormalizeRecalcSideOverride
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVVectorOverrideTokenToIndex
+; Description ...: Convert a vector token (A or 1) to zero-based index.
+; Syntax ........: _CSVVectorOverrideTokenToIndex($sToken)
+; Parameters ....: $sToken            - token string.
+; Return values .: Success: index (0..$g_iCSVVectorCount-1).
+;                  Failure: -1.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _CSVVectorOverrideTokenToIndex($sToken)
+	Local $sTrim = StringStripWS($sToken, $STR_STRIPALL)
+	If $sTrim = "" Then Return -1
+	If StringIsInt($sTrim) Then
+		Local $iVal = Int($sTrim)
+		If $iVal < 1 Or $iVal > $g_iCSVVectorCount Then Return -1
+		Return $iVal - 1
+	EndIf
+	If StringLen($sTrim) = 1 Then
+		Local $iIndex = Asc(StringUpper($sTrim)) - 65
+		If $iIndex < 0 Or $iIndex >= $g_iCSVVectorCount Then Return -1
+		Return $iIndex
+	EndIf
+	Return -1
+EndFunc   ;==>_CSVVectorOverrideTokenToIndex
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVVectorMaskToList
+; Description ...: Convert a vector mask into a comma-separated letter list.
+; Syntax ........: _CSVVectorMaskToList($iMask)
+; Parameters ....: $iMask             - bitmask.
+; Return values .: Success: list string.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _CSVVectorMaskToList($iMask)
+	Local $sList = ""
+	For $i = 0 To $g_iCSVVectorCount - 1
+		If BitAND($iMask, BitShift(1, -$i)) <> 0 Then
+			If $sList <> "" Then $sList &= ","
+			$sList &= Chr(65 + $i)
+		EndIf
+	Next
+	Return $sList
+EndFunc   ;==>_CSVVectorMaskToList
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVParseRecalcVectorOverrideMask
+; Description ...: Parse RECALC vector override string into a bitmask.
+; Syntax ........: _CSVParseRecalcVectorOverrideMask($sOverride, ByRef $sResolved, ByRef $sInvalid)
+; Parameters ....: $sOverride         - override string.
+;                  $sResolved         - [out] comma-separated resolved list.
+;                  $sInvalid          - [out] comma-separated invalid tokens.
+; Return values .: Success: bitmask (0 when none/invalid).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _CSVParseRecalcVectorOverrideMask($sOverride, ByRef $sResolved, ByRef $sInvalid)
+	$sResolved = ""
+	$sInvalid = ""
+	Local $sTrim = StringStripWS($sOverride, $STR_STRIPALL)
+	If $sTrim = "" Or StringUpper($sTrim) = "AUTO" Then Return 0
+	Local $aTokens = StringSplit($sOverride, ",", $STR_NOCOUNT)
+	Local $iMask = 0
+	For $i = 0 To UBound($aTokens) - 1
+		Local $sToken = StringStripWS($aTokens[$i], $STR_STRIPALL)
+		If $sToken = "" Then ContinueLoop
+		Local $aRange = StringSplit($sToken, "-", $STR_NOCOUNT)
+		If UBound($aRange) = 2 Then
+			Local $iStart = _CSVVectorOverrideTokenToIndex($aRange[0])
+			Local $iEnd = _CSVVectorOverrideTokenToIndex($aRange[1])
+			If $iStart < 0 Or $iEnd < 0 Then
+				If $sInvalid <> "" Then $sInvalid &= ","
+				$sInvalid &= $sToken
+				ContinueLoop
+			EndIf
+			If $iStart > $iEnd Then
+				Local $iTmp = $iStart
+				$iStart = $iEnd
+				$iEnd = $iTmp
+			EndIf
+			For $j = $iStart To $iEnd
+				$iMask = BitOR($iMask, BitShift(1, -$j))
+			Next
+		ElseIf UBound($aRange) = 1 Then
+			Local $iIndex = _CSVVectorOverrideTokenToIndex($sToken)
+			If $iIndex < 0 Then
+				If $sInvalid <> "" Then $sInvalid &= ","
+				$sInvalid &= $sToken
+				ContinueLoop
+			EndIf
+			$iMask = BitOR($iMask, BitShift(1, -$iIndex))
+		Else
+			If $sInvalid <> "" Then $sInvalid &= ","
+			$sInvalid &= $sToken
+		EndIf
+	Next
+	$sResolved = _CSVVectorMaskToList($iMask)
+	Return $iMask
+EndFunc   ;==>_CSVParseRecalcVectorOverrideMask
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSV_RecalcMakeVectors
 ; Description ...: Rebuild PRIO/targeted MAKE vectors used after the current line.
 ; Syntax ........: AttackCSV_RecalcMakeVectors([$iBudgetMs = Default[, $sReason = ""[, $bForceRebuild = False[, $iLine = -1]]]])
@@ -1623,6 +1770,40 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 		SetDebugLog("RECALC: no vectors used after line " & ($iLine + 1), $COLOR_DEBUG)
 		Return 0
 	EndIf
+	Local $sOverrideTrim = StringStripWS($g_sCSVRecalcVectorTargets, $STR_STRIPALL)
+	If $sOverrideTrim <> "" And StringUpper($sOverrideTrim) <> "AUTO" Then
+		Local $sVecResolved = ""
+		Local $sVecInvalid = ""
+		Local $iOverrideMask = _CSVParseRecalcVectorOverrideMask($g_sCSVRecalcVectorTargets, $sVecResolved, $sVecInvalid)
+		If $sVecInvalid <> "" Then SetDebugLog("RECALC: vector override invalid tokens=" & $sVecInvalid, $COLOR_WARNING)
+		If $iOverrideMask = 0 Then
+			SetDebugLog("RECALC: vector override invalid, using usage mask", $COLOR_WARNING)
+		Else
+			SetDebugLog("RECALC: vector override=" & $sVecResolved, $COLOR_INFO)
+			$iMask = BitAND($iMask, $iOverrideMask)
+			If $iMask = 0 Then
+				SetDebugLog("RECALC: vector override yielded no eligible vectors after line " & ($iLine + 1), $COLOR_WARNING)
+				Return 0
+			EndIf
+		EndIf
+	EndIf
+
+	Local $sSideOverride = ""
+	Local $sSideOverrideNorm = _CSVNormalizeRecalcSideOverride($g_sCSVRecalcSideOverride, True)
+	Switch $sSideOverrideNorm
+		Case "MAIN"
+			Local $sMainSide = StringUpper($MAINSIDE)
+			If $sMainSide <> "" Then
+				$sSideOverride = $sMainSide
+			Else
+				SetDebugLog("RECALC: MAIN side override missing, using vector side", $COLOR_WARNING)
+			EndIf
+		Case "NONE"
+			$sSideOverride = ""
+		Case Else
+			$sSideOverride = $sSideOverrideNorm
+	EndSwitch
+	If $sSideOverride <> "" Then SetDebugLog("RECALC: side override=" & $sSideOverride, $COLOR_INFO)
 
 	Local $aVecIndex[0]
 	Local $aForcedEnums[0]
@@ -1718,7 +1899,9 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 			$iKept += 1
 			ContinueLoop
 		EndIf
-		Local $aNewVector = MakeTargetDropPoints($g_aCSVMakeVecSide[$iVecIndex], $g_aCSVMakeVecPoints[$iVecIndex], $g_aCSVMakeVecAddTiles[$iVecIndex], $sTarget)
+		Local $sVecSide = $g_aCSVMakeVecSide[$iVecIndex]
+		If $sSideOverride <> "" Then $sVecSide = $sSideOverride
+		Local $aNewVector = MakeTargetDropPoints($sVecSide, $g_aCSVMakeVecPoints[$iVecIndex], $g_aCSVMakeVecAddTiles[$iVecIndex], $sTarget)
 		If @error Or Not IsArray($aNewVector) Or UBound($aNewVector) = 0 Then
 			Assign("ATTACKVECTOR_" & $sVecKey, "")
 			$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
@@ -1867,8 +2050,9 @@ Func AttackCSV_PrecacheBuildingsFromSearch($iMode, $bForceRescan = False)
 	Local $bAllMakeTargeted = False
 	Local $iCSVMaxReturnPointsOverride = Default
 	If AttackCSV_GetPreparedMakeUsage($iMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
-		If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
-			$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($iMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
+		Local $iTargetedCap = AttackCSV_GetTargetedOnlyCap($iMode, $g_iCSVTargetedMaxReturnPoints)
+		If $bAllMakeTargeted And $iTargetedCap > 0 Then
+			$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($iMode, $g_iSearchTH, $iTargetedCap)
 		EndIf
 	EndIf
 
