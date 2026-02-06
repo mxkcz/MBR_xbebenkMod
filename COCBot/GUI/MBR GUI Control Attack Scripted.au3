@@ -925,6 +925,10 @@ Func CSVSettings_ToggleDebugFlag()
 			$g_bDebugAttackCSV = Not $g_bDebugAttackCSV
 		Case $g_hChkCSVDbgMakeImg
 			$g_bDebugMakeIMGCSV = Not $g_bDebugMakeIMGCSV
+		Case $g_hChkCSVDbgAttackTiming
+			$g_bDebugAttackTiming = Not $g_bDebugAttackTiming
+		Case $g_hChkCSVDbgRescan
+			$g_bDebugAttackRescan = Not $g_bDebugAttackRescan
 		Case Else
 			Return
 	EndSwitch
@@ -1157,13 +1161,17 @@ Func AttackCSVSettings_UpdateDebugPanel()
 	If $g_hChkCSVDbgOcr <> 0 Then GUICtrlSetState($g_hChkCSVDbgOcr, $g_bDebugOcr ? $GUI_CHECKED : $GUI_UNCHECKED)
 	If $g_hChkCSVDbgAttackCSV <> 0 Then GUICtrlSetState($g_hChkCSVDbgAttackCSV, $g_bDebugAttackCSV ? $GUI_CHECKED : $GUI_UNCHECKED)
 	If $g_hChkCSVDbgMakeImg <> 0 Then GUICtrlSetState($g_hChkCSVDbgMakeImg, $g_bDebugMakeIMGCSV ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgAttackTiming <> 0 Then GUICtrlSetState($g_hChkCSVDbgAttackTiming, $g_bDebugAttackTiming ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hChkCSVDbgRescan <> 0 Then GUICtrlSetState($g_hChkCSVDbgRescan, $g_bDebugAttackRescan ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 	If $g_hLblCSVDbgSummary <> 0 Then
 		Local $sSummary = "Debug summary: setlog=" & ($g_bDebugSetlog ? "on" : "off") & _
 				" click=" & ($g_bDebugClick ? "on" : "off") & _
 				" red=" & ($g_bDebugRedArea ? "on" : "off") & _
 				" ocr=" & ($g_bDebugOcr ? "on" : "off") & _
-				" csv=" & ($g_bDebugAttackCSV ? "on" : "off")
+				" csv=" & ($g_bDebugAttackCSV ? "on" : "off") & _
+				" timing=" & ($g_bDebugAttackTiming ? "on" : "off") & _
+				" rescan=" & ($g_bDebugAttackRescan ? "on" : "off")
 		GUICtrlSetData($g_hLblCSVDbgSummary, $sSummary)
 	EndIf
 

@@ -289,7 +289,11 @@ Func ReadConfig_Debug()
 		$g_bDebugOCRdonate = IniRead($g_sProfileConfigPath, "debug", "debugOCRDonate", 0) = 1 ? True : False
 		$g_bDebugAttackCSV = IniRead($g_sProfileConfigPath, "debug", "debugAttackCSV", 0) = 1 ? True : False
 		$g_bDebugMakeIMGCSV = IniRead($g_sProfileConfigPath, "debug", "debugmakeimgcsv", 0) = 1 ? True : False
+		$g_bDebugAttackTiming = IniRead($g_sProfileConfigPath, "debug", "debugAttackTiming", 0) = 1 ? True : False
+		$g_bDebugAttackRescan = IniRead($g_sProfileConfigPath, "debug", "debugAttackRescan", 0) = 1 ? True : False
 		$g_bDebugSmartZap = BitOR($g_bDebugSmartZap, Int(IniRead($g_sProfileConfigPath, "debug", "DebugSmartZap", 0)))
+		SetDebugLog("Debug attack timing = " & ($g_bDebugAttackTiming ? "on" : "off"), $COLOR_INFO)
+		SetDebugLog("Debug rescan logging = " & ($g_bDebugAttackRescan ? "on" : "off"), $COLOR_INFO)
 	EndIf
 EndFunc   ;==>ReadConfig_Debug
 

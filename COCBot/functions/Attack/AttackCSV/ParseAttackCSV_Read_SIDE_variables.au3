@@ -1103,6 +1103,101 @@ Func _CSVPrecalcLocateForTH($iMode, $iTH, $iDelta, ByRef $aLocateOverride)
 EndFunc   ;==>_CSVPrecalcLocateForTH
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackTiming_Reset
+; Description ...: Reset attack timing markers when debug timing is enabled.
+; Syntax ........: AttackTiming_Reset()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackTiming_Reset()
+	If Not $g_bDebugAttackTiming Then Return
+	$g_hAttackTimingTimer = __TimerInit()
+	ReDim $g_aAttackTimingLabels[0]
+	ReDim $g_aAttackTimingDetails[0]
+	ReDim $g_aAttackTimingMs[0]
+EndFunc   ;==>AttackTiming_Reset
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackTiming_Mark
+; Description ...: Record a timing marker for the current attack.
+; Syntax ........: AttackTiming_Mark($sLabel[, $sDetail = ""])
+; Parameters ....: $sLabel             - short label for the timing mark.
+;                  $sDetail            - [optional] extra detail text.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackTiming_Mark($sLabel, $sDetail = "")
+	If Not $g_bDebugAttackTiming Then Return
+	If $g_hAttackTimingTimer = 0 Then $g_hAttackTimingTimer = __TimerInit()
+	Local $iMs = Round(__TimerDiff($g_hAttackTimingTimer))
+	Local $iSize = UBound($g_aAttackTimingLabels)
+	ReDim $g_aAttackTimingLabels[$iSize + 1]
+	ReDim $g_aAttackTimingDetails[$iSize + 1]
+	ReDim $g_aAttackTimingMs[$iSize + 1]
+	$g_aAttackTimingLabels[$iSize] = $sLabel
+	$g_aAttackTimingDetails[$iSize] = $sDetail
+	$g_aAttackTimingMs[$iSize] = $iMs
+EndFunc   ;==>AttackTiming_Mark
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackTiming_Summary
+; Description ...: Emit a compact timing summary before drops.
+; Syntax ........: AttackTiming_Summary($sContext)
+; Parameters ....: $sContext           - context tag for the summary.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackTiming_Summary($sContext)
+	If Not $g_bDebugAttackTiming Then Return
+	Local $iPreDropStart = _AttackTiming_GetMarkMs("pre-drop start")
+	Local $iPreDropDone = _AttackTiming_GetMarkMs("pre-drop done")
+	Local $iPreDropTotal = ($iPreDropStart >= 0 And $iPreDropDone >= 0) ? ($iPreDropDone - $iPreDropStart) : -1
+	Local $iRedlineStart = _AttackTiming_GetMarkMs("capture", "Algorithm_AttackCSV redline")
+	Local $iRedlineDone = _AttackTiming_GetMarkMs("redline done", "Algorithm_AttackCSV")
+	Local $iRedlineTotal = ($iRedlineStart >= 0 And $iRedlineDone >= 0) ? ($iRedlineDone - $iRedlineStart) : -1
+	Local $iLocateBatchTotal = _AttackTiming_SumDurations("locate batch start", "locate batch done")
+	Local $iDroplineTotal = _AttackTiming_SumDurations("phase start", "phase done", "droplines")
+	Local $iMainSideTotal = _AttackTiming_SumDurations("phase start", "phase done", "main side")
+
+	Local $sLine = "CSV timing summary (" & $sContext & "): " & _
+			"pre-drop=" & _AttackTiming_FormatSeconds($iPreDropTotal) & _
+			" redline=" & _AttackTiming_FormatSeconds($iRedlineTotal) & _
+			" locateBatch=" & _AttackTiming_FormatSeconds($iLocateBatchTotal) & _
+			" mainSide=" & _AttackTiming_FormatSeconds($iMainSideTotal) & _
+			" droplines=" & _AttackTiming_FormatSeconds($iDroplineTotal)
+	SetDebugLog($sLine, $COLOR_INFO)
+
+	If $g_sCSVRescanLastReason <> "" Or $g_iCSVRescanLastDurationMs > 0 Then
+		Local $sRescan = "CSV rescan summary: reason=" & ($g_sCSVRescanLastReason = "" ? "-" : $g_sCSVRescanLastReason) & _
+				" count=" & $g_iCSVRescanLastCount & _
+				" duration=" & _AttackTiming_FormatSeconds($g_iCSVRescanLastDurationMs) & _
+				" budget=" & _AttackTiming_FormatSeconds($g_iCSVRescanLastBudgetMs) & _
+				" exceeded=" & ($g_bCSVRescanLastBudgetExceeded ? "yes" : "no")
+		If $g_sCSVRescanLastFallback <> "" Then $sRescan &= " fallback=" & $g_sCSVRescanLastFallback
+		SetDebugLog($sRescan, $COLOR_INFO)
+	EndIf
+EndFunc   ;==>AttackTiming_Summary
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: CSV_LogTiming
 ; Description ...: Log CSV timing markers relative to the search window timer when debug is enabled.
 ; Syntax ........: CSV_LogTiming($sLabel[, $sDetail = ""])
@@ -1118,17 +1213,118 @@ EndFunc   ;==>_CSVPrecalcLocateForTH
 ; Example .......:
 ; ===============================================================================================================================
 Func CSV_LogTiming($sLabel, $sDetail = "")
-	If Not ($g_bDebugSetlog Or $g_bDebugAttackCSV) Then Return
-	Local $sTime = @HOUR & ":" & @MIN & ":" & @SEC
+	If Not $g_bDebugAttackTiming Then Return
+	AttackTiming_Mark($sLabel, $sDetail)
 	Local $sElapsed = ""
-	If IsDeclared("g_hAttackTimer") And $g_hAttackTimer <> 0 Then
-		$sElapsed = " t+" & Round(__TimerDiff($g_hAttackTimer) / 1000, 2) & "s"
+	If $g_hAttackTimingTimer <> 0 Then
+		$sElapsed = " t+" & Round(__TimerDiff($g_hAttackTimingTimer)) & "ms"
 	EndIf
 	Local $sMsg = "CSV timing: " & $sLabel
 	If $sDetail <> "" Then $sMsg &= " [" & $sDetail & "]"
-	If $sElapsed <> "" Then $sMsg &= " (" & $sTime & $sElapsed & ")"
+	If $sElapsed <> "" Then $sMsg &= " (" & $sElapsed & ")"
 	SetDebugLog($sMsg, $COLOR_DEBUG)
 EndFunc   ;==>CSV_LogTiming
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSV_LogRescan
+; Description ...: Log CSV rescan decisions when rescan debug is enabled.
+; Syntax ........: CSV_LogRescan($sLabel[, $sDetail = ""[, $iColor = $COLOR_DEBUG]])
+; Parameters ....: $sLabel             - short label for the rescan event.
+;                  $sDetail            - [optional] extra detail text.
+;                  $iColor             - [optional] log color.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func CSV_LogRescan($sLabel, $sDetail = "", $iColor = $COLOR_DEBUG)
+	If Not $g_bDebugAttackRescan Then Return
+	Local $sMsg = "CSV rescan: " & $sLabel
+	If $sDetail <> "" Then $sMsg &= " [" & $sDetail & "]"
+	SetDebugLog($sMsg, $iColor)
+EndFunc   ;==>CSV_LogRescan
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _AttackTiming_GetMarkMs
+; Description ...: Return the first timing mark match in ms.
+; Syntax ........: _AttackTiming_GetMarkMs($sLabel[, $sDetail = ""])
+; Parameters ....: $sLabel             - label to match.
+;                  $sDetail            - [optional] detail to match.
+; Return values .: Success: ms timestamp.
+;                  Failure: -1.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _AttackTiming_GetMarkMs($sLabel, $sDetail = "")
+	For $i = 0 To UBound($g_aAttackTimingLabels) - 1
+		If $g_aAttackTimingLabels[$i] <> $sLabel Then ContinueLoop
+		If $sDetail <> "" And $g_aAttackTimingDetails[$i] <> $sDetail Then ContinueLoop
+		Return $g_aAttackTimingMs[$i]
+	Next
+	Return -1
+EndFunc   ;==>_AttackTiming_GetMarkMs
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _AttackTiming_SumDurations
+; Description ...: Sum durations between start/end markers.
+; Syntax ........: _AttackTiming_SumDurations($sStartLabel, $sEndLabel[, $sDetail = ""])
+; Parameters ....: $sStartLabel        - start marker label.
+;                  $sEndLabel          - end marker label.
+;                  $sDetail            - [optional] detail filter for matching.
+; Return values .: Total duration in ms (0 when no pairs).
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _AttackTiming_SumDurations($sStartLabel, $sEndLabel, $sDetail = "")
+	Local $iTotal = 0
+	Local $iStartMs = -1
+	For $i = 0 To UBound($g_aAttackTimingLabels) - 1
+		If $g_aAttackTimingLabels[$i] = $sStartLabel Then
+			If $sDetail <> "" And $g_aAttackTimingDetails[$i] <> $sDetail Then ContinueLoop
+			$iStartMs = $g_aAttackTimingMs[$i]
+			ContinueLoop
+		EndIf
+		If $g_aAttackTimingLabels[$i] = $sEndLabel And $iStartMs >= 0 Then
+			If $sDetail <> "" And $g_aAttackTimingDetails[$i] <> $sDetail Then ContinueLoop
+			$iTotal += ($g_aAttackTimingMs[$i] - $iStartMs)
+			$iStartMs = -1
+		EndIf
+	Next
+	Return $iTotal
+EndFunc   ;==>_AttackTiming_SumDurations
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _AttackTiming_FormatSeconds
+; Description ...: Format ms as seconds string for summaries.
+; Syntax ........: _AttackTiming_FormatSeconds($iMs)
+; Parameters ....: $iMs                - milliseconds.
+; Return values .: String for summary.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _AttackTiming_FormatSeconds($iMs)
+	If $iMs < 0 Then Return "-"
+	Return Round($iMs / 1000, 2) & "s"
+EndFunc   ;==>_AttackTiming_FormatSeconds
 
 ; Side-effect: impure-deterministic (mutates prep locate flags)
 Func _CSVPrepEnablePrioLocateFromWeights(ByRef $aLocate, ByRef $aWeights)

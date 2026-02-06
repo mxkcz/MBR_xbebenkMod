@@ -94,6 +94,8 @@ Global $g_hDebugAlwaysSaveFullScreenTimer = 0 ; __TimerInit() to save every scre
 Global $g_bDebugSmartZap = False ; verbose logs for SmartZap users
 Global $g_bDebugAttackCSV = False ; Verbose log output of actual attack script plus bot actions
 Global $g_bDebugMakeIMGCSV = False ; Saves "clean" iamge and image with all drop points and detected buildings marked
+Global $g_bDebugAttackTiming = False ; Enables attack timing marks and summary logging
+Global $g_bDebugAttackRescan = False ; Enables detailed CSV rescan logging
 Global $g_bDebugBetaVersion = StringInStr($g_sBotVersion, " b") > 0 ; not saved and only used for special beta releases
 Global $g_bTestSceneryAttack = False
 
@@ -1659,6 +1661,14 @@ Global $g_iCSVLastPrecalcMs = 0
 Global $g_sCSVLastPrecalcTime = ""
 Global $g_iCSVRescanLastDurationMs = 0
 Global $g_sCSVRescanLastReason = ""
+Global $g_iCSVRescanLastCount = 0
+Global $g_iCSVRescanLastBudgetMs = 0
+Global $g_bCSVRescanLastBudgetExceeded = False
+Global $g_sCSVRescanLastFallback = ""
+Global $g_hAttackTimingTimer = 0
+Global $g_aAttackTimingLabels[0]
+Global $g_aAttackTimingDetails[0]
+Global $g_aAttackTimingMs[0]
 
 ; CSV prep caches (per mode)
 Global Enum $eCSVLocateMine, $eCSVLocateElixir, $eCSVLocateDrill, $eCSVLocateStorageGold, $eCSVLocateStorageElixir, $eCSVLocateStorageDarkElixir, $eCSVLocateStorageTownHall, _

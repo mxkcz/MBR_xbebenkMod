@@ -541,10 +541,10 @@ Func GUIControl_WM_COMMAND($hWind, $iMsg, $wParam, $lParam)
 			chkDebugTrain()
 		Case $g_hChkDebugOCRDonate
 			chkdebugOCRDonate()
-		Case $g_hChkdebugAttackCSV
-			chkdebugAttackCSV()
-		Case $g_hChkMakeIMGCSV
-			chkmakeIMGCSV()
+			Case $g_hChkdebugAttackCSV
+				chkdebugAttackCSV()
+			Case $g_hChkMakeIMGCSV
+				chkmakeIMGCSV()
 		Case $g_hBtnTestTrain
 			btnTestTrain()
 			;TestSmartFarm()

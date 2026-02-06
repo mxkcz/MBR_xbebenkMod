@@ -674,7 +674,7 @@ Func ParseAttackCSV($debug = False)
 							EndIf
 						EndIf
 						If $bDoRescan Then
-							SetDebugLog("WAIT-RESCAN: rescanning with " & $sleep & "ms budget")
+							CSV_LogRescan("wait-rescan", "budget=" & $sleep & "ms", $COLOR_INFO)
 							Local $aNoForced[0]
 							Local $aRescanned[0]
 							AttackCSV_LightweightRescan($aNoForced, $aRescanned, $sleep, "WAIT-RESCAN")

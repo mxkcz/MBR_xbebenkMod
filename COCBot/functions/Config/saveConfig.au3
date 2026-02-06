@@ -334,6 +334,8 @@ Func SaveConfig_Debug()
 	_Ini_Add("debug", "debugOCRDonate", $g_bDebugOCRdonate ? 1 : 0)
 	_Ini_Add("debug", "debugAttackCSV", $g_bDebugAttackCSV ? 1 : 0)
 	_Ini_Add("debug", "debugmakeimgcsv", $g_bDebugMakeIMGCSV ? 1 : 0)
+	_Ini_Add("debug", "debugAttackTiming", $g_bDebugAttackTiming ? 1 : 0)
+	_Ini_Add("debug", "debugAttackRescan", $g_bDebugAttackRescan ? 1 : 0)
 	_Ini_Add("debug", "DebugSmartZap", $g_bDebugSmartZap)
 EndFunc   ;==>SaveConfig_Debug
 

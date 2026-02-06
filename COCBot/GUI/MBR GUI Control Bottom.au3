@@ -34,7 +34,7 @@ Func Initiate()
 			SetLogCentered(" Search Mode Start ", Default, $COLOR_SUCCESS)
 		EndIf
 		SetLogCentered("  Current Profile: " & $g_sProfileCurrentName & " ", "-", $COLOR_INFO)
-		If $g_bDebugSetlog Or $g_bDebugOcr Or $g_bDebugRedArea Or $g_bDevMode Or $g_bDebugImageSave Or $g_bDebugBuildingPos Or $g_bDebugOCRdonate Or $g_bDebugAttackCSV Or $g_bDebugAndroid Then
+		If $g_bDebugSetlog Or $g_bDebugOcr Or $g_bDebugRedArea Or $g_bDevMode Or $g_bDebugImageSave Or $g_bDebugBuildingPos Or $g_bDebugOCRdonate Or $g_bDebugAttackCSV Or $g_bDebugAndroid Or $g_bDebugAttackTiming Or $g_bDebugAttackRescan Then
 			SetLogCentered(" Warning Debug Mode Enabled! ", "-", $COLOR_DEBUG2)
 			SetLog("      SetLog : " & $g_bDebugSetlog, $COLOR_DEBUG2, "Lucida Console", 8)
 			SetLog("     Android : " & $g_bDebugAndroid, $COLOR_DEBUG2, "Lucida Console", 8)
@@ -44,6 +44,8 @@ Func Initiate()
 			SetLog(" BuildingPos : " & $g_bDebugBuildingPos, $COLOR_DEBUG2, "Lucida Console", 8)
 			SetLog("   OCRDonate : " & $g_bDebugOCRdonate, $COLOR_DEBUG2, "Lucida Console", 8)
 			SetLog("   AttackCSV : " & $g_bDebugAttackCSV, $COLOR_DEBUG2, "Lucida Console", 8)
+			SetLog("   AttackTim : " & $g_bDebugAttackTiming, $COLOR_DEBUG2, "Lucida Console", 8)
+			SetLog("  RescanLogs : " & $g_bDebugAttackRescan, $COLOR_DEBUG2, "Lucida Console", 8)
 			SetLogCentered(" Warning Debug Mode Enabled! ", "-", $COLOR_DEBUG2)
 		EndIf
 

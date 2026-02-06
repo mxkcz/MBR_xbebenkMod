@@ -59,7 +59,7 @@ Global $g_hBtnCSVRebuildPrecalc = 0
 Global $g_hTxtCSVPrecalcStatus = 0
 Global $g_hTxtCSVPrioPreview = 0
 Global $g_hTxtCSVDiagnostics = 0, $g_hBtnCSVRefreshDiagnostics = 0
-Global $g_hChkCSVDbgSetlog = 0, $g_hChkCSVDbgClick = 0, $g_hChkCSVDbgRedArea = 0, $g_hChkCSVDbgOcr = 0, $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0
+Global $g_hChkCSVDbgSetlog = 0, $g_hChkCSVDbgClick = 0, $g_hChkCSVDbgRedArea = 0, $g_hChkCSVDbgOcr = 0, $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0, $g_hChkCSVDbgAttackTiming = 0, $g_hChkCSVDbgRescan = 0
 Global $g_hLblCSVDbgSummary = 0, $g_hTxtCSVDebugLines = 0
 
 Func CreateAttackTab()
@@ -595,6 +595,12 @@ Func CreateAttackCSVSettingsGUI()
 			$g_hChkCSVDbgAttackCSV = GUICtrlCreateCheckbox("AttackCSV", $iDbgX, $iDbgY + 25, 140, 18)
 				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
 			$g_hChkCSVDbgMakeImg = GUICtrlCreateCheckbox("Make IMG CSV", $iDbgX + 160, $iDbgY + 25, 150, 18)
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgAttackTiming = GUICtrlCreateCheckbox("Attack timing", $iDbgX + 330, $iDbgY + 25, 130, 18)
+				_GUICtrlSetTip(-1, "Enables attack timing marks and pre-drop summary.")
+				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
+			$g_hChkCSVDbgRescan = GUICtrlCreateCheckbox("Rescan logging", $iDbgX + 470, $iDbgY + 25, 140, 18)
+				_GUICtrlSetTip(-1, "Enables detailed CSV rescan and RECALC logging.")
 				GUICtrlSetOnEvent(-1, "CSVSettings_ToggleDebugFlag")
 			$g_hLblCSVDbgSummary = GUICtrlCreateLabel("Debug summary: -", $iDbgX, $iDbgY + 55, $iDbgGroupW - 30, 18)
 		GUICtrlCreateGroup("", -99, -99, 1, 1)

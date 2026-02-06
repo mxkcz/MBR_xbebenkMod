@@ -601,13 +601,14 @@ Func Algorithm_AttackCSV($testattack = False, $captureredarea = True)
 	$g_bCSVFirstDropLogged = False
 
 	;00 read attack file SIDE row and valorize variables
-Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
+	Local $bPrepOk = AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
 _CSVResetCSVDiagnostics()
 _CSVInitTHContext($g_iSearchTH, "attack", True)
-$g_iCSVLastTroopPositionDropTroopFromINI = -1
-If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
-CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
-CSV_LogTiming("pre-drop start", "mode=" & $g_asModeText[$g_iMatchMode])
+	$g_iCSVLastTroopPositionDropTroopFromINI = -1
+	If _Sleep($DELAYRESPOND) Then Return CSV_AttackCleanup()
+	AttackTiming_Reset()
+	CSV_LogTiming("attack start", "mode=" & $g_asModeText[$g_iMatchMode])
+	CSV_LogTiming("pre-drop start", "mode=" & $g_asModeText[$g_iMatchMode])
 
 	; Pre-scan MAKE usage for targeted-only optimizations
 	Local $sMakeScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
@@ -1382,7 +1383,7 @@ EndIf
 	; Log total CSV prep time
 	$iPreDropMs = Round(__timerdiff($hTimerTOTAL))
 	$fPreDropSeconds = Round($iPreDropMs / 1000, 2)
-	CSV_LogTiming("pre-drop done", "total=" & $fPreDropSeconds & "s")
+	CSV_LogTiming("pre-drop done", "total=" & $iPreDropMs & "ms")
 	If $g_iCSVPrecalcBudgetMs > 0 And $iPreDropMs > $g_iCSVPrecalcBudgetMs Then
 		SetLog("CSV pre-drop exceeded budget: " & $iPreDropMs & " ms (budget " & $g_iCSVPrecalcBudgetMs & " ms)", $COLOR_WARNING)
 	EndIf
@@ -1409,6 +1410,7 @@ EndIf
 	;	Next
 	;EndIf
 	
+	AttackTiming_Summary("pre-drop")
 	ParseAttackCSV($testattack)
 
 	CheckHeroesHealth()
@@ -1462,12 +1464,21 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 	If $sReason = "" Then $sReason = "RESCAN"
 	$g_sCSVRescanLastReason = $sReason
 	$g_iCSVRescanLastDurationMs = 0
+	$g_iCSVRescanLastCount = 0
+	$g_iCSVRescanLastBudgetMs = $iBudgetLocal
+	$g_bCSVRescanLastBudgetExceeded = False
+	$g_sCSVRescanLastFallback = ""
 	Local $aRescannedLocal[0]
-	If $bForceRescan Then SetDebugLog("Rescan: force list enabled", $COLOR_DEBUG)
+	Local $iForcedCount = (IsArray($aForcedEnums) ? UBound($aForcedEnums) : 0)
+	If $bForceRescan Then CSV_LogRescan("force", "cache clear enabled", $COLOR_DEBUG)
+	CSV_LogRescan("start", "reason=" & $sReason & " budget=" & $iBudgetLocal & "ms forced=" & $iForcedCount & _
+			" vecOverride=" & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets) & _
+			" sideOverride=" & $g_sCSVRecalcSideOverride, $COLOR_INFO)
 	$aRescannedEnums = $aRescannedLocal
 
 	If Not IsObj($g_oBldgAttackInfo) Then
-		SetDebugLog("Rescan fallback: keeping previous vectors (building cache missing)", $COLOR_WARNING)
+		$g_sCSVRescanLastFallback = "building cache missing"
+		CSV_LogRescan("fallback", "keeping previous vectors (building cache missing)", $COLOR_WARNING)
 		Return 0
 	EndIf
 
@@ -1486,7 +1497,8 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 	EndIf
 
 	If Not IsString($sRedline) Or $sRedline = "" Or $sRedline = "ECD" Then
-		SetDebugLog("Rescan fallback: keeping previous vectors (redline missing)", $COLOR_WARNING)
+		$g_sCSVRescanLastFallback = "redline missing"
+		CSV_LogRescan("fallback", "keeping previous vectors (redline missing)", $COLOR_WARNING)
 		Return 0
 	EndIf
 
@@ -1497,7 +1509,8 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 		$aEnumsToRescan = _CSVRescanGetMissingEnums()
 	EndIf
 	If Not IsArray($aEnumsToRescan) Or UBound($aEnumsToRescan) = 0 Then
-		SetDebugLog("Rescan skipped: no missing/PRIO enums", $COLOR_DEBUG)
+		$g_sCSVRescanLastFallback = "no missing/PRIO enums"
+		CSV_LogRescan("skip", "no missing/PRIO enums", $COLOR_DEBUG)
 		If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then _CSVPrioRebuildPlanFromLocations()
 		Return 0
 	EndIf
@@ -1515,7 +1528,7 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 
 	For $i = 0 To UBound($aEnumsToRescan) - 1
 		If __TimerDiff($hTimer) > $iBudgetLocal Then
-			SetDebugLog("Rescan budget exceeded at " & $iRescanned & "/" & UBound($aEnumsToRescan), $COLOR_WARNING)
+			CSV_LogRescan("budget", "exceeded at " & $iRescanned & "/" & UBound($aEnumsToRescan), $COLOR_WARNING)
 			$bBudgetExceeded = True
 			ExitLoop
 		EndIf
@@ -1531,8 +1544,15 @@ Func AttackCSV_LightweightRescan(ByRef $aForcedEnums, ByRef $aRescannedEnums, $i
 	If $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then _CSVPrioRebuildPlanFromLocations()
 
 	$g_iCSVRescanLastDurationMs = Round(__TimerDiff($hTimer))
-	If $bBudgetExceeded Then SetDebugLog("Rescan fallback: keeping previous vectors for remaining enums", $COLOR_WARNING)
-	SetDebugLog("Rescan complete: " & $iRescanned & " buildings in " & $g_iCSVRescanLastDurationMs & "ms", $COLOR_INFO)
+	$g_iCSVRescanLastCount = $iRescanned
+	$g_bCSVRescanLastBudgetExceeded = $bBudgetExceeded
+	If $bBudgetExceeded Then
+		$g_sCSVRescanLastFallback = "budget exceeded"
+		CSV_LogRescan("fallback", "keeping previous vectors for remaining enums", $COLOR_WARNING)
+	EndIf
+	Local $sDoneDetail = "rescanned=" & $iRescanned & " duration=" & $g_iCSVRescanLastDurationMs & "ms budgetExceeded=" & ($bBudgetExceeded ? "yes" : "no")
+	If $g_sCSVRescanLastFallback <> "" Then $sDoneDetail &= " fallback=" & $g_sCSVRescanLastFallback
+	CSV_LogRescan("done", $sDoneDetail, $COLOR_INFO)
 	If $aRescannedEnums <> Default Then $aRescannedEnums = $aRescannedLocal
 	Return SetExtended(($bBudgetExceeded ? 1 : 0), $iRescanned)
 EndFunc   ;==>AttackCSV_LightweightRescan
@@ -1767,7 +1787,7 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 
 	Local $iMask = AttackCSV_GetVecUseMaskForLine($g_iMatchMode, $iLine)
 	If $iMask = 0 Then
-		SetDebugLog("RECALC: no vectors used after line " & ($iLine + 1), $COLOR_DEBUG)
+		CSV_LogRescan("recalc skip", "no vectors used after line " & ($iLine + 1), $COLOR_DEBUG)
 		Return 0
 	EndIf
 	Local $sOverrideTrim = StringStripWS($g_sCSVRecalcVectorTargets, $STR_STRIPALL)
@@ -1775,14 +1795,14 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 		Local $sVecResolved = ""
 		Local $sVecInvalid = ""
 		Local $iOverrideMask = _CSVParseRecalcVectorOverrideMask($g_sCSVRecalcVectorTargets, $sVecResolved, $sVecInvalid)
-		If $sVecInvalid <> "" Then SetDebugLog("RECALC: vector override invalid tokens=" & $sVecInvalid, $COLOR_WARNING)
+		If $sVecInvalid <> "" Then CSV_LogRescan("recalc override", "invalid tokens=" & $sVecInvalid, $COLOR_WARNING)
 		If $iOverrideMask = 0 Then
-			SetDebugLog("RECALC: vector override invalid, using usage mask", $COLOR_WARNING)
+			CSV_LogRescan("recalc override", "invalid, using usage mask", $COLOR_WARNING)
 		Else
-			SetDebugLog("RECALC: vector override=" & $sVecResolved, $COLOR_INFO)
+			CSV_LogRescan("recalc override", "vectors=" & $sVecResolved, $COLOR_INFO)
 			$iMask = BitAND($iMask, $iOverrideMask)
 			If $iMask = 0 Then
-				SetDebugLog("RECALC: vector override yielded no eligible vectors after line " & ($iLine + 1), $COLOR_WARNING)
+				CSV_LogRescan("recalc skip", "override yielded no eligible vectors after line " & ($iLine + 1), $COLOR_WARNING)
 				Return 0
 			EndIf
 		EndIf
@@ -1796,14 +1816,14 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 			If $sMainSide <> "" Then
 				$sSideOverride = $sMainSide
 			Else
-				SetDebugLog("RECALC: MAIN side override missing, using vector side", $COLOR_WARNING)
+				CSV_LogRescan("recalc side", "MAIN missing, using vector side", $COLOR_WARNING)
 			EndIf
 		Case "NONE"
 			$sSideOverride = ""
 		Case Else
 			$sSideOverride = $sSideOverrideNorm
 	EndSwitch
-	If $sSideOverride <> "" Then SetDebugLog("RECALC: side override=" & $sSideOverride, $COLOR_INFO)
+	If $sSideOverride <> "" Then CSV_LogRescan("recalc side", "override=" & $sSideOverride, $COLOR_INFO)
 
 	Local $aVecIndex[0]
 	Local $aForcedEnums[0]
@@ -1828,7 +1848,7 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 	Next
 
 	If UBound($aVecIndex) = 0 Then
-		SetDebugLog("RECALC: no targeted vectors after line " & ($iLine + 1), $COLOR_DEBUG)
+		CSV_LogRescan("recalc skip", "no targeted vectors after line " & ($iLine + 1), $COLOR_DEBUG)
 		Return 0
 	EndIf
 
@@ -1846,11 +1866,20 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 	EndIf
 
 	If UBound($aForcedEnums) = 0 Then
-		SetDebugLog("RECALC: no enums to rescan", $COLOR_DEBUG)
+		CSV_LogRescan("recalc skip", "no enums to rescan", $COLOR_DEBUG)
 		Return 0
 	EndIf
 
-	SetDebugLog("RECALC: rescan budget=" & $iBudgetLocal & "ms force=" & ($bForceRebuild ? "yes" : "no"), $COLOR_INFO)
+	Local $sEligibleVectors = ""
+	For $i = 0 To UBound($aVecIndex) - 1
+		If $sEligibleVectors <> "" Then $sEligibleVectors &= ","
+		$sEligibleVectors &= Chr(65 + $aVecIndex[$i])
+	Next
+	CSV_LogRescan("recalc start", "reason=" & $sReason & _
+			" budget=" & $iBudgetLocal & "ms forcedEnums=" & UBound($aForcedEnums) & _
+			" vecOverride=" & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets) & _
+			" vectors=" & ($sEligibleVectors = "" ? "-" : $sEligibleVectors) & _
+			" sideOverride=" & ($sSideOverride = "" ? "NONE" : $sSideOverride), $COLOR_INFO)
 	Local $aRescanned[0]
 	Local $iRescanned = AttackCSV_LightweightRescan($aForcedEnums, $aRescanned, $iBudgetLocal, $sReason, True)
 	Local $bBudgetExceeded = (@extended = 1)
@@ -1874,40 +1903,40 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 			EndIf
 		EndIf
 
-		If $bForceRebuild Then
-			If Not $bCanEvaluate Then
-				SetDebugLog("RECALC: vec " & $sVecKey & " keep (enum not rescanned)", $COLOR_WARNING)
-				$iKept += 1
-				ContinueLoop
+			If $bForceRebuild Then
+				If Not $bCanEvaluate Then
+					CSV_LogRescan("vec keep", $sVecKey & " enum not rescanned", $COLOR_WARNING)
+					$iKept += 1
+					ContinueLoop
+				EndIf
+			Else
+				If $bCanEvaluate And $bTargetDetected Then
+					CSV_LogRescan("vec keep", $sVecKey & " target still detected", $COLOR_DEBUG)
+					$iKept += 1
+					ContinueLoop
+				EndIf
+				If Not $bCanEvaluate Then
+					CSV_LogRescan("vec keep", $sVecKey & " enum not rescanned", $COLOR_WARNING)
+					$iKept += 1
+					ContinueLoop
+				EndIf
 			EndIf
-		Else
-			If $bCanEvaluate And $bTargetDetected Then
-				SetDebugLog("RECALC: vec " & $sVecKey & " keep (target still detected)", $COLOR_DEBUG)
-				$iKept += 1
-				ContinueLoop
-			EndIf
-			If Not $bCanEvaluate Then
-				SetDebugLog("RECALC: vec " & $sVecKey & " keep (enum not rescanned)", $COLOR_WARNING)
-				$iKept += 1
-				ContinueLoop
-			EndIf
-		EndIf
 
-		Local $sTarget = $g_asCSVMakeVecTargetName[$iVecIndex]
-		If $sTarget = "" Then
-			SetDebugLog("RECALC: vec " & $sVecKey & " keep (target name missing)", $COLOR_WARNING)
-			$iKept += 1
-			ContinueLoop
-		EndIf
+			Local $sTarget = $g_asCSVMakeVecTargetName[$iVecIndex]
+			If $sTarget = "" Then
+				CSV_LogRescan("vec keep", $sVecKey & " target name missing", $COLOR_WARNING)
+				$iKept += 1
+				ContinueLoop
+			EndIf
 		Local $sVecSide = $g_aCSVMakeVecSide[$iVecIndex]
 		If $sSideOverride <> "" Then $sVecSide = $sSideOverride
 		Local $aNewVector = MakeTargetDropPoints($sVecSide, $g_aCSVMakeVecPoints[$iVecIndex], $g_aCSVMakeVecAddTiles[$iVecIndex], $sTarget)
-		If @error Or Not IsArray($aNewVector) Or UBound($aNewVector) = 0 Then
-			Assign("ATTACKVECTOR_" & $sVecKey, "")
-			$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
-			SetDebugLog("RECALC: vec " & $sVecKey & " cleared (target missing)", $COLOR_WARNING)
-			$iCleared += 1
-		Else
+			If @error Or Not IsArray($aNewVector) Or UBound($aNewVector) = 0 Then
+				Assign("ATTACKVECTOR_" & $sVecKey, "")
+				$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
+				CSV_LogRescan("vec cleared", $sVecKey & " target missing", $COLOR_WARNING)
+				$iCleared += 1
+			Else
 			Assign("ATTACKVECTOR_" & $sVecKey, $aNewVector)
 			$g_aiCSVMakeVecResolvedEnum[$iVecIndex] = $g_iCSVLastMakeResolvedEnum
 			If $g_aCSVMakeVecType[$iVecIndex] = $eCSVVecTypeTarget Then $g_aiCSVMakeVecTargetEnum[$iVecIndex] = $g_iCSVLastMakeResolvedEnum
@@ -1918,13 +1947,15 @@ Func AttackCSV_RecalcMakeVectors($iBudgetMs = Default, $sReason = "", $bForceReb
 			Else
 				$g_abCSVMakeVecTargetLocValid[$iVecIndex] = False
 			EndIf
-			SetDebugLog("RECALC: vec " & $sVecKey & " rebuilt target=" & $sTarget, $COLOR_INFO)
-			$iRebuilt += 1
-		EndIf
+				CSV_LogRescan("vec rebuilt", $sVecKey & " target=" & $sTarget, $COLOR_INFO)
+				$iRebuilt += 1
+			EndIf
 	Next
 
-	If $bBudgetExceeded Then SetDebugLog("RECALC: budget exceeded, some vectors kept", $COLOR_WARNING)
-	SetDebugLog("RECALC: done rebuilt=" & $iRebuilt & " kept=" & $iKept & " cleared=" & $iCleared, $COLOR_INFO)
+	If $bBudgetExceeded Then CSV_LogRescan("recalc", "budget exceeded, some vectors kept", $COLOR_WARNING)
+	CSV_LogRescan("recalc done", "vectors=" & ($sEligibleVectors = "" ? "-" : $sEligibleVectors) & _
+			" rebuilt=" & $iRebuilt & " kept=" & $iKept & " cleared=" & $iCleared & _
+			" rescanned=" & $iRescanned, $COLOR_INFO)
 	Return $iRebuilt
 EndFunc   ;==>AttackCSV_RecalcMakeVectors
 
