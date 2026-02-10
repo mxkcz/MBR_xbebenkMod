@@ -1,588 +1,71 @@
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: MBR GUI Control Attack Scripted
-; Description ...: This file Includes all functions to current GUI
+; Name ..........: MBR GUI Control Attack CSV Mod
+; Description ...: GUI handlers for the CSV Mod tab.
 ; Syntax ........:
 ; Parameters ....: None
 ; Return values .: None
-; Author ........: MyBot.run team
-; Modified ......: CodeSlinger69 (2017), MMHK (01-2008)
-; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
-;                  MyBot is distributed under the terms of the GNU GPL
+; Author ........: mxkcz
+; Modified ......: mxkcz
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
-; Link ..........: https://github.com/MyBotRun/MyBot/wiki
-; Example .......: No
-; ===============================================================================================================================
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 #include-once
 
-Global $g_bCSVSettingsDirty = False
-Global $g_sCSVSettingsLastLoad = ""
-Global $g_sCSVSettingsVersion = ""
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVMod_ToggleDisableFullResources
+; Description ...: Updates auto-disable search criteria flag when storage is full.
+; Syntax ........:
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func CSVMod_ToggleDisableFullResources()
+	$g_bSearchDisableFullResources = (GUICtrlRead($g_hChkSearchDisableFullResources) = $GUI_CHECKED)
+EndFunc   ;==>CSVMod_ToggleDisableFullResources
 
-Func PopulateComboScriptsFilesDB()
-	Dim $FileSearch, $NewFile
-	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
-	Dim $output = ""
-	While True
-		$NewFile = FileFindNextFile($FileSearch)
-		If @error Then ExitLoop
-		$output = $output & StringLeft($NewFile, StringLen($NewFile) - 4) & "|"
-	WEnd
-	FileClose($FileSearch)
-	;remove last |
-	$output = StringLeft($output, StringLen($output) - 1)
-	;reset combo box
-	_GUICtrlComboBox_ResetContent($g_hCmbScriptNameDB)
-	;set combo box
-	GUICtrlSetData($g_hCmbScriptNameDB, $output)
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameDB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameDB, ""))
-	GUICtrlSetData($g_hLblNotesScriptDB, "")
-	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV: -")
-EndFunc   ;==>PopulateComboScriptsFilesDB
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_GetVersionFromFile
+; Description ...: Retrieves Version from AttackCSV file
+; Syntax ........:
+; Parameters ....: Path
+; Return values .: Str
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+; Side-effect: io (file read)
+Func AttackCSVSettings_GetVersionFromFile($sPath)
+	Local $aLines = AttackCSVSettings_ReadLines($sPath)
+	If @error Then Return "unknown"
+	Return AttackCSVSettings_DetectVersion($aLines)
+EndFunc   ;==>AttackCSVSettings_GetVersionFromFile
 
-Func PopulateComboScriptsFilesAB()
-	Dim $FileSearch, $NewFile
-	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
-	Dim $output = ""
-	While True
-		$NewFile = FileFindNextFile($FileSearch)
-		If @error Then ExitLoop
-		$output = $output & StringLeft($NewFile, StringLen($NewFile) - 4) & "|"
-	WEnd
-	FileClose($FileSearch)
-	;remove last |
-	$output = StringLeft($output, StringLen($output) - 1)
-	;reset combo box
-	_GUICtrlComboBox_ResetContent($g_hCmbScriptNameAB)
-	;set combo box
-	GUICtrlSetData($g_hCmbScriptNameAB, $output)
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameAB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameAB, ""))
-	GUICtrlSetData($g_hLblNotesScriptAB, "")
-	If $g_hLblCSVScriptVersionAB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionAB, "CSV: -")
-EndFunc   ;==>PopulateComboScriptsFilesAB
-
-
-Func cmbScriptNameDB()
-
-	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameDB)
-	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB) + 1]
-	Local $f, $result = ""
-	Local $tempvect, $line, $t
-	Local $i = 0
-	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
-	Local $bNoteHasValue = False
-	Local $sVersion = "unknown"
-
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
-		; Read in lines of text until the EOF is reached
-		While 1
-			$line = FileReadLine($f)
-			If @error = -1 Then ExitLoop
-			$tempvect = StringSplit($line, "|", 2)
-			If UBound($tempvect) >= 2 Then
-				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
-					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
-					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
-					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
-					$sNoteLine = ""
-					$bNoteHasValue = False
-					For $i = 1 To UBound($tempvect) - 1
-						$sPart = StringStripWS($tempvect[$i], 3)
-						If $sPart <> "" Then
-							If $sNoteLine <> "" Then $sNoteLine &= " | "
-							$sNoteLine &= $sPart
-							$bNoteHasValue = True
-						EndIf
-					Next
-					If $bNoteHasValue Then
-						$result &= $sNoteLine & @CRLF
-					Else
-						$result &= @CRLF
-					EndIf
-				EndIf
-			EndIf
-		WEnd
-		FileClose($f)
-		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
-
-	EndIf
-	GUICtrlSetData($g_hLblNotesScriptDB, $result)
-	If $g_hLblCSVScriptVersionDB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionDB, "CSV version: " & $sVersion)
-
-EndFunc   ;==>cmbScriptNameDB
-
-Func cmbScriptNameAB()
-
-	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameAB)
-	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB) + 1]
-	Local $f, $result = ""
-	Local $tempvect, $line, $t
-	Local $i = 0
-	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
-	Local $bNoteHasValue = False
-	Local $sVersion = "unknown"
-
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
-		; Read in lines of text until the EOF is reached
-		While 1
-			$line = FileReadLine($f)
-			If @error = -1 Then ExitLoop
-			$tempvect = StringSplit($line, "|", 2)
-			If UBound($tempvect) >= 2 Then
-				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
-					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
-					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
-					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
-					$sNoteLine = ""
-					$bNoteHasValue = False
-					For $i = 1 To UBound($tempvect) - 1
-						$sPart = StringStripWS($tempvect[$i], 3)
-						If $sPart <> "" Then
-							If $sNoteLine <> "" Then $sNoteLine &= " | "
-							$sNoteLine &= $sPart
-							$bNoteHasValue = True
-						EndIf
-					Next
-					If $bNoteHasValue Then
-						$result &= $sNoteLine & @CRLF
-					Else
-						$result &= @CRLF
-					EndIf
-				EndIf
-			EndIf
-		WEnd
-		FileClose($f)
-		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
-
-	EndIf
-	GUICtrlSetData($g_hLblNotesScriptAB, $result)
-	If $g_hLblCSVScriptVersionAB <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionAB, "CSV: " & $sVersion)
-
-EndFunc   ;==>cmbScriptNameAB
-
-
-Func UpdateComboScriptNameDB()
-	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB)
-	Local $scriptname
-	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameDB, $indexofscript, $scriptname)
-	PopulateComboScriptsFilesDB()
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameDB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameDB, $scriptname))
-	cmbScriptNameDB()
-EndFunc   ;==>UpdateComboScriptNameDB
-
-Func UpdateComboScriptNameAB()
-	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB)
-	Local $scriptname
-	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameAB, $indexofscript, $scriptname)
-	PopulateComboScriptsFilesAB()
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameAB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameAB, $scriptname))
-	cmbScriptNameAB()
-EndFunc   ;==>UpdateComboScriptNameAB
-
-
-Func EditScriptDB()
-	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameDB)
-	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB) + 1]
-	Local $f, $result = ""
-	Local $tempvect, $line, $t
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		ShellExecute("notepad.exe", $g_sCSVAttacksPath & "\" & $filename & ".csv")
-	EndIf
-EndFunc   ;==>EditScriptDB
-
-Func EditScriptAB()
-	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameAB)
-	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB) + 1]
-	Local $f, $result = ""
-	Local $tempvect, $line, $t
-	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
-		ShellExecute("notepad.exe", $g_sCSVAttacksPath & "\" & $filename & ".csv")
-	EndIf
-EndFunc   ;==>EditScriptAB
-
-
-Func AttackCSVAssignDefaultScriptName()
-	Dim $FileSearch, $NewFile
-	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
-	Dim $output = ""
-	$NewFile = FileFindNextFile($FileSearch)
-	If @error Then $output = ""
-	$output = StringLeft($NewFile, StringLen($NewFile) - 4)
-	FileClose($FileSearch)
-	;remove last |
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameDB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameDB, $output))
-	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameAB, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameAB, $output))
-
-	cmbScriptNameDB()
-	cmbScriptNameAB()
-EndFunc   ;==>AttackCSVAssignDefaultScriptName
-
-;Parse this first on load of bot, needed outside the function to update current language.ini file. Used on Func NewABScript() and NewDBScript()
-Local $temp1 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Create", "Create New Script File"), $temp2 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_0", "New Script Filename")
-Local $temp3 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_File-exists", "File exists, please input a new name"), $temp4 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Error", "An error occurred when creating the file.")
-Local $temp1 = 0, $temp2 = 0, $temp3 = 0, $temp4 = 0 ; empty temp vars
-
-Func NewScriptDB()
-	Local $filenameScript = InputBox(GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Create", -1), GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_0", -1) & ":")
-	If StringLen($filenameScript) > 0 Then
-		If FileExists($g_sCSVAttacksPath & "\" & $filenameScript & ".csv") Then
-			MsgBox("", "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_File-exists", -1))
-		Else
-			Local $hFileOpen = FileOpen($g_sCSVAttacksPath & "\" & $filenameScript & ".csv", $FO_APPEND)
-			If $hFileOpen = -1 Then
-				MsgBox($MB_SYSTEMMODAL, "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Error", -1))
-				Return False
-			Else
-				FileClose($hFileOpen)
-				$g_sAttackScrScriptName[$DB] = $filenameScript
-				UpdateComboScriptNameDB()
-				UpdateComboScriptNameAB()
-			EndIf
-		EndIf
-	EndIf
-EndFunc   ;==>NewScriptDB
-
-Func NewScriptAB()
-	Local $filenameScript = InputBox(GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Create", -1), GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_0", -1) & ":")
-	If StringLen($filenameScript) > 0 Then
-		If FileExists($g_sCSVAttacksPath & "\" & $filenameScript & ".csv") Then
-			MsgBox("", "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_File-exists", -1))
-		Else
-			Local $hFileOpen = FileOpen($g_sCSVAttacksPath & "\" & $filenameScript & ".csv", $FO_APPEND)
-			If $hFileOpen = -1 Then
-				MsgBox($MB_SYSTEMMODAL, "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Error", -1))
-				Return False
-			Else
-				FileClose($hFileOpen)
-				$g_sAttackScrScriptName[$LB] = $filenameScript
-				UpdateComboScriptNameAB()
-				UpdateComboScriptNameDB()
-
-			EndIf
-		EndIf
-	EndIf
-EndFunc   ;==>NewScriptAB
-
-
-;Parse this first on load of bot, needed outside the function to update current language.ini file. Used on Func DuplicateABScript() and DuplicateDBScript()
-Local $temp1 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_0", "Copy to New Script File"), $temp2 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_1", "Copy"), $temp3 = GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_1", "to New Script Filename")
-Local $temp1 = 0, $temp2 = 0, $temp3 = 0 ; empty temp vars
-
-Func DuplicateScriptDB()
-	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB)
-	Local $scriptname
-	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameDB, $indexofscript, $scriptname)
-	$g_sAttackScrScriptName[$DB] = $scriptname
-	Local $filenameScript = InputBox(GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_0", -1), GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_1", -1) & ": <" & $g_sAttackScrScriptName[$DB] & ">" & @CRLF & GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_1", -1) & ":")
-	If StringLen($filenameScript) > 0 Then
-		If FileExists($g_sCSVAttacksPath & "\" & $filenameScript & ".csv") Then
-			MsgBox("", "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_File-exists", -1))
-		Else
-			Local $hFileOpen = FileCopy($g_sCSVAttacksPath & "\" & $g_sAttackScrScriptName[$DB] & ".csv", $g_sCSVAttacksPath & "\" & $filenameScript & ".csv")
-
-			If $hFileOpen = -1 Then
-				MsgBox($MB_SYSTEMMODAL, "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Error", -1))
-				Return False
-			Else
-				FileClose($hFileOpen)
-				$g_sAttackScrScriptName[$DB] = $filenameScript
-				UpdateComboScriptNameDB()
-				UpdateComboScriptNameAB()
-
-			EndIf
-		EndIf
-	EndIf
-EndFunc   ;==>DuplicateScriptDB
-
-Func DuplicateScriptAB()
-	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB)
-	Local $scriptname
-	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameAB, $indexofscript, $scriptname)
-	$g_sAttackScrScriptName[$LB] = $scriptname
-	Local $filenameScript = InputBox(GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_0", -1), GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Copy_1", -1) & ": <" & $g_sAttackScrScriptName[$LB] & ">" & @CRLF & GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_New_1", -1) & ":")
-	If StringLen($filenameScript) > 0 Then
-		If FileExists($g_sCSVAttacksPath & "\" & $filenameScript & ".csv") Then
-			MsgBox("", "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_File-exists", -1))
-		Else
-			Local $hFileOpen = FileCopy($g_sCSVAttacksPath & "\" & $g_sAttackScrScriptName[$LB] & ".csv", $g_sCSVAttacksPath & "\" & $filenameScript & ".csv")
-
-			If $hFileOpen = -1 Then
-				MsgBox($MB_SYSTEMMODAL, "", GetTranslatedFileIni("MBR Popups", "Func_AttackCSVAssignDefaultScriptName_Error", -1))
-				Return False
-			Else
-				FileClose($hFileOpen)
-				$g_sAttackScrScriptName[$LB] = $filenameScript
-				UpdateComboScriptNameAB()
-				UpdateComboScriptNameDB()
-			EndIf
-		EndIf
-	EndIf
-EndFunc   ;==>DuplicateScriptAB
-
-Func ApplyScriptDB()
-	Local $iApply = 0
-	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSieges[$eSiegeMachineCount] = [0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
-	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
-	Local $sCSVCCReq = ""
-	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameDB)
-	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameDB) + 1]
-
-	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
-	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
-	If Not $iApply Then
-		SetLog("CSV settings apply failed", $COLOR_ERROR)
+; Side-effect: io (file read)
+Func AttackCSVSettings_ReadLines($sPath)
+	Local $aLines = FileReadToArray($sPath)
+	If @error Then
+		SetLog("Attack CSV settings: failed reading " & $sPath, $COLOR_ERROR)
+		SetError(1, 0, 0)
 		Return
 	EndIf
+	Return $aLines
+EndFunc   ;==>AttackCSVSettings_ReadLines
 
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVTroops) - 1
-		If $aiCSVTroops[$i] > 0 Then $iApply += 1
-	Next
-	For $i = 0 To UBound($aiCSVSpells) - 1
-		If $aiCSVSpells[$i] > 0 Then $iApply += 1
-	Next
-	If $iApply > 0 Then
-		$g_aiArmyCustomTroops = $aiCSVTroops
-		$g_aiArmyCustomSpells = $aiCSVSpells
-		$g_aiArmyCustomSiegeMachines = $aiCSVSieges
-		ApplyConfig_600_52_2("Read")
-		SetComboTroopComp() ; GUI refresh
-		SetLog("CSV Train settings applied", $COLOR_SUCCESS)
-	EndIf
 
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVHeros) - 1
-		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
-	Next
-	If $iApply > 0 Then
-		For $h = 0 To UBound($aiCSVHeros) - 1
-			If $aiCSVHeros[$h][0] > 0 Then
-				Switch $h
-					Case $eHeroBarbarianKing
-						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
-					Case $eHeroArcherQueen
-						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
-					Case $eHeroGrandWarden
-						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
-					Case $eHeroRoyalChampion
-						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
-				EndSwitch
-			EndIf
-		Next
-		radHerosApply()
-		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
-
-		GUICtrlSetState($g_hChkDBKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkDBKingAttack))
-		GUICtrlSetState($g_hChkDBQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkDBQueenAttack))
-		GUICtrlSetState($g_hChkDBWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkDBWardenAttack))
-		GUICtrlSetState($g_hChkDBChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkDBChampionAttack))
-		SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	If $sCSVCCReq <> "" Then
-		GUICtrlSetState($g_hChkDBDropCC, $GUI_CHECKED)
-		SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	$iApply = 0
-	Local $ahChkDBSpell = StringSplit($g_aGroupAttackDBSpell, "#", 2)
-	If IsArray($ahChkDBSpell) Then
-		For $i = 0 To UBound($ahChkDBSpell) - 1
-			GUICtrlSetState($ahChkDBSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
-			If $aiCSVSpells[$i] > 0 Then $iApply += 1
-		Next
-		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplDB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplDB, $iCSVRedlineRoutineItem - 1)
-		cmbScriptRedlineImplDB()
-		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineDB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $iCSVDroplineEdgeItem - 1)
-		cmbScriptDroplineDB()
-		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-
-	If $sCSVCCReq <> "" Then
-		$g_bRequestTroopsEnable = True
-		$g_sRequestTroopsText = $sCSVCCReq
-		ApplyConfig_600_11("Read")
-		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
-	EndIf
-EndFunc   ;==>ApplyScriptDB
-
-Func ApplyScriptAB()
-	Local $iApply = 0
-	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSieges[$eSiegeMachineCount] = [0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
-	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
-	Local $sCSVCCReq = ""
-	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameAB)
-	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameAB) + 1]
-
-	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
-	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
-	If Not $iApply Then
-		SetLog("CSV settings apply failed", $COLOR_ERROR)
-		Return
-	EndIf
-
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVTroops) - 1
-		If $aiCSVTroops[$i] > 0 Then $iApply += 1
-	Next
-	For $i = 0 To UBound($aiCSVSpells) - 1
-		If $aiCSVSpells[$i] > 0 Then $iApply += 1
-	Next
-	If $iApply > 0 Then
-		$g_aiArmyCustomTroops = $aiCSVTroops
-		$g_aiArmyCustomSpells = $aiCSVSpells
-		$g_aiArmyCustomSiegeMachines = $aiCSVSieges
-		ApplyConfig_600_52_2("Read")
-		SetComboTroopComp() ; GUI refresh
-		SetLog("CSV Train settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVHeros) - 1
-		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
-	Next
-	If $iApply > 0 Then
-		For $h = 0 To UBound($aiCSVHeros) - 1
-			If $aiCSVHeros[$h][0] > 0 Then
-				Switch $h
-					Case $eHeroBarbarianKing
-						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
-					Case $eHeroArcherQueen
-						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
-					Case $eHeroGrandWarden
-						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
-					Case $eHeroRoyalChampion
-						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
-				EndSwitch
-			EndIf
-		Next
-		radHerosApply()
-		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
-
-		GUICtrlSetState($g_hChkABKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkABKingAttack))
-		GUICtrlSetState($g_hChkABQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkABQueenAttack))
-		GUICtrlSetState($g_hChkABWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkABWardenAttack))
-		GUICtrlSetState($g_hChkABChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hChkABChampionAttack))
-		SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	If $sCSVCCReq <> "" Then
-		GUICtrlSetState($g_hChkABDropCC, $GUI_CHECKED)
-		SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	$iApply = 0
-	Local $ahChkABSpell = StringSplit($GroupAttackABSpell, "#", 2)
-	If IsArray($ahChkABSpell) Then
-		For $i = 0 To UBound($ahChkABSpell) - 1
-			GUICtrlSetState($ahChkABSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
-			If $aiCSVSpells[$i] > 0 Then $iApply += 1
-		Next
-		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplAB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplAB, $iCSVRedlineRoutineItem - 1)
-		cmbScriptRedlineImplAB()
-		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineAB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $iCSVDroplineEdgeItem - 1)
-		cmbScriptDroplineAB()
-		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-
-	If $sCSVCCReq <> "" Then
-		$g_bRequestTroopsEnable = True
-		$g_sRequestTroopsText = $sCSVCCReq
-		ApplyConfig_600_11("Read")
-		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
-	EndIf
-EndFunc   ;==>ApplyScriptAB
-
-Func cmbScriptRedlineImplDB()
-	$g_aiAttackScrRedlineRoutine[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplDB)
-    If $g_aiAttackScrRedlineRoutine[$DB] = 3 then
-        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_HIDE)
-        $g_aiAttackScrDroplineEdge[$DB] = $DROPLINE_FULL_EDGE_FIXED
-    Else
-        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_SHOW)
-    Endif
-EndFunc   ;==>cmbScriptRedlineImplDB
-
-Func cmbScriptRedlineImplAB()
-	$g_aiAttackScrRedlineRoutine[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplAB)
-    If $g_aiAttackScrRedlineRoutine[$LB] = 3 then
-        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_HIDE)
-        $g_aiAttackScrDroplineEdge[$LB] = $DROPLINE_FULL_EDGE_FIXED
-    Else
-        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_SHOW)
-    EndIf
-EndFunc   ;==>cmbScriptRedlineImplAB
-
-Func cmbScriptDroplineDB()
-	$g_aiAttackScrDroplineEdge[$DB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
-EndFunc   ;==>cmbScriptDroplineDB
-
-Func cmbScriptDroplineAB()
-	$g_aiAttackScrDroplineEdge[$LB] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
-EndFunc   ;==>cmbScriptDroplineAB
-
-Func OpenAttackCSVSettings()
-	If $g_hGUI_AttackCSVSettings = 0 Then Return
-	If @GUI_CtrlId = $g_hBtnAttackCSVSettingsAB Then
-		$g_iAttackCSVSettingsMode = $LB
-	ElseIf @GUI_CtrlId = $g_hBtnAttackCSVSettingsDB Then
-		$g_iAttackCSVSettingsMode = $DB
-	EndIf
-	AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
-	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_DISABLE)
-	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_DISABLE)
-	GUISetState(@SW_SHOW, $g_hGUI_AttackCSVSettings)
-EndFunc   ;==>OpenAttackCSVSettings
-
-Func CloseAttackCSVSettings()
-	If $g_hGUI_AttackCSVSettings = 0 Then Return
-	CSVSettings_RecalcOverridesChanged()
-	If $g_bCSVSettingsDirty Then
-		SetLog("Attack CSV settings: close requested with unsaved edits.", $COLOR_WARNING)
-	EndIf
-	GUISetState(@SW_HIDE, $g_hGUI_AttackCSVSettings)
-	If $g_hBtnAttackCSVSettingsDB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsDB, $GUI_ENABLE)
-	If $g_hBtnAttackCSVSettingsAB <> 0 Then GUICtrlSetState($g_hBtnAttackCSVSettingsAB, $GUI_ENABLE)
-EndFunc   ;==>CloseAttackCSVSettings
-
-; Side-effect: io (file read/write + GUI state updates)
+; Migrated CSV helper functions
 Func AttackCSVSettings_ApplyToGUI()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
 	Local $sScript = AttackCSVSettings_GetScriptName($g_iAttackCSVSettingsMode)
@@ -594,7 +77,7 @@ Func AttackCSVSettings_ApplyToGUI()
 	SetDebugLog("CSV RECALC side override = " & $g_sCSVRecalcSideOverride, $COLOR_INFO)
 	SetDebugLog("CSV RECALC vector override = " & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets), $COLOR_INFO)
 	AttackCSVSettings_SaveToCSV($g_iAttackCSVSettingsMode)
-	If $g_iAttackCSVSettingsMode = $LB Then
+	If $g_iAttackCSVSettingsMode = $RankedBattle Then
 		ApplyScriptAB()
 	Else
 		ApplyScriptDB()
@@ -637,9 +120,9 @@ Func AttackCSVSettings_ReloadFromCSV()
 EndFunc   ;==>AttackCSVSettings_ReloadFromCSV
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: AttackCSVSettings_AttackNowDB
-; Description ...: Run a manual DB test attack using the selected CSV script with updated CSV precalc.
-; Syntax ........: AttackCSVSettings_AttackNowDB()
+; Name ..........: AttackCSVSettings_AttackNowBattle
+; Description ...: Run a manual battle test attack using the selected CSV script with updated CSV precalc.
+; Syntax ........: AttackCSVSettings_AttackNowBattle()
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: mxkcz
@@ -650,15 +133,15 @@ EndFunc   ;==>AttackCSVSettings_ReloadFromCSV
 ; Link ..........:
 ; Example .......:
 ; ===============================================================================================================================
-; Side-effect: automation (triggers attack flow using DB scripted settings)
-Func AttackCSVSettings_AttackNowDB()
+; Side-effect: automation (triggers attack flow usingBattlescripted settings)
+Func AttackCSVSettings_AttackNowBattle()
 	If $g_hGUI_AttackCSVSettings = 0 Then Return
-	Local $sScript = AttackCSVSettings_GetScriptName($DB)
+	Local $sScript = AttackCSVSettings_GetScriptName($Battle)
 	If $sScript = "" Then
-		SetLog("CSV settings DB test: no DB script selected.", $COLOR_ERROR)
+		SetLog("CSV settings battle test: no battle script selected.", $COLOR_ERROR)
 		Return
 	EndIf
-	SetLog("CSV settings DB test: " & $sScript & " (manual target required)", $COLOR_INFO)
+	SetLog("CSV settings battle test: " & $sScript & " (manual target required)", $COLOR_INFO)
 
 	Local $tempbRunState = $g_bRunState
 	Local $tempSieges = $g_aiCurrentSiegeMachines
@@ -667,18 +150,18 @@ Func AttackCSVSettings_AttackNowDB()
 	$g_aiCurrentSiegeMachines[$eSiegeStoneSlammer] = 1
 	$g_aiCurrentSiegeMachines[$eSiegeBarracks] = 1
 	$g_aiCurrentSiegeMachines[$eSiegeLogLauncher] = 1
-	$g_aiAttackAlgorithm[$DB] = 1
-	$g_sAttackScrScriptName[$DB] = $sScript
-	$g_iMatchMode = $DB
+	$g_aiAttackAlgorithm[$Battle] = 1
+	$g_sAttackScrScriptName[$Battle] = $sScript
+	$g_iMatchMode = $Battle
 	$g_bRunState = True
 	If Not PrepareAttackCSV($g_iMatchMode, True) Then
-		SetDebugLog("CSV settings DB test: precalc failed, continuing with live scan", $COLOR_WARNING)
+		SetDebugLog("CSV settings battle test: precalc failed, continuing with live scan", $COLOR_WARNING)
 	EndIf
 	PrepareAttack($g_iMatchMode)
 	Algorithm_AttackCSV()
 	$g_aiCurrentSiegeMachines = $tempSieges
 	$g_bRunState = $tempbRunState
-EndFunc   ;==>AttackCSVSettings_AttackNowDB
+EndFunc   ;==>AttackCSVSettings_AttackNowBattle
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSVSettings_TestAttackLive
@@ -698,6 +181,143 @@ EndFunc   ;==>AttackCSVSettings_AttackNowDB
 Func AttackCSVSettings_TestAttackLive()
 	_AttackCSVSettings_RunTest(False)
 EndFunc   ;==>AttackCSVSettings_TestAttackLive
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: AttackCSVSettings_TestAttackBattle
+; Description ...: Backward-compatible alias used by CSV Mod script tab test button.
+; Syntax ........: AttackCSVSettings_TestAttackBattle()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func AttackCSVSettings_TestAttackBattle()
+	AttackCSVSettings_TestAttackLive()
+EndFunc   ;==>AttackCSVSettings_TestAttackBattle
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: chkBattleWardenAttack
+; Description ...: Toggle battle warden mode combo based on battle warden checkbox state.
+; Syntax ........: chkBattleWardenAttack()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func chkBattleWardenAttack()
+	If $g_hCmbDBWardenMode = 0 Or $g_hchkBattleWardenAttack = 0 Then Return
+	If GUICtrlRead($g_hchkBattleWardenAttack) = $GUI_CHECKED Then
+		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_ENABLE)
+	Else
+		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_DISABLE)
+	EndIf
+EndFunc   ;==>chkBattleWardenAttack
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: chkRankedBattleWardenAttack
+; Description ...: Toggle ranked battle warden combo based on ranked battle warden checkbox state.
+; Syntax ........: chkRankedBattleWardenAttack()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func chkRankedBattleWardenAttack()
+	If $g_hCmbABWardenMode = 0 Or $g_hchkRankedBattleWardenAttack = 0 Then Return
+	If GUICtrlRead($g_hchkRankedBattleWardenAttack) = $GUI_CHECKED Then
+		GUICtrlSetState($g_hCmbABWardenMode, $GUI_ENABLE)
+	Else
+		GUICtrlSetState($g_hCmbABWardenMode, $GUI_DISABLE)
+	EndIf
+EndFunc   ;==>chkRankedBattleWardenAttack
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: chkBattleDropCC
+; Description ...: Toggle battle siege combo based on battle drop-CC checkbox state.
+; Syntax ........: chkBattleDropCC()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func chkBattleDropCC()
+	If $g_hCmbDBSiege = 0 Or $g_hchkBattleDropCC = 0 Then Return
+	GUICtrlSetState($g_hCmbDBSiege, GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkBattleDropCC
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: chkRankedBattleDropCC
+; Description ...: Toggle ranked battle siege combo based on ranked battle drop-CC checkbox state.
+; Syntax ........: chkRankedBattleDropCC()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func chkRankedBattleDropCC()
+	If $g_hCmbABSiege = 0 Or $g_hchkRankedBattleDropCC = 0 Then Return
+	GUICtrlSetState($g_hCmbABSiege, GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+EndFunc   ;==>chkRankedBattleDropCC
+
+; Legacy callbacks retained for applyConfig compatibility after removing old Attack tabs.
+; #FUNCTION# ====================================================================================================================
+; Name ..........: cmbDBAlgorithm
+; Description ...: Compatibility callback retained for DB algorithm combo event wiring.
+; Syntax ........: cmbDBAlgorithm()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func cmbDBAlgorithm()
+EndFunc   ;==>cmbDBAlgorithm
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: cmbABAlgorithm
+; Description ...: Compatibility callback retained for AB algorithm combo event wiring.
+; Syntax ........: cmbABAlgorithm()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func cmbABAlgorithm()
+EndFunc   ;==>cmbABAlgorithm
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: AttackCSVSettings_TestAttackDry
@@ -1203,17 +823,13 @@ Func debugCSVLocateBuildings()
 	Local $currentiMatchMode = $g_iMatchMode
 	Local $currentdebugsetlog = $g_bDebugSetlog
 	Local $currentDebugBuildingPos = $g_bDebugBuildingPos
-	Local $currentDebugGetLocation = $g_bDebugGetLocation
 	Local $currentScript = $g_sAttackScrScriptName[$g_iAttackCSVSettingsMode]
-	Local $currentTargetedOnly = $g_bCSVTargetedOnlyActive
-	Local $currentImglocRedline = $g_sImglocRedline
 
 	$g_bRunState = True
 	$g_bDebugAttackCSV = True
 	$g_bDebugMakeIMGCSV = True
 	$g_bDebugSetlog = True
 	$g_bDebugBuildingPos = True
-	$g_bDebugGetLocation = True
 
 	$g_iMatchMode = $g_iAttackCSVSettingsMode
 	$g_sAttackScrScriptName[$g_iMatchMode] = $sScript
@@ -1223,83 +839,12 @@ Func debugCSVLocateBuildings()
 	ConvertInternalExternArea()
 
 	If Not CheckZoomOut("debugCSVLocateBuildings") Then
-		SetLog("CheckZoomOut failed", $COLOR_ERROR)
-		EndImageTest() ; clear test image handle
-		$g_bRunState = $currentRunState
-		$g_bDebugAttackCSV = $currentDebugAttackCSV
-		$g_bDebugMakeIMGCSV = $currentMakeIMGCSV
-		$g_iMatchMode = $currentiMatchMode
-		$g_bDebugSetlog = $currentdebugsetlog
-		$g_bDebugBuildingPos = $currentDebugBuildingPos
-		$g_bDebugGetLocation = $currentDebugGetLocation
-		$g_sAttackScrScriptName[$g_iAttackCSVSettingsMode] = $currentScript
-		$g_bCSVTargetedOnlyActive = $currentTargetedOnly
-		$g_sImglocRedline = $currentImglocRedline
-		Return
+		SetLog("CheckZoomOut failed", $COLOR_INFO)
 	EndIf
-
-	If IsObj($g_oBldgAttackInfo) Then _ObjDeleteKey($g_oBldgAttackInfo, "") ; clear stale locate data
-	$g_sImglocRedline = ""
 	ResetTHsearch()
-
 	SetLog("CSV locate debug: FindTownhall()", $COLOR_INFO)
 	SetLog("FindTownhall() = " & FindTownhall(True), $COLOR_INFO)
-
-	; Build redline and locate data similar to real CSV flow
-	_CaptureRegion2()
-	_GetRedArea($g_aiAttackScrRedlineRoutine[$g_iMatchMode])
-	If Not PrepareAttackCSV($g_iMatchMode, True) Then SetLog("CSV locate debug: PrepareAttackCSV failed", $COLOR_WARNING)
-	AttackCSV_ApplyPrepared($g_iMatchMode, $g_iSearchTH)
-	Local $aMakeSidesUsed[4] = [False, False, False, False]
-	Local $bAllMakeTargeted = False
-	Local $iCSVMaxReturnPointsOverride = Default
-	If AttackCSV_GetPreparedMakeUsage($g_iMatchMode, $aMakeSidesUsed, $bAllMakeTargeted) Then
-		$g_bCSVTargetedOnlyActive = $bAllMakeTargeted
-		If $bAllMakeTargeted And $g_iCSVTargetedMaxReturnPoints > 0 Then
-			$iCSVMaxReturnPointsOverride = AttackCSV_GetTargetMaxReturnPoints($g_iMatchMode, $g_iSearchTH, $g_iCSVTargetedMaxReturnPoints)
-		EndIf
-	EndIf
-
-	; Locate Townhall if needed
-	If $g_bCSVLocateStorageTownHall Then
-		If $g_iSearchTH = "-" Or Not _ObjSearch($g_oBldgAttackInfo, $eBldgTownHall & "_LOCATION") Then
-			imglocTHSearch(True, False, False)
-		EndIf
-	EndIf
-
-	; Collectors
-	If $g_bCSVLocateMine Then
-		$g_aiPixelMine = GetLocationMine()
-		CleanRedArea($g_aiPixelMine)
-	EndIf
-	If $g_bCSVLocateElixir Then
-		$g_aiPixelElixir = GetLocationElixir()
-		CleanRedArea($g_aiPixelElixir)
-	EndIf
-	If $g_bCSVLocateDrill Then
-		$g_aiPixelDarkElixir = GetLocationDarkElixir()
-		CleanRedArea($g_aiPixelDarkElixir)
-	EndIf
-
-	; Storages
-	If $g_bCSVLocateStorageGold Then
-		GetLocationBuilding($eBldgGoldS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
-	EndIf
-	If $g_bCSVLocateStorageElixir Then
-		GetLocationBuilding($eBldgElixirS, $g_iSearchTH, False, $iCSVMaxReturnPointsOverride)
-	EndIf
-	If $g_bCSVLocateStorageDarkElixir Then
-		Local $g_aiPixelDarkElixirStorage = GetLocationDarkElixirStorageWithLevel()
-		CleanRedArea($g_aiPixelDarkElixirStorage)
-	EndIf
-
-	AttackCSV_BatchLocateBuildings($iCSVMaxReturnPointsOverride, True)
-	If $g_bCSVLocateWall Then
-		Local $aCSVExternalWall[1], $aCSVInternalWall[1]
-		FindWallCSV($aCSVExternalWall, $aCSVInternalWall)
-	EndIf
-	_CSVBuildDropLines($aMakeSidesUsed, $bAllMakeTargeted)
-	AttackCSVDEBUGIMAGE(True)
+	SetLog("$g_sImglocRedline = " & $g_sImglocRedline, $COLOR_INFO)
 
 	If $g_bDebugMakeIMGCSV And TestCapture() = 0 Then
 		If $g_iSearchTH = "-" Then ; If TH is unknown, try again to find as it is needed for filename
@@ -1307,42 +852,6 @@ Func debugCSVLocateBuildings()
 		EndIf
 		SaveDebugImage("clean", False, Default, "TH" & $g_iSearchTH & "-") ; make clean snapshot as well
 	EndIf
-	Local $iRedCount = 0
-	If IsObj($g_oBldgAttackInfo) And _ObjSearch($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT") Then
-		$iRedCount = _ObjGetValue($g_oBldgAttackInfo, $eBldgRedLine & "_COUNT")
-	ElseIf $g_sImglocRedline <> "" Then
-		$iRedCount = UBound(StringSplit($g_sImglocRedline, "|", $STR_NOCOUNT))
-	EndIf
-	SetLog("CSV debug summary: redline=" & $iRedCount & " outer=" & $OuterDiamondLeft & "," & $OuterDiamondTop & "," & $OuterDiamondRight & "," & $OuterDiamondBottom & _
-			" offset=" & $g_iVILLAGE_OFFSET[0] & "," & $g_iVILLAGE_OFFSET[1] & "," & $g_iVILLAGE_OFFSET[2], $COLOR_INFO)
-	SetLog("CSV debug summary: droplines TL=" & (IsArray($g_aiPixelTopLeftDropLine) ? UBound($g_aiPixelTopLeftDropLine) : 0) & _
-			" TR=" & (IsArray($g_aiPixelTopRightDropLine) ? UBound($g_aiPixelTopRightDropLine) : 0) & _
-			" BL=" & (IsArray($g_aiPixelBottomLeftDropLine) ? UBound($g_aiPixelBottomLeftDropLine) : 0) & _
-			" BR=" & (IsArray($g_aiPixelBottomRightDropLine) ? UBound($g_aiPixelBottomRightDropLine) : 0), $COLOR_INFO)
-	SetLog("CSV debug summary: collectors mines=" & (IsArray($g_aiPixelMine) ? UBound($g_aiPixelMine) : 0) & _
-			" elixir=" & (IsArray($g_aiPixelElixir) ? UBound($g_aiPixelElixir) : 0) & _
-			" drill=" & (IsArray($g_aiPixelDarkElixir) ? UBound($g_aiPixelDarkElixir) : 0), $COLOR_INFO)
-	Local $iDES = 0
-	If IsArray($g_aiCSVDarkElixirStoragePos) And UBound($g_aiCSVDarkElixirStoragePos) >= 2 Then $iDES = 1
-	SetLog("CSV debug summary: storages gold=" & _CSVGetBldgCount($eBldgGoldS) & " elixir=" & _CSVGetBldgCount($eBldgElixirS) & _
-			" dark=" & $iDES & " th=" & _CSVGetBldgCount($eBldgTownHall), $COLOR_INFO)
-	Local $sDefenseSummary = "CSV debug summary: defenses"
-	If $g_bCSVLocateEagle Then $sDefenseSummary &= " Eagle=" & _CSVGetBldgCount($eBldgEagle)
-	If $g_bCSVLocateInferno Then $sDefenseSummary &= " Inferno=" & _CSVGetBldgCount($eBldgInferno)
-	If $g_bCSVLocateXBow Then $sDefenseSummary &= " XBow=" & _CSVGetBldgCount($eBldgXBow)
-	If $g_bCSVLocateWizTower Then $sDefenseSummary &= " Wiz=" & _CSVGetBldgCount($eBldgWizTower)
-	If $g_bCSVLocateSuperWizTower Then $sDefenseSummary &= " SuperWiz=" & _CSVGetBldgCount($eBldgSuperWizTower)
-	If $g_bCSVLocateMortar Then $sDefenseSummary &= " Mortar=" & _CSVGetBldgCount($eBldgMortar)
-	If $g_bCSVLocateAirDefense Then $sDefenseSummary &= " AirDef=" & _CSVGetBldgCount($eBldgAirDefense)
-	If $g_bCSVLocateSweeper Then $sDefenseSummary &= " Sweeper=" & _CSVGetBldgCount($eBldgSweeper)
-	If $g_bCSVLocateScatter Then $sDefenseSummary &= " Scatter=" & _CSVGetBldgCount($eBldgScatter)
-	If $g_bCSVLocateMonolith Then $sDefenseSummary &= " Monolith=" & _CSVGetBldgCount($eBldgMonolith)
-	If $g_bCSVLocateFireSpitter Then $sDefenseSummary &= " FireSpitter=" & _CSVGetBldgCount($eBldgFireSpitter)
-	If $g_bCSVLocateMultiArcherTower Then $sDefenseSummary &= " MultiArcher=" & _CSVGetBldgCount($eBldgMultiArcherTower)
-	If $g_bCSVLocateMultiGearTower Then $sDefenseSummary &= " MultiGear=" & _CSVGetBldgCount($eBldgMultiGearTower)
-	If $g_bCSVLocateRicochetCannon Then $sDefenseSummary &= " Ricochet=" & _CSVGetBldgCount($eBldgRicochetCannon)
-	If $g_bCSVLocateRevengeTower Then $sDefenseSummary &= " Revenge=" & _CSVGetBldgCount($eBldgRevengeTower)
-	SetLog($sDefenseSummary, $COLOR_INFO)
 	;~ SetLog("CSV locate debug: PrepareAttack()", $COLOR_INFO)
 	;~ PrepareAttack($g_iMatchMode)
 
@@ -1358,35 +867,8 @@ Func debugCSVLocateBuildings()
 	$g_iMatchMode = $currentiMatchMode
 	$g_bDebugSetlog = $currentdebugsetlog
 	$g_bDebugBuildingPos = $currentDebugBuildingPos
-	$g_bDebugGetLocation = $currentDebugGetLocation
 	$g_sAttackScrScriptName[$g_iAttackCSVSettingsMode] = $currentScript
-	$g_bCSVTargetedOnlyActive = $currentTargetedOnly
-	$g_sImglocRedline = $currentImglocRedline
 EndFunc   ;==>debugCSVLocateBuildings
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: _CSVGetBldgCount
-; Description ...: Helper to read building count from attack info dictionary.
-; Syntax ........: _CSVGetBldgCount($iEnum)
-; Parameters ....: $iEnum             - building enum to read count for.
-; Return values .: Success: integer count, or 0 if missing.
-; Author ........: mxkcz
-; Modified ......:
-; Remarks .......: This file is part of MyBotRun. Copyright 2016
-;                  MyBotRun is distributed under the terms of the GNU GPL
-; Related .......:
-; Link ..........:
-; Example .......:
-; ===============================================================================================================================
-Func _CSVGetBldgCount($iEnum)
-	If Not IsObj($g_oBldgAttackInfo) Then Return 0
-	If _ObjSearch($g_oBldgAttackInfo, $iEnum & "_COUNT") Then Return Int(_ObjGetValue($g_oBldgAttackInfo, $iEnum & "_COUNT"))
-	If _ObjSearch($g_oBldgAttackInfo, $iEnum & "_LOCATION") Then
-		Local $aLoc = _ObjGetValue($g_oBldgAttackInfo, $iEnum & "_LOCATION")
-		If IsArray($aLoc) Then Return UBound($aLoc)
-	EndIf
-	Return 0
-EndFunc   ;==>_CSVGetBldgCount
 
 ; Side-effect: io (file read + logging)
 Func AttackCSVSettings_ValidateCSV()
@@ -1508,7 +990,6 @@ Func AttackCSVSettings_ValidateCSV()
 	Else
 		SetLog("Attack CSV validation: " & $iErrors & " error(s), " & $iWarnings & " warning(s).", $COLOR_WARNING)
 	EndIf
-	AttackCSVSettings_UpdateDiagnostics()
 EndFunc   ;==>AttackCSVSettings_ValidateCSV
 
 ; Side-effect: io (GUI state updates)
@@ -1788,10 +1269,6 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 
 	AttackCSVSettings_LoadVectorFromLines($aLines)
 	CSVSettings_SetDirty(False)
-	AttackCSVSettings_UpdatePrecalcStatus()
-	AttackCSVSettings_UpdateDiagnostics()
-	AttackCSVSettings_UpdatePrioPreview()
-	AttackCSVSettings_UpdateDebugPanel()
 EndFunc   ;==>AttackCSVSettings_LoadFromCSV
 
 ; Side-effect: io (file read + GUI state updates)
@@ -1985,7 +1462,7 @@ EndFunc   ;==>AttackCSVSettings_SaveToCSV
 
 ; Side-effect: io (GUI state reads)
 Func AttackCSVSettings_GetScriptName($iMode)
-	Local $hCombo = ($iMode = $LB ? $g_hCmbScriptNameAB : $g_hCmbScriptNameDB)
+	Local $hCombo = ($iMode = $RankedBattle ? $g_hCmbScriptNameRankedBattle : $g_hCmbScriptNameBattle)
 	If $hCombo = 0 Then Return ""
 	Local $aTemp = _GUICtrlComboBox_GetListArray($hCombo)
 	Local $iSel = _GUICtrlComboBox_GetCurSel($hCombo)
@@ -1994,23 +1471,9 @@ Func AttackCSVSettings_GetScriptName($iMode)
 	Return $aTemp[$iSel + 1]
 EndFunc   ;==>AttackCSVSettings_GetScriptName
 
-; Side-effect: io (file read)
-Func AttackCSVSettings_ReadLines($sPath)
-	Local $aLines = FileReadToArray($sPath)
-	If @error Then
-		SetLog("Attack CSV settings: failed reading " & $sPath, $COLOR_ERROR)
-		SetError(1, 0, 0)
-		Return
-	EndIf
-	Return $aLines
-EndFunc   ;==>AttackCSVSettings_ReadLines
 
-; Side-effect: io (file read)
-Func AttackCSVSettings_GetVersionFromFile($sPath)
-	Local $aLines = AttackCSVSettings_ReadLines($sPath)
-	If @error Then Return "unknown"
-	Return AttackCSVSettings_DetectVersion($aLines)
-EndFunc   ;==>AttackCSVSettings_GetVersionFromFile
+
+
 
 ; Side-effect: io (file write)
 Func AttackCSVSettings_WriteLines($sPath, ByRef $aLines)
@@ -2683,20 +2146,430 @@ Func AttackCSVSettings_SetComboText($hCombo, $sValue)
 	If $iIndex >= 0 Then _GUICtrlComboBox_SetCurSel($hCombo, $iIndex)
 EndFunc   ;==>AttackCSVSettings_SetComboText
 
-Func AttackNow()
-	Local $tempbRunState = $g_bRunState
-	Local $tempSieges = $g_aiCurrentSiegeMachines
-	$g_aiCurrentSiegeMachines[$eSiegeWallWrecker] = 1
-	$g_aiCurrentSiegeMachines[$eSiegeBattleBlimp] = 1
-	$g_aiCurrentSiegeMachines[$eSiegeStoneSlammer] = 1
-	$g_aiCurrentSiegeMachines[$eSiegeBarracks] = 1
-	$g_aiCurrentSiegeMachines[$eSiegeLogLauncher] = 1
-	$g_aiAttackAlgorithm[$LB] = 1										; Select Scripted Attack
-	$g_sAttackScrScriptName[$LB] = GuiCtrlRead($g_hCmbScriptNameAB)		; Select Scripted Attack File From The Combo Box, Cos it wasn't refreshing until pressing Start button
-	$g_iMatchMode = $LB													; Select Live Base As Attack Type
-	$g_bRunState = True
-	PrepareAttack($g_iMatchMode)										;
-		Attack()			; Fire xD
-	$g_aiCurrentSiegeMachines = $tempSieges
-	$g_bRunState = $tempbRunState
-EndFunc   ;==>AttackNow
+Func PopulateComboScriptsFilesBattle()
+	Dim $FileSearch, $NewFile
+	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
+	Dim $output = ""
+	While True
+		$NewFile = FileFindNextFile($FileSearch)
+		If @error Then ExitLoop
+		$output = $output & StringLeft($NewFile, StringLen($NewFile) - 4) & "|"
+	WEnd
+	FileClose($FileSearch)
+	;remove last |
+	$output = StringLeft($output, StringLen($output) - 1)
+	;reset combo box
+	_GUICtrlComboBox_ResetContent($g_hCmbScriptNameBattle)
+	;set combo box
+	GUICtrlSetData($g_hCmbScriptNameBattle, $output)
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameBattle, ""))
+	GUICtrlSetData($g_hLblNotesScriptBattle, "")
+	If $g_hLblCSVScriptVersionBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionBattle, "CSV: -")
+EndFunc   ;==>PopulateComboScriptsFilesBattle
+
+Func PopulateComboScriptsFilesRankedBattle()
+	Dim $FileSearch, $NewFile
+	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
+	Dim $output = ""
+	While True
+		$NewFile = FileFindNextFile($FileSearch)
+		If @error Then ExitLoop
+		$output = $output & StringLeft($NewFile, StringLen($NewFile) - 4) & "|"
+	WEnd
+	FileClose($FileSearch)
+	;remove last |
+	$output = StringLeft($output, StringLen($output) - 1)
+	;reset combo box
+	_GUICtrlComboBox_ResetContent($g_hCmbScriptNameRankedBattle)
+	;set combo box
+	GUICtrlSetData($g_hCmbScriptNameRankedBattle, $output)
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameRankedBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameRankedBattle, ""))
+	GUICtrlSetData($g_hLblNotesScriptRankedBattle, "")
+	If $g_hLblCSVScriptVersionRankedBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionRankedBattle, "CSV: -")
+EndFunc   ;==>PopulateComboScriptsFilesRankedBattle
+
+
+Func cmbScriptNameBattle()
+
+	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameBattle)
+	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle) + 1]
+	Local $f, $result = ""
+	Local $tempvect, $line, $t
+	Local $i = 0
+	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
+	Local $bNoteHasValue = False
+	Local $sVersion = "unknown"
+
+	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
+		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
+		; Read in lines of text until the EOF is reached
+		While 1
+			$line = FileReadLine($f)
+			If @error = -1 Then ExitLoop
+			$tempvect = StringSplit($line, "|", 2)
+			If UBound($tempvect) >= 2 Then
+				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
+					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
+					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
+					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
+					$sNoteLine = ""
+					$bNoteHasValue = False
+					For $i = 1 To UBound($tempvect) - 1
+						$sPart = StringStripWS($tempvect[$i], 3)
+						If $sPart <> "" Then
+							If $sNoteLine <> "" Then $sNoteLine &= " | "
+							$sNoteLine &= $sPart
+							$bNoteHasValue = True
+						EndIf
+					Next
+					If $bNoteHasValue Then
+						$result &= $sNoteLine & @CRLF
+					Else
+						$result &= @CRLF
+					EndIf
+				EndIf
+			EndIf
+		WEnd
+		FileClose($f)
+		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
+
+	EndIf
+	GUICtrlSetData($g_hLblNotesScriptBattle, $result)
+	If $g_hLblCSVScriptVersionBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionBattle, "CSV version: " & $sVersion)
+	If $g_bCSVModReady Then
+		$g_iAttackCSVSettingsMode = $Battle
+		AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
+	EndIf
+
+EndFunc   ;==>cmbScriptNameBattle
+
+Func cmbScriptNameRankedBattle()
+
+	Local $tempvect1 = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameRankedBattle)
+	Local $filename = $tempvect1[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle) + 1]
+	Local $f, $result = ""
+	Local $tempvect, $line, $t
+	Local $i = 0
+	Local $sNoteKey = "", $sNoteKeyFlat = "", $sNoteLine = "", $sPart = ""
+	Local $bNoteHasValue = False
+	Local $sVersion = "unknown"
+
+	If FileExists($g_sCSVAttacksPath & "\" & $filename & ".csv") Then
+		$f = FileOpen($g_sCSVAttacksPath & "\" & $filename & ".csv", 0)
+		; Read in lines of text until the EOF is reached
+		While 1
+			$line = FileReadLine($f)
+			If @error = -1 Then ExitLoop
+			$tempvect = StringSplit($line, "|", 2)
+			If UBound($tempvect) >= 2 Then
+				If StringStripWS(StringUpper($tempvect[0]), 2) = "NOTE" Then
+					$sNoteKey = StringUpper(StringStripWS($tempvect[1], 3))
+					$sNoteKeyFlat = StringRegExpReplace($sNoteKey, "[^A-Z0-9]", "")
+					If StringLeft($sNoteKeyFlat, 10) = "CSVVERSION" Then ContinueLoop
+					$sNoteLine = ""
+					$bNoteHasValue = False
+					For $i = 1 To UBound($tempvect) - 1
+						$sPart = StringStripWS($tempvect[$i], 3)
+						If $sPart <> "" Then
+							If $sNoteLine <> "" Then $sNoteLine &= " | "
+							$sNoteLine &= $sPart
+							$bNoteHasValue = True
+						EndIf
+					Next
+					If $bNoteHasValue Then
+						$result &= $sNoteLine & @CRLF
+					Else
+						$result &= @CRLF
+					EndIf
+				EndIf
+			EndIf
+		WEnd
+		FileClose($f)
+		$sVersion = AttackCSVSettings_GetVersionFromFile($g_sCSVAttacksPath & "\" & $filename & ".csv")
+
+	EndIf
+	GUICtrlSetData($g_hLblNotesScriptRankedBattle, $result)
+	If $g_hLblCSVScriptVersionRankedBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionRankedBattle, "CSV: " & $sVersion)
+	If $g_bCSVModReady Then
+		$g_iAttackCSVSettingsMode = $RankedBattle
+		AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
+	EndIf
+
+EndFunc   ;==>cmbScriptNameRankedBattle
+
+
+Func UpdateComboScriptNameBattle()
+	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle)
+	Local $scriptname
+	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameBattle, $indexofscript, $scriptname)
+	PopulateComboScriptsFilesBattle()
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameBattle, $scriptname))
+	cmbScriptNameBattle()
+EndFunc   ;==>UpdateComboScriptNameBattle
+
+Func UpdateComboScriptNameRankedBattle()
+	Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle)
+	Local $scriptname
+	_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRankedBattle, $indexofscript, $scriptname)
+	PopulateComboScriptsFilesRankedBattle()
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameRankedBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameRankedBattle, $scriptname))
+	cmbScriptNameRankedBattle()
+EndFunc   ;==>UpdateComboScriptNameRankedBattle
+
+
+
+Func AttackCSVAssignDefaultScriptName()
+	Dim $FileSearch, $NewFile
+	$FileSearch = FileFindFirstFile($g_sCSVAttacksPath & "\*.csv")
+	Dim $output = ""
+	$NewFile = FileFindNextFile($FileSearch)
+	If @error Then $output = ""
+	$output = StringLeft($NewFile, StringLen($NewFile) - 4)
+	FileClose($FileSearch)
+	;remove last |
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameBattle, $output))
+	_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameRankedBattle, _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameRankedBattle, $output))
+
+	cmbScriptNameBattle()
+	cmbScriptNameRankedBattle()
+EndFunc   ;==>AttackCSVAssignDefaultScriptName
+
+; TODO: update for battle logic
+Func ApplyScriptDB()
+	Local $iApply = 0
+	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVSieges[$eSiegeMachineCount] = [0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
+	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
+	Local $sCSVCCReq = ""
+	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameBattle)
+	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle) + 1]
+
+	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
+	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
+	If Not $iApply Then
+		SetLog("CSV settings apply failed", $COLOR_ERROR)
+		Return
+	EndIf
+
+	$iApply = 0
+	For $i = 0 To UBound($aiCSVTroops) - 1
+		If $aiCSVTroops[$i] > 0 Then $iApply += 1
+	Next
+	For $i = 0 To UBound($aiCSVSpells) - 1
+		If $aiCSVSpells[$i] > 0 Then $iApply += 1
+	Next
+	If $iApply > 0 Then
+		$g_aiArmyCustomTroops = $aiCSVTroops
+		$g_aiArmyCustomSpells = $aiCSVSpells
+		$g_aiArmyCustomSiegeMachines = $aiCSVSieges
+		ApplyConfig_600_52_2("Read")
+		SetComboTroopComp() ; GUI refresh
+		SetLog("CSV Train settings applied", $COLOR_SUCCESS)
+	EndIf
+
+	$iApply = 0
+	For $i = 0 To UBound($aiCSVHeros) - 1
+		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
+	Next
+	If $iApply > 0 Then
+		For $h = 0 To UBound($aiCSVHeros) - 1
+			If $aiCSVHeros[$h][0] > 0 Then
+				Switch $h
+					Case $eHeroBarbarianKing
+						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
+					Case $eHeroArcherQueen
+						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
+					Case $eHeroGrandWarden
+						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
+					Case $eHeroRoyalChampion
+						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
+				EndSwitch
+			EndIf
+		Next
+		radHerosApply()
+		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
+
+			If $g_hchkBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkBattleKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleKingAttack))
+			If $g_hchkBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkBattleQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleQueenAttack))
+			If $g_hchkBattleWardenAttack <> 0 Then GUICtrlSetState($g_hchkBattleWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleWardenAttack))
+			If $g_hchkBattleChampionAttack <> 0 Then GUICtrlSetState($g_hchkBattleChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleChampionAttack))
+			SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
+		EndIf
+
+		If $sCSVCCReq <> "" Then
+			If $g_hchkBattleDropCC <> 0 Then GUICtrlSetState($g_hchkBattleDropCC, $GUI_CHECKED)
+			SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
+		EndIf
+
+	$iApply = 0
+	Local $ahchkBattleSpell = StringSplit($g_aGroupAttackBattleSpell, "#", 2)
+	If IsArray($ahchkBattleSpell) Then
+		For $i = 0 To UBound($ahchkBattleSpell) - 1
+			GUICtrlSetState($ahchkBattleSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+			If $aiCSVSpells[$i] > 0 Then $iApply += 1
+		Next
+		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
+	EndIf
+
+	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplBattle) + 1 Then
+		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplBattle, $iCSVRedlineRoutineItem - 1)
+		cmbScriptRedlineImplDB()
+		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
+	Else
+		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
+	EndIf
+	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineDB) + 1 Then
+		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $iCSVDroplineEdgeItem - 1)
+		cmbScriptDroplineDB()
+		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
+	Else
+		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
+	EndIf
+
+	If $sCSVCCReq <> "" Then
+		$g_bRequestTroopsEnable = True
+		$g_sRequestTroopsText = $sCSVCCReq
+		ApplyConfig_600_11("Read")
+		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
+	EndIf
+EndFunc   ;==>ApplyScriptDB
+
+; TODO: update for ranked battle logic
+Func ApplyScriptAB()
+	Local $iApply = 0
+	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVSieges[$eSiegeMachineCount] = [0, 0, 0, 0, 0, 0, 0, 0]
+	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
+	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
+	Local $sCSVCCReq = ""
+	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameRankedBattle)
+	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle) + 1]
+
+	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
+	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
+	If Not $iApply Then
+		SetLog("CSV settings apply failed", $COLOR_ERROR)
+		Return
+	EndIf
+
+	$iApply = 0
+	For $i = 0 To UBound($aiCSVTroops) - 1
+		If $aiCSVTroops[$i] > 0 Then $iApply += 1
+	Next
+	For $i = 0 To UBound($aiCSVSpells) - 1
+		If $aiCSVSpells[$i] > 0 Then $iApply += 1
+	Next
+	If $iApply > 0 Then
+		$g_aiArmyCustomTroops = $aiCSVTroops
+		$g_aiArmyCustomSpells = $aiCSVSpells
+		$g_aiArmyCustomSiegeMachines = $aiCSVSieges
+		ApplyConfig_600_52_2("Read")
+		SetComboTroopComp() ; GUI refresh
+		SetLog("CSV Train settings applied", $COLOR_SUCCESS)
+	EndIf
+
+	$iApply = 0
+	For $i = 0 To UBound($aiCSVHeros) - 1
+		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
+	Next
+	If $iApply > 0 Then
+		For $h = 0 To UBound($aiCSVHeros) - 1
+			If $aiCSVHeros[$h][0] > 0 Then
+				Switch $h
+					Case $eHeroBarbarianKing
+						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
+					Case $eHeroArcherQueen
+						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
+					Case $eHeroGrandWarden
+						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
+					Case $eHeroRoyalChampion
+						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
+						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
+				EndSwitch
+			EndIf
+		Next
+		radHerosApply()
+		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
+
+			If $g_hchkRankedBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleKingAttack))
+			If $g_hchkRankedBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleQueenAttack))
+			If $g_hchkRankedBattleWardenAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleWardenAttack))
+			If $g_hchkRankedBattleChampionAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleChampionAttack))
+			SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
+		EndIf
+
+		If $sCSVCCReq <> "" Then
+			If $g_hchkRankedBattleDropCC <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropCC, $GUI_CHECKED)
+			SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
+		EndIf
+
+	$iApply = 0
+	Local $ahchkRankedBattleSpell = StringSplit($GroupAttackABSpell, "#", 2)
+	If IsArray($ahchkRankedBattleSpell) Then
+		For $i = 0 To UBound($ahchkRankedBattleSpell) - 1
+			GUICtrlSetState($ahchkRankedBattleSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+			If $aiCSVSpells[$i] > 0 Then $iApply += 1
+		Next
+		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
+	EndIf
+
+	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplRankedBattle) + 1 Then
+		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplRankedBattle, $iCSVRedlineRoutineItem - 1)
+		cmbScriptRedlineImplAB()
+		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
+	Else
+		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
+	EndIf
+	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineAB) + 1 Then
+		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $iCSVDroplineEdgeItem - 1)
+		cmbScriptDroplineAB()
+		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
+	Else
+		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
+	EndIf
+
+	If $sCSVCCReq <> "" Then
+		$g_bRequestTroopsEnable = True
+		$g_sRequestTroopsText = $sCSVCCReq
+		ApplyConfig_600_11("Read")
+		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
+	EndIf
+EndFunc   ;==>ApplyScriptAB
+
+Func cmbScriptRedlineImplDB()
+	$g_aiAttackScrRedlineRoutine[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplBattle)
+    If $g_aiAttackScrRedlineRoutine[$Battle] = 3 then
+        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_HIDE)
+        $g_aiAttackScrDroplineEdge[$Battle] = $DROPLINE_FULL_EDGE_FIXED
+    Else
+        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_SHOW)
+    Endif
+EndFunc   ;==>cmbScriptRedlineImplDB
+
+Func cmbScriptRedlineImplAB()
+	$g_aiAttackScrRedlineRoutine[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplRankedBattle)
+    If $g_aiAttackScrRedlineRoutine[$RankedBattle] = 3 then
+        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_HIDE)
+        $g_aiAttackScrDroplineEdge[$RankedBattle] = $DROPLINE_FULL_EDGE_FIXED
+    Else
+        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_SHOW)
+    EndIf
+EndFunc   ;==>cmbScriptRedlineImplAB
+
+Func cmbScriptDroplineDB()
+	$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
+EndFunc   ;==>cmbScriptDroplineDB
+
+Func cmbScriptDroplineAB()
+	$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
+EndFunc   ;==>cmbScriptDroplineAB

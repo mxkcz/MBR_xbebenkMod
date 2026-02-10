@@ -47,76 +47,14 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 		If _Sleep(1000) Then Return
 	Next
 		
-	Local $aButton, $bTournament = False, $aMatch
-	
-	If $g_bEnableTournament Then 
-		For $i = 1 To 20 
-			If Not $g_bRunState Then Return
-			If _Sleep(50) Then Return
-			SetDebugLog("Search for FindMatch Button #" & $i, $COLOR_ACTION)
-			$aButton = QuickMIS("CNX", $g_sImgTournamentSearch, 325, 435, 540, 500)
-			If IsArray($aButton) And UBound($aButton) > 0 Then
-				For $z = 0 To UBound($aButton) - 1
-					If $aButton[$z][0] = "SignUp" Then
-						SetLog("Found SignUp Button", $COLOR_DEBUG)
-						Click($aButton[$z][1], $aButton[$z][2], 1, 0, "SignUp Tournament")
-						If _Sleep(1500) Then Return
-						If QuickMIS("BC1", $g_sImgTournamentSearch, 500, 460, 710, 530) Then
-							Click($g_iQuickMISX, $g_iQuickMISY, 1, 0, "SignUp Tournament [2]")
-							SetLog("SignIn/Join Tournament, lets wait", $COLOR_ACTION)
-							ContinueLoop 2
-						EndIf
-					EndIf
-					If $aButton[$z][0] = "SignedUp" Then
-						SetLog("Found SignedUp Button", $COLOR_DEBUG)
-						SetLog("SignedUp, Preparing Tournament", $COLOR_INFO)
-						If _Sleep(500) Then Return
-						ExitLoop 2
-					EndIf
-					If $aButton[$z][0] = "Completed" Then
-						SetLog("All Tournament Attack done", $COLOR_DEBUG2)
-						If _Sleep(500) Then Return
-						ExitLoop 2
-					EndIf
-					If $aButton[$z][0] = "Match" Then
-						SetLog("Found Tournament Match Button", $COLOR_DEBUG)
-						$aMatch = getMatchRemain()
-						If UBound($aMatch) > 0 Then
-							SetLog("Tournament match: " & $aMatch[0] & "/" & $aMatch[1], $COLOR_INFO)
-							SetLog("Match remain: " & $aMatch[1] - $aMatch[0], $COLOR_INFO)
-							If $aMatch[1] - $aMatch[0] = 0 Then 
-								SetLog("All Tournament Attack used", $COLOR_DEBUG2)
-								ExitLoop 2
-							EndIf
-						EndIf
-						Click($aButton[$z][1], $aButton[$z][2], 1, 0, "Find a Match Tournament")
-						If _Sleep(1000) Then Return
-						If Not PrepareSearchCheckArmy() Then ExitLoop 2
-						$bTournament = True
-						ExitLoop 2
-					EndIf
-				Next
-			EndIf
-		Next
-	EndIf
-	
-	Local $bAttackButtonFound = False
-	If Not $bTournament Then 
-		$bAttackButtonFound = _ColorCheck(_GetPixelColor(255, 488, True), Hex(0xF1A522, 6), 10, Default, "FindMatch")
-		If $bAttackButtonFound Then
-			Click(160, 460, 1, 0, "FindMatch")
-			$g_bLeagueAttack = False
-			If _Sleep(1000) Then Return
-			If Not PrepareSearchCheckArmy() Then Return
-		Else
-			SetLog("FindMatch Not Found!", $COLOR_DEBUG2)
-			$g_bRestart = True
-			Return
-		EndIf
-	EndIf
-	
-	If Not $bAttackButtonFound And Not $bTournament Then
-		SetLog("Cannot Find Match Button on Multiplayer Window", $COLOR_ERROR)
+	Local $bAttackButtonFound = _ColorCheck(_GetPixelColor(255, 488, True), Hex(0xF1A522, 6), 10, Default, "FindMatch")
+	If $bAttackButtonFound Then
+		Click(160, 460, 1, 0, "FindMatch")
+		$g_bLeagueAttack = False
+		If _Sleep(1000) Then Return
+		If Not PrepareSearchCheckArmy() Then Return
+	Else
+		SetLog("FindMatch Not Found!", $COLOR_DEBUG2)
 		$g_bRestart = True
 		Return
 	EndIf

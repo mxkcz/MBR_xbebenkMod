@@ -101,11 +101,11 @@ Func CreateBotDebug()
 			GUICtrlSetState(-1, $GUI_DISABLE)
 			GUICtrlSetState(-1, $GUI_HIDE)
 
-	$y += 20
-		$g_hChkDebugSmartZap = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Bot - Debug", "ChkDebugSmartZap", "Debug SmartZap"), $x, $y - 5, -1, -1)
-			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Bot - Debug", "ChkDebugSmartZap_Info _01", "Use it to debug SmartZap"))
-			GUICtrlSetState(-1, $GUI_DISABLE)
-			GUICtrlSetState(-1, $GUI_HIDE)
+	;~ $y += 20
+	;~ 	$g_hChkDebugSmartZap = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design Child Bot - Debug", "ChkDebugSmartZap", "Debug SmartZap"), $x, $y - 5, -1, -1)
+	;~ 		_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design Child Bot - Debug", "ChkDebugSmartZap_Info _01", "Use it to debug SmartZap"))
+	;~ 		GUICtrlSetState(-1, $GUI_DISABLE)
+	;~ 		GUICtrlSetState(-1, $GUI_HIDE)
 
 	Local $x = 300
 	$y = 40

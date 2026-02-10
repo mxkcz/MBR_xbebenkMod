@@ -427,7 +427,7 @@ Global $g_iThreads = 0 ; Used by ImgLoc for parallism (for this bot instance), 0
 Global $g_sProfilePath = @ScriptDir & "\Profiles"
 Global Const $g_sPrivateProfilePath = @AppDataDir & "\MyBot.run-Profiles" ; Used to save private & very sensitive profile information like shared_prefs (notification tokens will be saved in future here also)
 Global Const $g_sPrivateAuthenticationFile = @AppDataDir & "\.mybot.run.authentication"
-Global Const $g_sProfilePresetPath = @ScriptDir & "\Strategies"
+;~ Global Const $g_sProfilePresetPath = @ScriptDir & "\Strategies"
 Global $g_sProfileCurrentName = "" ; Name of profile currently being used
 Global $g_sProfileConfigPath = "" ; Path to the current config.ini being used in this profile
 Global $g_sProfileBuildingStatsPath = "" ; Path to stats_chkweakbase.ini file for this profile
@@ -613,10 +613,10 @@ Global Enum $eBarb, $eSBarb, $eArch, $eSArch, $eGiant, $eSGiant, $eGobl, $eSGobl
 			$eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, $eArmyCount
 
 ; Attack types
-Global Enum $DB, $LB, $TB ; DeadBase, ActiveBase, TownhallBully
+Global Enum $Battle, $RankedBattle, $TB ; DeadBase, ActiveBase, TownhallBully
 Global Const $g_iModeCount = 3
-Global $g_iMatchMode = 0 ; 0 Dead / 1 Live / 2 TH Bully
-Global Const $g_asModeText[3] = ["Dead Base", "Live Base", "TH Bully"]
+Global $g_iMatchMode = 0 ; 0 Battle / 1 Ranked Battle / 2 TH Bully
+Global Const $g_asModeText[3] = ["Battle", "Ranked Battle", "TH Bully"]
 
 ; Troops
 Global Enum $eTroopBarbarian, $eTroopSuperBarbarian, $eTroopArcher, $eTroopSuperArcher, $eTroopGiant, $eTroopSuperGiant, $eTroopGoblin, $eTroopSneakyGoblin, $eTroopWallBreaker, $eTroopSuperWallBreaker, $eTroopBalloon, _
@@ -713,7 +713,6 @@ Global Const $g_asHeroShortNames[$eHeroCount] = ["King", "Queen", "Warden", "Cha
 
 ; Leagues MainVillage
 Global $g_bLeagueAttack = False
-Global $g_bEnableTournament = True, $g_iTournamentAttackType = 0
 Global Enum $eLeagueUnranked, $eLeagueBronze, $eLeagueSilver, $eLeagueGold, $eLeagueCrystal, $eLeagueMaster, $eLeagueChampion, $eLeagueTitan, $eLeagueLegend, $eLeagueCount
 Global Const $g_asLeagueDetails[22][5] = [ _
 		["0", "Bronze III", "0", "B3", "400"], ["1000", "Bronze II", "0", "B2", "500"], ["1300", "Bronze I", "0", "B1", "600"], _
@@ -1100,7 +1099,7 @@ Global $g_iTrainClickDelay = 150
 Global $g_bTrainAddRandomDelayEnable = False, $g_iTrainAddRandomDelayMin = 5, $g_iTrainAddRandomDelayMax = 60
 
 ; <><><><> Attack Plan / Search & Attack / {Common Across DeadBase, ActiveBase, Bully} <><><><>
-Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $DB, $LB, $TB plus reserved slot
+Global $g_abAttackTypeEnable[$g_iModeCount + 1] = [True, False, False, -1] ; $Battle, $RankedBattle, $TB plus reserved slot
 ; Search - Start Search If
 Global $g_abSearchSearchesEnable[$g_iModeCount] = [True, False, False], $g_aiSearchSearchesMin[$g_iModeCount] = [0, 0, 0], $g_aiSearchSearchesMax[$g_iModeCount] = [0, 0, 0] ; Search count limit
 Global $g_abSearchCampsEnable[$g_iModeCount] = [False, False, False], $g_aiSearchCampsPct[$g_iModeCount] = [0, 0, 0] ; Camp limit
@@ -1122,6 +1121,75 @@ Global $g_aiFilterMaxMortarLevel[$g_iModeCount] = [5, 5, 0], $g_aiFilterMaxWizTo
 Global $g_abFilterMeetOneConditionEnable[$g_iModeCount] = [False, False, False]
 Global $g_bChkDeadEagle = 0
 Global $g_iDeadEagleSearch = 0
+Global $g_bSearchDisableFullResources = False
+
+Global $g_hChkRankedBattle = 0, $g_hChkBattle = 0
+; CSV Mod GUI
+Global $g_hTabCSVMod = 0
+Global $g_hGUI_CSVMOD = 0, $g_hGUI_AttackCSVSettings = 0
+Global $g_bCSVModReady = False
+Global $g_hGUI_CSVMOD_TAB = 0
+Global $g_hGUI_CSVMOD_TAB_ITEM1 = 0, $g_hGUI_CSVMOD_TAB_ITEM2 = 0, $g_hGUI_CSVMOD_TAB_ITEM3 = 0, $g_hGUI_CSVMOD_TAB_ITEM4 = 0, $g_hGUI_CSVMOD_TAB_ITEM5 = 0
+Global $g_hGUI_CSVMOD_TAB_ITEM6 = 0, $g_hGUI_CSVMOD_TAB_ITEM7 = 0, $g_hGUI_CSVMOD_TAB_ITEM8 = 0, $g_hGUI_CSVMOD_TAB_ITEM9 = 0, $g_hGUI_CSVMOD_TAB_ITEM10 = 0
+Global $g_ahChkMeetOne[3]
+Global $g_hchkBattleActivateSearches = 0, $g_hTxtBattleSearchesMin = 0, $g_hTxtBattleSearchesMax = 0 ; Search count limit
+Global $g_hGrpBattleFilter = 0, $g_hchkBattleWaitForCastle = 0, $g_hLblBattleSearches = 0
+Global $g_hTxtDBMinGold = 0, $g_hTxtDBMinElixir = 0, $g_hTxtDBMinDarkElixir = 0
+Global $g_hPicDBMinGold = 0, $g_hPicDBMinElixir = 0, $g_hPicDBMinDarkElixir = 0
+Global $g_hChkSearchDisableFullResources = 0
+Global $g_hCmbScriptNameBattle = 0, $g_hCmbScriptNameRankedBattle = 0
+Global $g_hLblNotesScriptBattle = 0, $g_hLblCSVScriptVersionBattle = 0
+Global $g_hLblNotesScriptRankedBattle = 0, $g_hLblCSVScriptVersionRankedBattle = 0
+Global $g_hChkCSVDbgSetlog = 0, $g_hChkCSVDbgClick = 0, $g_hChkCSVDbgRedArea = 0, $g_hChkCSVDbgOcr = 0
+Global $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0, $g_hChkCSVDbgAttackTiming = 0, $g_hChkCSVDbgRescan = 0
+Global $g_hLblCSVDbgSummary = 0, $g_hTxtCSVDiagnostics = 0, $g_hTxtCSVDebugLines = 0
+Global $g_hRadCSVPrecacheConservative = 0, $g_hRadCSVPrecacheAggressive = 0
+Global $g_hLblCSVPrecacheBudget = 0, $g_hLblCSVPrecacheLast = 0, $g_hTxtCSVPrecalcStatus = 0
+Global $g_hCmbCSVForceSide = 0
+Global $g_ahCSVSideWeightInputs[7] = [0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCSVSideWeightSpin[7] = [0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCSVSideBWeightInputs[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCSVSideBWeightSpin[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Global $g_hBtnCSVSideZero = 0, $g_hBtnCSVSideEqual = 0
+Global $g_hBtnCSVSideBZero = 0, $g_hBtnCSVSideBEqual = 0
+Global $g_hChkCSVVectorTargeted = 0, $g_hCmbCSVTargetBuilding = 0, $g_hCmbCSVVectorVersus = 0, $g_hInpCSVRandomX = 0, $g_hInpCSVRandomY = 0
+Global $g_hCmbCSVVectorId = 0, $g_hCmbCSVVectorSide = 0, $g_hInpCSVPointCount = 0, $g_hInpCSVOffsetTiles = 0
+Global $g_hBtnCSVVectorSelect = 0, $g_hBtnCSVVectorUpdate = 0, $g_hBtnCSVVectorSyncTargeted = 0
+Global $g_hLblCSVVectorEditInfo = 0
+Global $g_hCmbCSVRecalcSideOverride = 0, $g_hInpCSVRecalcVectors = 0
+Global $g_hTxtCSVPrioPreview = 0, $g_hBtnCSVPrecalcRebuild = 0, $g_hBtnCSVPrecalcRecalc = 0
+; Legacy names retained for compatibility with older CSV GUI variants.
+Global $g_hChkCSVPrecalcAggressive = 0, $g_hChkCSVPrecalcConservative = 0
+Global $g_hBtnCSVPrecalcReset = 0
+Global $g_hInpCSVIndexMin = 0, $g_hInpCSVIndexMax = 0
+Global $g_hTxtCSVVectorRow = 0
+;~ Global $g_hBtnCSVVectorAdd = 0, $g_hBtnCSVVectorDelete = 0, $g_hBtnCSVVectorUp = 0, $g_hBtnCSVVectorDown = 0
+Global $g_hInpCSVDelayPointMin = 0, $g_hInpCSVDelayPointMax = 0
+Global $g_hInpCSVDelayDropMin = 0, $g_hInpCSVDelayDropMax = 0
+Global $g_hInpCSVDelaySleepMin = 0, $g_hInpCSVDelaySleepMax = 0
+Global $g_hChkCSVDropRemaining = 0, $g_hChkCSVDropHeroes = 0, $g_hChkCSVDropSpells = 0, $g_hChkCSVDropIncludeHeroes = 0, $g_hChkCSVDropIncludeSpells = 0
+Global $g_hInpCSVWaitMin = 0, $g_hInpCSVWaitMax = 0
+Global $g_hChkCSVBreakTH = 0, $g_hChkCSVBreakSiege = 0, $g_hChkCSVBreak50 = 0, $g_hChkCSVBreakAQ = 0, $g_hChkCSVBreakBK = 0, $g_hChkCSVBreakGW = 0, $g_hChkCSVBreakRC = 0, $g_hChkCSVBreakAQBK = 0
+Global $g_hChkCSVBreakAnyHero = 0
+Global $g_hCmbScriptRedlineImplBattle = 0, $g_hCmbScriptDroplineDB = 0, $g_hCmbScriptRedlineImplRankedBattle = 0, $g_hCmbScriptDroplineAB = 0
+Global $g_hCmbCSVFlexTroop = 0
+Global $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0
+Global $g_hCmbDBAlgorithm = 0, $g_hCmbDBSelectTroop = 0, $g_hCmbDBSiege = 0, $g_hCmbDBWardenMode = 0
+Global $g_hCmbABAlgorithm = 0, $g_hCmbABSelectTroop = 0, $g_hCmbABSiege = 0, $g_hCmbABWardenMode = 0
+Global $g_hchkBattleKingAttack = 0, $g_hchkBattleQueenAttack = 0, $g_hchkBattleWardenAttack = 0, $g_hchkBattleChampionAttack = 0, $g_hchkBattleDropCC = 0, $g_hchkBattleDropEmptySiege = 0
+Global $g_hchkRankedBattleKingAttack = 0, $g_hchkRankedBattleQueenAttack = 0, $g_hchkRankedBattleWardenAttack = 0, $g_hchkRankedBattleChampionAttack = 0, $g_hchkRankedBattleDropCC = 0, $g_hchkRankedBattleDropEmptySiege = 0
+Global $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0]
+Global $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
+Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0
+Global $g_hTxtCSVCCRequest = 0
+Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsDebugLocate = 0, $g_hBtnCSVSettingsTestBattle = 0, $g_hBtnCSVSettingsTestDry = 0, $g_hBtnCSVSettingsRebuildPrecalc = 0
+Global $g_hBtnCSVSettingsApply = 0, $g_hBtnCSVRefreshDiagnostics = 0
+Global $g_hLblCSVSettingsScript = 0, $g_hLblCSVSettingsPath = 0, $g_hLblCSVSettingsLoaded = 0, $g_hLblCSVSettingsVersion = 0, $g_hLblCSVSettingsDirty = 0
+Global $g_hRadAutoQueenAbility = 0, $g_hRadManQueenAbility = 0, $g_hRadBothQueenAbility = 0, $g_hTxtManQueenAbility = 0
+Global $g_hRadAutoKingAbility = 0, $g_hRadManKingAbility = 0, $g_hRadBothKingAbility = 0, $g_hTxtManKingAbility = 0
+Global $g_hRadAutoWardenAbility = 0, $g_hRadManWardenAbility = 0, $g_hRadBothWardenAbility = 0, $g_hTxtManWardenAbility = 0
+Global $g_hRadAutoChampionAbility = 0, $g_hRadManChampionAbility = 0, $g_hRadBothChampionAbility = 0, $g_hTxtManChampionAbility = 0
+Global $g_hRadAutoPrinceAbility = 0, $g_hRadManPrinceAbility = 0, $g_hRadBothPrinceAbility = 0, $g_hTxtManPrinceAbility = 0
 
 ; Attack
 Global $g_iSlotsGiants = 1
@@ -1645,7 +1713,11 @@ Global $g_bBattleZoomReady = False ; battle-scoped zoom/size cache valid
 Global $g_bBattleBarCached = False ; battle-scoped attackbar cache valid
 Global $g_sBattleBarHash = "" ; battle-scoped attackbar hash string
 Global $g_aBattleAttackBarCache[0][7] ; cached attackbar result for current battle
-Global $g_iAttackCSVSettingsMode = $DB ; Last Attack CSV settings mode (DB/LB)
+Global $g_iAttackCSVSettingsMode = $Battle ; Last Attack CSV settings mode (Battle/Ranked Battle)
+Global $g_sAttackScrScriptNameRankedBattle = ""
+Global $g_bCSVSettingsDirty = False
+Global $g_sCSVSettingsLastLoad = ""
+Global $g_sCSVSettingsVersion = ""
 Global Const $g_iCSVPrecacheConservative = 0
 Global Const $g_iCSVPrecacheAggressive = 1
 Global $g_iCSVPrecacheMode = $g_iCSVPrecacheConservative

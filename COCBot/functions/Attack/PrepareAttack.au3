@@ -15,7 +15,7 @@
 ; =====================================================================================================================
 Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 	
-	If ($pMatchMode = $DB And $g_aiAttackAlgorithm[$DB] = 1) Or ($pMatchMode = $LB And $g_aiAttackAlgorithm[$LB] = 1) Then
+	If ($pMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 1) Or ($pMatchMode = $RankedBattle And $g_aiAttackAlgorithm[$RankedBattle] = 1) Then
 		If $g_bDebugMakeIMGCSV And $bRemaining = False And TestCapture() = 0 Then
 			If $g_iSearchTH = "-" Then ; If TH is unknown, try again to find as it is needed for filename
 				imglocTHSearch(True, False, False)
@@ -104,7 +104,7 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 						Local $sLogExtension = ""
 						If Not $bRemaining Then
 							; Select castle, siege machine and warden mode
-							If $pMatchMode = $DB Or $pMatchMode = $LB Then
+							If $pMatchMode = $Battle Or $pMatchMode = $RankedBattle Then
 								Switch $avAttackBar[$j][0]
 									Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL
 										Local $tmpSiege = $avAttackBar[$j][0]
@@ -430,7 +430,7 @@ Func IsUnitUsed($iMatchMode, $iTroopIndex)
 	;	If $iFoundAt <> -1 Then	Return True
 	;	Return False
 	;Else ; Index is a Hero/Siege/Castle/Spell
-	;	If $iMatchMode <> $DB And $iMatchMode <> $LB Then
+	;	If $iMatchMode <> $Battle And $iMatchMode <> $RankedBattle Then
 	;		Return True
 	;	Else
 	;		Switch $iTroopIndex

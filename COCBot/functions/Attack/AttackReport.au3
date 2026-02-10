@@ -174,10 +174,10 @@ Func AttackReport()
 	;---
 	Local $sMatchMode
 	Switch $g_iMatchMode
-		Case $DB
-			$sMatchMode = "DB" ;Deadbase
-		Case $LB
-			$sMatchMode = "LB" ;Livebase
+		Case $Battle
+			$sMatchMode = "Battle" ; Battle
+		Case $RankedBattle
+			$sMatchMode = "RankedBattle" ; Ranked Battle
 		Case $TB
 			$sMatchMode = "TB" ;TH Bully
 	EndSwitch

@@ -74,7 +74,7 @@ Func algorithm_AllTroops() ;Attack Algorithm for all existing troops
 	EndSwitch
 
 	; $ListInfoDeploy = [Troop, No. of Sides, $WaveNb, $MaxWaveNb, $slotsPerEdge]
-	If $g_iMatchMode = $LB And $g_aiAttackStdDropSides[$LB] = 4 Then ; Customise DE side wave deployment here
+	If $g_iMatchMode = $RankedBattle And $g_aiAttackStdDropSides[$RankedBattle] = 4 Then ; Customise DE side wave deployment here
 		Switch $g_aiAttackStdDropOrder[$g_iMatchMode]
 			Case 0
 				Local $listInfoDeploy[48][5] = [[$eGole, $nbSides, 1, 1, 2] _
@@ -494,7 +494,7 @@ EndFunc   ;==>SmartAttackStrategy
 
 Func TestSA()
 	CheckZoomOut("VillageSearch")
-	PrepareAttack($DB)
+	PrepareAttack($Battle)
 	algorithm_AllTroops()
 	ReturnHome()
 EndFunc

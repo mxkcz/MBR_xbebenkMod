@@ -1009,7 +1009,7 @@ Func _CSVPrioRebuildPlanFromLocations()
 
 	If Not $g_abCSVPrepHasPrioMake[$g_iMatchMode] Then Return 1
 
-	Local $sScript = ($g_iMatchMode = $DB ? $g_sAttackScrScriptName[$DB] : $g_sAttackScrScriptName[$LB])
+	Local $sScript = ($g_iMatchMode = $Battle ? $g_sAttackScrScriptName[$Battle] : $g_sAttackScrScriptName[$LB])
 	If $sScript = "" Then Return SetError(2, 0, 0)
 
 	If AttackCSV_PreparePrioPlan($sScript) = 0 Then Return SetError(3, 0, 0)

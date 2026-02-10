@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: GKevinOD (2014)
-; Modified ......: DkEd, Hervidero (2015), CodeSlinger69 (01-2017)
+; Modified ......: DkEd, Hervidero (2015), CodeSlinger69 (01-2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -65,7 +65,7 @@ Global $g_oGuiNotInMini = ObjCreate("Scripting.Dictionary")
 #include "GUI\MBR GUI Design Bottom.au3"
 #include "GUI\MBR GUI Design Log.au3"
 #include "GUI\MBR GUI Design Village.au3"
-#include "GUI\MBR GUI Design Attack.au3"
+#include "GUI\MBR GUI Design CSV Mod.au3"
 #include "GUI\MBR GUI Design BuilderBase.au3"
 #include "GUI\MBR GUI Design Bot.au3"
 #include "GUI\MBR GUI Design About.au3"
@@ -328,8 +328,8 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	SplashStep(GetTranslatedFileIni("MBR GUI Design - Loading", "SplashStep_04", "Loading Village tab..."))
 	CreateVillageTab()
 
-	SplashStep(GetTranslatedFileIni("MBR GUI Design - Loading", "SplashStep_05", "Loading Attack tab..."))
-	CreateAttackTab()
+	SplashStep(GetTranslatedFileIni("MBR GUI Design - Loading", "SplashStep_05A", "Loading CSV Mod tab..."))
+	CreateCSVModTab()
 	
 	SplashStep(GetTranslatedFileIni("MBR GUI Design - Loading", "SplashStep_06", "Loading BuilderBase tab..."))
 	CreateBuilderBaseTab()
@@ -358,7 +358,8 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	$g_hTabMain = GUICtrlCreateTab(5, 60 + $_GUI_MAIN_TOP, $_GUI_MAIN_WIDTH - 9, $_GUI_MAIN_HEIGHT - 225) ; , $TCS_MULTILINE)
 	$g_hTabLog = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_01", "Log"))
 	$g_hTabVillage = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_02", "Village"))
-	$g_hTabAttack = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03", "Attack Plan"))
+	;~ $g_hTabAttack = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03", "Attack Plan"))
+	$g_hTabCSVMod = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_03A", "CSV Mod"))
 	$g_hTabBuilderBase = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_04", "BuilderBase"))
 	$g_hTabBot = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_05", "Bot"))
 	$g_hTabAbout = GUICtrlCreateTabItem(GetTranslatedFileIni("MBR Main GUI", "Tab_06", "About Us"))
@@ -377,13 +378,13 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	Static $g_hGUI_DONATE_TAB_ImageList = 0
 	Static $g_hGUI_UPGRADE_TAB_ImageList = 0
 	Static $g_hGUI_NOTIFY_TAB_ImageList = 0
-	Static $g_hGUI_ATTACK_TAB_ImageList = 0
-	Static $g_hGUI_TRAINARMY_TAB_ImageList = 0
-	Static $g_hGUI_SEARCH_TAB_ImageList = 0
-	Static $g_hGUI_DEADBASE_TAB_ImageList = 0
-	Static $g_hGUI_ACTIVEBASE_TAB_ImageList = 0
-	Static $g_hGUI_ATTACKOPTION_TAB_ImageList = 0
-	Static $g_hGUI_STRATEGIES_TAB_ImageList = 0
+	;~ Static $g_hGUI_ATTACK_TAB_ImageList = 0
+	;~ Static $g_hGUI_TRAINARMY_TAB_ImageList = 0
+	;~ Static $g_hGUI_SEARCH_TAB_ImageList = 0
+	;~ Static $g_hGUI_DEADBASE_TAB_ImageList = 0
+	;~ Static $g_hGUI_ACTIVEBASE_TAB_ImageList = 0
+	;~ Static $g_hGUI_ATTACKOPTION_TAB_ImageList = 0
+	;~ Static $g_hGUI_STRATEGIES_TAB_ImageList = 0
 	Static $g_hGUI_BB_TAB_ImageList = 0
 	Static $g_hGUI_BOT_TAB_ImageList = 0
 	Static $g_hGUI_STATS_TAB_ImageList = 0
@@ -396,13 +397,13 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	Bind_ImageList($g_hGUI_UPGRADE_TAB, $g_hGUI_UPGRADE_TAB_ImageList)
 	Bind_ImageList($g_hGUI_NOTIFY_TAB, $g_hGUI_NOTIFY_TAB_ImageList)
 
-	Bind_ImageList($g_hGUI_ATTACK_TAB, $g_hGUI_ATTACK_TAB_ImageList)
-	Bind_ImageList($g_hGUI_TRAINARMY_TAB, $g_hGUI_TRAINARMY_TAB_ImageList)
-	Bind_ImageList($g_hGUI_SEARCH_TAB, $g_hGUI_SEARCH_TAB_ImageList)
-	Bind_ImageList($g_hGUI_DEADBASE_TAB, $g_hGUI_DEADBASE_TAB_ImageList)
-	Bind_ImageList($g_hGUI_ACTIVEBASE_TAB, $g_hGUI_ACTIVEBASE_TAB_ImageList)
-	Bind_ImageList($g_hGUI_ATTACKOPTION_TAB, $g_hGUI_ATTACKOPTION_TAB_ImageList)
-	Bind_ImageList($g_hGUI_STRATEGIES_TAB, $g_hGUI_STRATEGIES_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_ATTACK_TAB, $g_hGUI_ATTACK_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_TRAINARMY_TAB, $g_hGUI_TRAINARMY_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_SEARCH_TAB, $g_hGUI_SEARCH_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_DEADBASE_TAB, $g_hGUI_DEADBASE_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_ACTIVEBASE_TAB, $g_hGUI_ACTIVEBASE_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_ATTACKOPTION_TAB, $g_hGUI_ATTACKOPTION_TAB_ImageList)
+	;~ Bind_ImageList($g_hGUI_STRATEGIES_TAB, $g_hGUI_STRATEGIES_TAB_ImageList)
 	Bind_ImageList($g_hGUI_BB_TAB, $g_hGUI_BB_TAB_ImageList)
 	Bind_ImageList($g_hGUI_BOT_TAB, $g_hGUI_BOT_TAB_ImageList)
 

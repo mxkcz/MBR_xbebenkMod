@@ -57,7 +57,7 @@ EndFunc
 Func CheckHeroOnUpgrade()
 	Local $aHammer, $x, $y, $aHero
 	Local $bCheck = False, $bWardenFound = False
-	Local $iWardenMode = $g_aiAttackUseWardenMode[$DB]
+	Local $iWardenMode = $g_aiAttackUseWardenMode[$Battle]
 	If QuickMIS("BC1", $g_sImgArmyOverviewExclam, 86, 200, 120, 230) Then $bCheck = True
 	If Not $bCheck Then Return
 	

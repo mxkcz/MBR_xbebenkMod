@@ -195,14 +195,14 @@ EndFunc   ;==>btnResume
 Func btnAttackNowDB()
 	If $g_bRunState Then
 		$g_bBtnAttackNowPressed = True
-		$g_iMatchMode = $DB
+		$g_iMatchMode = $Battle
 	EndIf
 EndFunc   ;==>btnAttackNowDB
 
 Func btnAttackNowLB()
 	If $g_bRunState Then
 		$g_bBtnAttackNowPressed = True
-		$g_iMatchMode = $LB
+		$g_iMatchMode = $RankedBattle
 	EndIf
 EndFunc   ;==>btnAttackNowLB
 

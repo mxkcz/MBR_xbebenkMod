@@ -489,7 +489,7 @@ Func SetupFilesAndFolders()
 	EndIf
 
 	;DirCreate($sTemplates)
-	DirCreate($g_sProfilePresetPath)
+	;~ DirCreate($g_sProfilePresetPath)
 	DirCreate($g_sPrivateProfilePath & "\" & $g_sProfileCurrentName)
 	DirCreate($g_sProfilePath & "\" & $g_sProfileCurrentName)
 	DirCreate($g_sProfileLogsPath)
@@ -838,7 +838,7 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 	EndIf
 
 	If IsSearchAttackEnabled() Then
-		Local $bWaitForClanCastle = ($g_abAttackTypeEnable[$DB] And $g_abSearchCastleWaitEnable[$DB]) Or _
+		Local $bWaitForClanCastle = ($g_abAttackTypeEnable[$Battle] And $g_abSearchCastleWaitEnable[$Battle]) Or _
 				($g_abAttackTypeEnable[$LB] And $g_abSearchCastleWaitEnable[$LB])
 		If $bWaitForClanCastle Then
 			Local $bFullClanCastle = IsFullClanCastle(True, True)
@@ -849,7 +849,7 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			EndIf
 		EndIf
 
-		If (IsSearchModeActive($DB) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
+		If (IsSearchModeActive($Battle) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
 			If Not $g_bRunState Then Return
 			;If $g_bUpdateSharedPrefs And $g_bChkSharedPrefs Then PullSharedPrefs()
 			PrepareSearch()
@@ -888,10 +888,10 @@ EndFunc   ;==>AttackMain
 Func Attack() ;Selects which algorithm
 	$g_bAttackActive = True
 	SetLog(" ====== Start Attack ====== ", $COLOR_SUCCESS)
-	If ($g_iMatchMode = $DB And $g_aiAttackAlgorithm[$DB] = 1) Or ($g_iMatchMode = $LB And $g_aiAttackAlgorithm[$LB] = 1) Then
+	If ($g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 1) Or ($g_iMatchMode = $LB And $g_aiAttackAlgorithm[$LB] = 1) Then
 		SetDebugLog("start scripted attack", $COLOR_ERROR)
 		Algorithm_AttackCSV()
-	ElseIf $g_iMatchMode = $DB And $g_aiAttackAlgorithm[$DB] = 2 Then
+	ElseIf $g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 2 Then
 		SetDebugLog("start smart farm attack", $COLOR_ERROR)
 		; Variable to return : $Return[3]  [0] = To attack InSide  [1] = Quant. Sides  [2] = Name Sides
 		Local $Nside = ChkSmartFarm()
@@ -1089,25 +1089,25 @@ Func FirstCheck()
 	EndIf
 	setupProfile()
 
-	If $g_bAlwaysDropHero Then
-		If $g_iTownHallLevel > 12 Then
-			GUICtrlSetState($g_hChkABChampionAttack, $GUI_CHECKED)
-			GUICtrlSetState($g_hChkDBChampionAttack, $GUI_CHECKED)
-		EndIf
-		If $g_iTownHallLevel > 10 Then
-			GUICtrlSetState($g_hChkABWardenAttack, $GUI_CHECKED)
-			GUICtrlSetState($g_hChkDBWardenAttack, $GUI_CHECKED)
-		EndIf
-		If $g_iTownHallLevel > 8 Then
-			GUICtrlSetState($g_hChkABQueenAttack, $GUI_CHECKED)
-			GUICtrlSetState($g_hChkDBQueenAttack, $GUI_CHECKED)
-		EndIf
-		If $g_iTownHallLevel > 6 Then
-			GUICtrlSetState($g_hChkABKingAttack, $GUI_CHECKED)
-			GUICtrlSetState($g_hChkDBKingAttack, $GUI_CHECKED)
-		EndIf
-		saveConfig()
-	EndIf
+	;~ If $g_bAlwaysDropHero Then
+	;~ 	If $g_iTownHallLevel > 12 Then
+	;~ 		GUICtrlSetState($g_hChkABChampionAttack, $GUI_CHECKED)
+	;~ 		GUICtrlSetState($g_hChkDBChampionAttack, $GUI_CHECKED)
+	;~ 	EndIf
+	;~ 	If $g_iTownHallLevel > 10 Then
+	;~ 		GUICtrlSetState($g_hChkABWardenAttack, $GUI_CHECKED)
+	;~ 		GUICtrlSetState($g_hChkDBWardenAttack, $GUI_CHECKED)
+	;~ 	EndIf
+	;~ 	If $g_iTownHallLevel > 8 Then
+	;~ 		GUICtrlSetState($g_hChkABQueenAttack, $GUI_CHECKED)
+	;~ 		GUICtrlSetState($g_hChkDBQueenAttack, $GUI_CHECKED)
+	;~ 	EndIf
+	;~ 	If $g_iTownHallLevel > 6 Then
+	;~ 		GUICtrlSetState($g_hChkABKingAttack, $GUI_CHECKED)
+	;~ 		GUICtrlSetState($g_hChkDBKingAttack, $GUI_CHECKED)
+	;~ 	EndIf
+	;~ 	saveConfig()
+	;~ EndIf
 
 	If Not $g_bRunState Then Return
 	VillageReport()

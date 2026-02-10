@@ -5,7 +5,7 @@
 ; Parameters ....: NA
 ; Return values .: NA
 ; Author ........:
-; Modified ......: CodeSlinger69 (01-2018)
+; Modified ......: CodeSlinger69 (01-2018), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -222,45 +222,47 @@ Func SaveRegularConfig()
 	SaveConfig_600_18()
 	; <><><><> Village / Notify <><><><>
 	SaveConfig_600_19()
-	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
-	SaveConfig_600_26()
-	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
-	SaveConfig_600_28()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
-	SaveConfig_600_28_DB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
-	SaveConfig_600_28_LB()
-	; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
-	SaveConfig_600_29()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack <><><><>
-	SaveConfig_600_29_DB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
-	SaveConfig_600_29_LB()
-	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
-	SaveConfig_600_30()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
-	SaveConfig_600_30_DB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
-	SaveConfig_600_30_LB()
-	; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
-	SaveConfig_AttackCSV()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
-	SaveConfig_600_31()
-	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
-	SaveConfig_600_33()
+	; <><><><> CSV Mod <><><><>
+	SaveConfig_CSVMod()
+	;~ ; <><><><> Attack Plan / Search & Attack / Bully <><><><>
+	;~ SaveConfig_600_26()
+	;~ ; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
+	;~ SaveConfig_600_28()
+	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
+	;~ SaveConfig_600_28_DB()
+	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
+	;~ SaveConfig_600_28_LB()
+	;~ ; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
+	;~ SaveConfig_600_29()
+	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Attack <><><><>
+	;~ SaveConfig_600_29_DB()
+	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
+	;~ SaveConfig_600_29_LB()
+	;~ ; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
+	;~ SaveConfig_600_30()
+	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
+	;~ SaveConfig_600_30_DB()
+	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
+	;~ SaveConfig_600_30_LB()
+	;~ ; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
+	;~ SaveConfig_AttackCSV()
+	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
+	;~ SaveConfig_600_31()
+	;~ ; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
+	;~ SaveConfig_600_33()
 	; <><><><> Bot / Options <><><><>
 	SaveConfig_600_35_1()
 	; <><><><> Bot / Profile / Switch Account <><><><>
 	SaveConfig_600_35_2()
-	; <><><> Attack Plan / Train Army / Troops/Spells <><><>
-	; troop/spell levels and counts
-	SaveConfig_600_52_2()
+	;~ ; <><><> Attack Plan / Train Army / Troops/Spells <><><>
+	;~ ; troop/spell levels and counts
+	;~ SaveConfig_600_52_2()
 	; <><><> Attack Plan / Train Army / Train Order <><><>
-	SaveConfig_600_54()
-	; <><><><> Attack Plan / Search & Attack / Options / SmartZap <><><><>
-	SaveConfig_600_56()
-	; <><><> Attack Plan / Train Army / Options <><><>
-	SaveConfig_641_1()
+	;~ SaveConfig_600_54()
+	;~ ; <><><><> Attack Plan / Search & Attack / Options / SmartZap <><><><>
+	;~ SaveConfig_600_56()
+	;~ ; <><><> Attack Plan / Train Army / Options <><><>
+	;~ SaveConfig_641_1()
 	; <><><><> Bot / Debug <><><><>
 	SaveConfig_Debug()
 	; <><><><> Attack Plan / Strategies <><><><>
@@ -538,8 +540,6 @@ Func SaveConfig_600_6()
 	_Ini_Add("other", "CheckAutoUpgradeEarly", $g_bAutoUpgradeEarly)
 	_Ini_Add("other", "ForceSwitchifNoCGEvent", $g_bChkForceSwitchifNoCGEvent)
 	_Ini_Add("other", "EnableCCSleep", $g_bEnableCCSleep)
-	_Ini_Add("other", "EnableTournament", $g_bEnableTournament)
-	_Ini_Add("other", "TournamentAttackType", $g_iTournamentAttackType)
 
 	SaveBuilderBaseMod()
 EndFunc   ;==>SaveConfig_600_6
@@ -746,18 +746,57 @@ Func SaveConfig_600_19()
 	_Ini_Add("notify", "NotifyWeekDays", $string)
 EndFunc   ;==>SaveConfig_600_19
 
-Func SaveConfig_600_26()
-	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
-	ApplyConfig_600_26(GetApplyConfigSaveAction())
-	_Ini_Add("search", "BullyMode", $g_abAttackTypeEnable[$TB] ? 1 : 0)
-	_Ini_Add("search", "ATBullyMode", $g_iAtkTBEnableCount)
-	_Ini_Add("search", "YourTH", $g_iAtkTBMaxTHLevel)
-	_Ini_Add("search", "THBullyAttackMode", $g_iAtkTBMode)
-EndFunc   ;==>SaveConfig_600_26
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SaveConfig_CSVMod
+; Description ...: Save CSV Mod search/attack settings and CSV override options.
+; Syntax ........: SaveConfig_CSVMod()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func SaveConfig_CSVMod()
+	SaveConfig_CSVMod_Search()
+	SaveConfig_CSVMod_Attack()
+	SaveConfig_AttackCSV()
+EndFunc   ;==>SaveConfig_CSVMod
 
-Func SaveConfig_600_28()
-	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
-	ApplyConfig_600_28(GetApplyConfigSaveAction())
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SaveConfig_CSVMod_Search
+; Description ...: Save CSV Mod search settings and remove legacy search filters.
+; Syntax ........: SaveConfig_CSVMod_Search()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func SaveConfig_CSVMod_Search()
+	Local $aLegacyDBSearchKeys[24] = [ _
+			"chkBattleSearchCamps", "DBEnableAfterArmyCamps", "DBMeetGE", "DBsearchGoldPlusElixir", "DBMeetDE", "DBMeetTH", "DBTHLevel", "DBMeetTHO", _
+			"DBMeetDeadEagle", "DBMeetDeadEagleSearch", _
+			"DBCheckMortar", "DBCheckWizTower", "DBCheckAirDefense", "DBCheckXBow", "DBCheckInferno", "DBCheckEagle", "DBCheckScatter", _
+			"DBWeakMortar", "DBWeakWizTower", "DBWeakAirDefense", "DBWeakXBow", "DBWeakInferno", "DBWeakEagle", "DBWeakScatter"]
+	Local $aLegacyABSearchKeys[30] = [ _
+			"chkRankedBattleSearchSearches", "ABEnableAfterCount", "ABEnableBeforeCount", "chkRankedBattleSearchCamps", "ABEnableAfterArmyCamps", "chkRankedBattleCastleWait", _
+			"ABMeetGE", "ABsearchGold", "ABsearchElixir", "ABsearchGoldPlusElixir", "ABMeetDE", "ABsearchDark", "ABMeetTH", "ABTHLevel", "ABMeetTHO", _
+			"ABCheckMortar", "ABCheckWizTower", "ABCheckAirDefense", "ABCheckXBow", "ABCheckInferno", "ABCheckEagle", "ABCheckScatter", _
+			"ABWeakMortar", "ABWeakWizTower", "ABWeakAirDefense", "ABWeakXBow", "ABWeakInferno", "ABWeakEagle", "ABWeakScatter", "ABMeetOne"]
+	Local $i = 0
+
+	ApplyConfig_CSVMod_Search_Battle(GetApplyConfigSaveAction())
+	ApplyConfig_CSVMod_Search_Ranked(GetApplyConfigSaveAction())
+
+	; Search options shared by CSV Mod flow.
 	_Ini_Add("search", "reduction", $g_bSearchReductionEnable ? 1 : 0)
 	_Ini_Add("search", "reduceCount", $g_iSearchReductionCount)
 	_Ini_Add("search", "reduceGold", $g_iSearchReductionGold)
@@ -771,292 +810,258 @@ Func SaveConfig_600_28()
 	_Ini_Add("search", "ChkRestartSearchLimit", $g_bSearchRestartEnable ? 1 : 0)
 	_Ini_Add("search", "RestartSearchLimit", $g_iSearchRestartLimit)
 	_Ini_Add("general", "AlertSearch", $g_bSearchAlertMe ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_28
+	_Ini_Add("search", "DisableFullResources", $g_bSearchDisableFullResources ? 1 : 0)
 
-Func SaveConfig_600_28_DB()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
-	ApplyConfig_600_28_DB(GetApplyConfigSaveAction())
-	_Ini_Add("search", "DBcheck", $g_abAttackTypeEnable[$DB] ? 1 : 0)
-	; Search - Start Search If
-	_Ini_Add("search", "ChkDBSearchSearches", $g_abSearchSearchesEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBEnableAfterCount", $g_aiSearchSearchesMin[$DB])
-	_Ini_Add("search", "DBEnableBeforeCount", $g_aiSearchSearchesMax[$DB])
-	_Ini_Add("search", "ChkDBSearchCamps", $g_abSearchCampsEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBEnableAfterArmyCamps", $g_aiSearchCampsPct[$DB])
-	_Ini_Add("search", "ChkDBCastleWait", $g_abSearchCastleWaitEnable[$DB] ? 1 : 0)
-	; Search - Filters
-	_Ini_Add("search", "DBMeetGE", $g_aiFilterMeetGE[$DB])
-	_Ini_Add("search", "DBsearchGold", $g_aiFilterMinGold[$DB])
-	_Ini_Add("search", "DBsearchElixir", $g_aiFilterMinElixir[$DB])
-	_Ini_Add("search", "DBsearchGoldPlusElixir", $g_aiFilterMinGoldPlusElixir[$DB])
-	_Ini_Add("search", "DBMeetDE", $g_abFilterMeetDEEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBsearchDark", $g_aiFilterMeetDEMin[$DB])
-	_Ini_Add("search", "DBMeetTH", $g_abFilterMeetTH[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBTHLevel", $g_aiFilterMeetTHMin[$DB])
-	_Ini_Add("search", "DBMeetTHO", $g_abFilterMeetTHOutsideEnable[$DB] ? 1 : 0)
+	; Battle (Deadbase) CSV Mod search.
+	_Ini_Add("search", "DBcheck", $g_abAttackTypeEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "chkBattleSearchSearches", $g_abSearchSearchesEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "DBEnableAfterCount", $g_aiSearchSearchesMin[$Battle])
+	_Ini_Add("search", "DBEnableBeforeCount", $g_aiSearchSearchesMax[$Battle])
+	_Ini_Add("search", "chkBattleCastleWait", $g_abSearchCastleWaitEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "DBsearchGold", $g_aiFilterMinGold[$Battle])
+	_Ini_Add("search", "DBsearchElixir", $g_aiFilterMinElixir[$Battle])
+	_Ini_Add("search", "DBsearchDark", $g_aiFilterMeetDEMin[$Battle])
+	_Ini_Add("search", "DBMeetOne", $g_abFilterMeetOneConditionEnable[$Battle] ? 1 : 0)
 
-	_Ini_Add("search", "DBMeetDeadEagle", $g_bChkDeadEagle ? 1 : 0)
-	_Ini_Add("search", "DBMeetDeadEagleSearch", $g_iDeadEagleSearch)
+	For $i = 0 To UBound($aLegacyDBSearchKeys) - 1
+		_Ini_Delete("search", $aLegacyDBSearchKeys[$i])
+	Next
 
-	_Ini_Add("search", "DBCheckMortar", $g_abFilterMaxMortarEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckWizTower", $g_abFilterMaxWizTowerEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckAirDefense", $g_abFilterMaxAirDefenseEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckXBow", $g_abFilterMaxXBowEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckInferno", $g_abFilterMaxInfernoEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckEagle", $g_abFilterMaxEagleEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBCheckScatter", $g_abFilterMaxScatterEnable[$DB] ? 1 : 0)
-	_Ini_Add("search", "DBWeakMortar", $g_aiFilterMaxMortarLevel[$DB])
-	_Ini_Add("search", "DBWeakWizTower", $g_aiFilterMaxWizTowerLevel[$DB])
-	_Ini_Add("search", "DBWeakAirDefense", $g_aiFilterMaxAirDefenseLevel[$DB])
-	_Ini_Add("search", "DBWeakXBow", $g_aiFilterMaxXBowLevel[$DB])
-	_Ini_Add("search", "DBWeakInferno", $g_aiFilterMaxInfernoLevel[$DB])
-	_Ini_Add("search", "DBWeakEagle", $g_aiFilterMaxEagleLevel[$DB])
-	_Ini_Add("search", "DBWeakScatter", $g_aiFilterMaxScatterLevel[$DB])
-	_Ini_Add("search", "DBMeetOne", $g_abFilterMeetOneConditionEnable[$DB] ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_28_DB
+	; Ranked battle keeps only mode enable.
+	_Ini_Add("search", "ABcheck", $g_abAttackTypeEnable[$RankedBattle] ? 1 : 0)
+	For $i = 0 To UBound($aLegacyABSearchKeys) - 1
+		_Ini_Delete("search", $aLegacyABSearchKeys[$i])
+	Next
+EndFunc   ;==>SaveConfig_CSVMod_Search
 
-Func SaveConfig_600_28_LB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
-	ApplyConfig_600_28_LB(GetApplyConfigSaveAction())
-	_Ini_Add("search", "ABcheck", $g_abAttackTypeEnable[$LB] ? 1 : 0)
-	; Search - Start Search If
-	_Ini_Add("search", "ChkABSearchSearches", $g_abSearchSearchesEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABEnableAfterCount", $g_aiSearchSearchesMin[$LB])
-	_Ini_Add("search", "ABEnableBeforeCount", $g_aiSearchSearchesMax[$LB])
-	_Ini_Add("search", "ChkABSearchCamps", $g_abSearchCampsEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABEnableAfterArmyCamps", $g_aiSearchCampsPct[$LB])
-	_Ini_Add("search", "ChkABCastleWait", $g_abSearchCastleWaitEnable[$LB] ? 1 : 0)
-	; Search - Filters
-	_Ini_Add("search", "ABMeetGE", $g_aiFilterMeetGE[$LB])
-	_Ini_Add("search", "ABsearchGold", $g_aiFilterMinGold[$LB])
-	_Ini_Add("search", "ABsearchElixir", $g_aiFilterMinElixir[$LB])
-	_Ini_Add("search", "ABsearchGoldPlusElixir", $g_aiFilterMinGoldPlusElixir[$LB])
-	_Ini_Add("search", "ABMeetDE", $g_abFilterMeetDEEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABsearchDark", $g_aiFilterMeetDEMin[$LB])
-	_Ini_Add("search", "ABMeetTH", $g_abFilterMeetTH[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABTHLevel", $g_aiFilterMeetTHMin[$LB])
-	_Ini_Add("search", "ABMeetTHO", $g_abFilterMeetTHOutsideEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckMortar", $g_abFilterMaxMortarEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckWizTower", $g_abFilterMaxWizTowerEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckAirDefense", $g_abFilterMaxAirDefenseEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckXBow", $g_abFilterMaxXBowEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckInferno", $g_abFilterMaxInfernoEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckEagle", $g_abFilterMaxEagleEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABCheckScatter", $g_abFilterMaxScatterEnable[$LB] ? 1 : 0)
-	_Ini_Add("search", "ABWeakMortar", $g_aiFilterMaxMortarLevel[$LB])
-	_Ini_Add("search", "ABWeakWizTower", $g_aiFilterMaxWizTowerLevel[$LB])
-	_Ini_Add("search", "ABWeakAirDefense", $g_aiFilterMaxAirDefenseLevel[$LB])
-	_Ini_Add("search", "ABWeakXBow", $g_aiFilterMaxXBowLevel[$LB])
-	_Ini_Add("search", "ABWeakInferno", $g_aiFilterMaxInfernoLevel[$LB])
-	_Ini_Add("search", "ABWeakEagle", $g_aiFilterMaxEagleLevel[$LB])
-	_Ini_Add("search", "ABWeakScatter", $g_aiFilterMaxScatterLevel[$LB])
-	_Ini_Add("search", "ABMeetOne", $g_abFilterMeetOneConditionEnable[$LB] ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_28_LB
+; #FUNCTION# ====================================================================================================================
+; Name ..........: SaveConfig_CSVMod_Attack
+; Description ...: Save CSV Mod attack-mode settings and script selections.
+; Syntax ........: SaveConfig_CSVMod_Attack()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func SaveConfig_CSVMod_Attack()
+	Local $sBattleScript = AttackCSVSettings_GetScriptName($Battle)
+	Local $sRankedScript = AttackCSVSettings_GetScriptName($RankedBattle)
 
-Func SaveConfig_600_29()
-	; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
-	ApplyConfig_600_29(GetApplyConfigSaveAction())
+	_SaveConfig_CSVMod_SyncHeroAbilityFromGui()
+	_SaveConfig_CSVMod_SyncAttackModeFromGui($Battle)
+	_SaveConfig_CSVMod_SyncAttackModeFromGui($RankedBattle)
+
+	If $sBattleScript <> "" Then $g_sAttackScrScriptName[$Battle] = $sBattleScript
+	If $sRankedScript <> "" Then $g_sAttackScrScriptName[$RankedBattle] = $sRankedScript
+	If $g_sAttackScrScriptName[$RankedBattle] <> "" Then $g_sAttackScrScriptNameRankedBattle = $g_sAttackScrScriptName[$RankedBattle]
+
 	_Ini_Add("attack", "ActivateQueen", $g_iActivateQueen)
 	_Ini_Add("attack", "ActivateKing", $g_iActivateKing)
 	_Ini_Add("attack", "ActivateWarden", $g_iActivateWarden)
 	_Ini_Add("attack", "ActivateChampion", $g_iActivateChampion)
+	_Ini_Add("attack", "ActivatePrince", $g_iActivatePrince)
 	_Ini_Add("attack", "delayActivateQueen", $g_iDelayActivateQueen)
 	_Ini_Add("attack", "delayActivateKing", $g_iDelayActivateKing)
 	_Ini_Add("attack", "delayActivateWarden", $g_iDelayActivateWarden)
 	_Ini_Add("attack", "delayActivateChampion", $g_iDelayActivateChampion)
-	_Ini_Add("planned", "chkAttackPlannerEnable", $g_bAttackPlannerEnable ? 1 : 0)
-	_Ini_Add("planned", "chkAttackPlannerCloseCoC", $g_bAttackPlannerCloseCoC ? 1 : 0)
-	_Ini_Add("planned", "chkAttackPlannerCloseAll", $g_bAttackPlannerCloseAll ? 1 : 0)
-	_Ini_Add("planned", "chkAttackPlannerSuspendComputer", $g_bAttackPlannerSuspendComputer ? 1 : 0)
-	_Ini_Add("planned", "chkAttackPlannerRandom", $g_bAttackPlannerRandomEnable ? 1 : 0)
-	_Ini_Add("planned", "cmbAttackPlannerRandom", $g_iAttackPlannerRandomTime)
-	_Ini_Add("planned", "chkAttackPlannerDayLimit", $g_bAttackPlannerDayLimit ? 1 : 0)
-	_Ini_Add("planned", "cmbAttackPlannerDayMin", $g_iAttackPlannerDayMin)
-	_Ini_Add("planned", "cmbAttackPlannerDayMax", $g_iAttackPlannerDayMax)
-	Local $string = ""
-	For $i = 0 To 6
-		$string &= ($g_abPlannedAttackWeekDays[$i] ? 1 : 0) & "|"
-	Next
-	_Ini_Add("planned", "attackDays", $string)
-	Local $string = ""
-	For $i = 0 To 23
-		$string &= ($g_abPlannedattackHours[$i] ? 1 : 0) & "|"
-	Next
-	_Ini_Add("planned", "attackHours", $string)
-EndFunc   ;==>SaveConfig_600_29
+	_Ini_Add("attack", "delayActivatePrince", $g_iDelayActivatePrince)
 
-Func SaveConfig_600_29_DB()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack <><><><>
-	ApplyConfig_600_29_DB(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "DBAtkAlgorithm", $g_aiAttackAlgorithm[$DB])
-	_Ini_Add("attack", "DBSelectTroop", $g_aiAttackTroopSelection[$DB])
-	_Ini_Add("attack", "DBKingAtk", BitAND($g_aiAttackUseHeroes[$DB], $eHeroKing))
-	_Ini_Add("attack", "DBQueenAtk", BitAND($g_aiAttackUseHeroes[$DB], $eHeroQueen))
-	_Ini_Add("attack", "DBWardenAtk", BitAND($g_aiAttackUseHeroes[$DB], $eHeroWarden))
-	_Ini_Add("attack", "DBChampionAtk", BitAND($g_aiAttackUseHeroes[$DB], $eHeroChampion))
-	_Ini_Add("attack", "DBDropCC", $g_abAttackDropCC[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBLightSpell", $g_abAttackUseLightSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBHealSpell", $g_abAttackUseHealSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBRageSpell", $g_abAttackUseRageSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBJumpSpell", $g_abAttackUseJumpSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBFreezeSpell", $g_abAttackUseFreezeSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBPoisonSpell", $g_abAttackUsePoisonSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBEarthquakeSpell", $g_abAttackUseEarthquakeSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBHasteSpell", $g_abAttackUseHasteSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBCloneSpell", $g_abAttackUseCloneSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBInvisibilitySpell", $g_abAttackUseInvisibilitySpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBRecallSpell", $g_abAttackUseRecallSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBSkeletonSpell", $g_abAttackUseSkeletonSpell[$DB] ? 1 : 0)
-	;_Ini_Add("attack", "DBBatSpell", $g_abAttackUseBatSpell[$DB] ? 1 : 0)
+	_Ini_Add("attack", "DBAtkAlgorithm", $g_aiAttackAlgorithm[$Battle])
+	_Ini_Add("attack", "DBSelectTroop", $g_aiAttackTroopSelection[$Battle])
+	_Ini_Add("attack", "DBKingAtk", BitAND($g_aiAttackUseHeroes[$Battle], $eHeroKing))
+	_Ini_Add("attack", "DBQueenAtk", BitAND($g_aiAttackUseHeroes[$Battle], $eHeroQueen))
+	_Ini_Add("attack", "DBWardenAtk", BitAND($g_aiAttackUseHeroes[$Battle], $eHeroWarden))
+	_Ini_Add("attack", "DBChampionAtk", BitAND($g_aiAttackUseHeroes[$Battle], $eHeroChampion))
+	_Ini_Add("attack", "DBDropCC", $g_abAttackDropCC[$Battle] ? 1 : 0)
+	_Ini_Add("attack", "DBAtkUseWardenMode", $g_aiAttackUseWardenMode[$Battle])
+	_Ini_Add("attack", "DBAtkUseSiege", $g_aiAttackUseSiege[$Battle])
+	_Ini_Add("attack", "DBDropEmptySiege", $g_bDropEmptySiege[$Battle] ? 1 : 0)
+	_Ini_Add("attack", "RedlineRoutineBattle", $g_aiAttackScrRedlineRoutine[$Battle])
+	_Ini_Add("attack", "DroplineEdgeBattle", $g_aiAttackScrDroplineEdge[$Battle])
+	_Ini_Add("attack", "ScriptDB", $g_sAttackScrScriptName[$Battle])
 
-	_Ini_Add("attack", "DBAtkUseWardenMode", $g_aiAttackUseWardenMode[$DB])
-	_Ini_Add("attack", "DBAtkUseSiege", $g_aiAttackUseSiege[$DB])
-	_Ini_Add("attack", "DBDropEmptySiege", $g_bDropEmptySiege[$DB] ? 1 : 0)
+	_Ini_Add("attack", "ABAtkAlgorithm", $g_aiAttackAlgorithm[$RankedBattle])
+	_Ini_Add("attack", "ABSelectTroop", $g_aiAttackTroopSelection[$RankedBattle])
+	_Ini_Add("attack", "ABKingAtk", BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroKing))
+	_Ini_Add("attack", "ABQueenAtk", BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroQueen))
+	_Ini_Add("attack", "ABWardenAtk", BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroWarden))
+	_Ini_Add("attack", "ABChampionAtk", BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroChampion))
+	_Ini_Add("attack", "ABDropCC", $g_abAttackDropCC[$RankedBattle] ? 1 : 0)
+	_Ini_Add("attack", "ABAtkUseWardenMode", $g_aiAttackUseWardenMode[$RankedBattle])
+	_Ini_Add("attack", "ABAtkUseSiege", $g_aiAttackUseSiege[$RankedBattle])
+	_Ini_Add("attack", "ABDropEmptySiege", $g_bDropEmptySiege[$RankedBattle] ? 1 : 0)
+	_Ini_Add("attack", "RedlineRoutineRankedBattle", $g_aiAttackScrRedlineRoutine[$RankedBattle])
+	_Ini_Add("attack", "DroplineEdgeRankedBattle", $g_aiAttackScrDroplineEdge[$RankedBattle])
+	_Ini_Add("attack", "ScriptAB", $g_sAttackScrScriptName[$RankedBattle])
+	_Ini_Add("attack", "ScriptRanked", $g_sAttackScrScriptNameRankedBattle)
+EndFunc   ;==>SaveConfig_CSVMod_Attack
 
-	SaveConfig_600_29_DB_Standard()
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _SaveConfig_CSVMod_SyncHeroAbilityFromGui
+; Description ...: Read hero ability controls from CSV Mod attack tab into globals.
+; Syntax ........: _SaveConfig_CSVMod_SyncHeroAbilityFromGui()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _SaveConfig_CSVMod_SyncHeroAbilityFromGui()
+	If $g_hRadAutoQueenAbility <> 0 Then
+		If GUICtrlRead($g_hRadAutoQueenAbility) = $GUI_CHECKED Then
+			$g_iActivateQueen = 0
+		ElseIf GUICtrlRead($g_hRadManQueenAbility) = $GUI_CHECKED Then
+			$g_iActivateQueen = 1
+		ElseIf GUICtrlRead($g_hRadBothQueenAbility) = $GUI_CHECKED Then
+			$g_iActivateQueen = 2
+		EndIf
+	EndIf
+	If $g_hTxtManQueenAbility <> 0 Then $g_iDelayActivateQueen = Int(GUICtrlRead($g_hTxtManQueenAbility) * 1000)
 
-	SaveConfig_600_29_DB_Scripted()
+	If $g_hRadAutoKingAbility <> 0 Then
+		If GUICtrlRead($g_hRadAutoKingAbility) = $GUI_CHECKED Then
+			$g_iActivateKing = 0
+		ElseIf GUICtrlRead($g_hRadManKingAbility) = $GUI_CHECKED Then
+			$g_iActivateKing = 1
+		ElseIf GUICtrlRead($g_hRadBothKingAbility) = $GUI_CHECKED Then
+			$g_iActivateKing = 2
+		EndIf
+	EndIf
+	If $g_hTxtManKingAbility <> 0 Then $g_iDelayActivateKing = Int(GUICtrlRead($g_hTxtManKingAbility) * 1000)
 
-	SaveConfig_600_29_DB_SmartFarm()
+	If $g_hRadAutoWardenAbility <> 0 Then
+		If GUICtrlRead($g_hRadAutoWardenAbility) = $GUI_CHECKED Then
+			$g_iActivateWarden = 0
+		ElseIf GUICtrlRead($g_hRadManWardenAbility) = $GUI_CHECKED Then
+			$g_iActivateWarden = 1
+		ElseIf GUICtrlRead($g_hRadBothWardenAbility) = $GUI_CHECKED Then
+			$g_iActivateWarden = 2
+		EndIf
+	EndIf
+	If $g_hTxtManWardenAbility <> 0 Then $g_iDelayActivateWarden = Int(GUICtrlRead($g_hTxtManWardenAbility) * 1000)
 
-EndFunc   ;==>SaveConfig_600_29_DB
+	If $g_hRadAutoChampionAbility <> 0 Then
+		If GUICtrlRead($g_hRadAutoChampionAbility) = $GUI_CHECKED Then
+			$g_iActivateChampion = 0
+		ElseIf GUICtrlRead($g_hRadManChampionAbility) = $GUI_CHECKED Then
+			$g_iActivateChampion = 1
+		ElseIf GUICtrlRead($g_hRadBothChampionAbility) = $GUI_CHECKED Then
+			$g_iActivateChampion = 2
+		EndIf
+	EndIf
+	If $g_hTxtManChampionAbility <> 0 Then $g_iDelayActivateChampion = Int(GUICtrlRead($g_hTxtManChampionAbility) * 1000)
 
-Func SaveConfig_600_29_DB_Standard()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Standard <><><><>
-	ApplyConfig_600_29_DB_Standard(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "DBStandardAlgorithm", $g_aiAttackStdDropOrder[$DB])
-	_Ini_Add("attack", "DBDeploy", $g_aiAttackStdDropSides[$DB])
-	_Ini_Add("attack", "DBSmartAttackRedArea", $g_abAttackStdSmartAttack[$DB] ? 1 : 0)
-	_Ini_Add("attack", "DBSmartAttackDeploy", $g_aiAttackStdSmartDeploy[$DB])
-	_Ini_Add("attack", "DBSmartAttackGoldMine", $g_abAttackStdSmartNearCollectors[$DB][0] ? 1 : 0)
-	_Ini_Add("attack", "DBSmartAttackElixirCollector", $g_abAttackStdSmartNearCollectors[$DB][1] ? 1 : 0)
-	_Ini_Add("attack", "DBSmartAttackDarkElixirDrill", $g_abAttackStdSmartNearCollectors[$DB][2] ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_29_DB_Standard
+	If $g_hRadAutoPrinceAbility <> 0 Then
+		If GUICtrlRead($g_hRadAutoPrinceAbility) = $GUI_CHECKED Then
+			$g_iActivatePrince = 0
+		ElseIf GUICtrlRead($g_hRadManPrinceAbility) = $GUI_CHECKED Then
+			$g_iActivatePrince = 1
+		ElseIf GUICtrlRead($g_hRadBothPrinceAbility) = $GUI_CHECKED Then
+			$g_iActivatePrince = 2
+		EndIf
+	EndIf
+	If $g_hTxtManPrinceAbility <> 0 Then $g_iDelayActivatePrince = Int(GUICtrlRead($g_hTxtManPrinceAbility) * 1000)
+EndFunc   ;==>_SaveConfig_CSVMod_SyncHeroAbilityFromGui
 
-Func SaveConfig_600_29_DB_Scripted()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Scripted <><><><>
-	ApplyConfig_600_29_DB_Scripted(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "RedlineRoutineDB", $g_aiAttackScrRedlineRoutine[$DB])
-	_Ini_Add("attack", "DroplineEdgeDB", $g_aiAttackScrDroplineEdge[$DB])
-	_Ini_Add("attack", "ScriptDB", $g_sAttackScrScriptName[$DB])
-EndFunc   ;==>SaveConfig_600_29_DB_Scripted
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _SaveConfig_CSVMod_SyncAttackModeFromGui
+; Description ...: Read CSV Mod per-mode attack controls into globals.
+; Syntax ........: _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
+; Parameters ....: $iMode             - Mode index ($Battle/$RankedBattle)
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; ===============================================================================================================================
+Func _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
+	Local $hCmbAlgorithm = 0, $hCmbSelectTroop = 0
+	Local $hChkKing = 0, $hChkQueen = 0, $hChkWarden = 0, $hChkChampion = 0
+	Local $hChkDropCC = 0, $hCmbWardenMode = 0, $hCmbSiege = 0, $hChkDropEmptySiege = 0
+	Local $iMask = 0, $iSel = 0
 
-Func SaveConfig_600_29_DB_SmartFarm()
-	_Ini_Add("SmartFarm", "InsidePercentage", $g_iTxtInsidePercentage)
-	_Ini_Add("SmartFarm", "OutsidePercentage", $g_iTxtOutsidePercentage)
-	_Ini_Add("SmartFarm", "DebugSmartFarm", $g_bDebugSmartFarm)
-	_Ini_Add("SmartFarm", "MaxAttackSide", $g_iCmbMaxAttackSide)
-EndFunc
+	Switch $iMode
+		Case $Battle
+			$hCmbAlgorithm = $g_hCmbDBAlgorithm
+			$hCmbSelectTroop = $g_hCmbDBSelectTroop
+			$hChkKing = $g_hchkBattleKingAttack
+			$hChkQueen = $g_hchkBattleQueenAttack
+			$hChkWarden = $g_hchkBattleWardenAttack
+			$hChkChampion = $g_hchkBattleChampionAttack
+			$hChkDropCC = $g_hchkBattleDropCC
+			$hCmbWardenMode = $g_hCmbDBWardenMode
+			$hCmbSiege = $g_hCmbDBSiege
+			$hChkDropEmptySiege = $g_hchkBattleDropEmptySiege
+		Case $RankedBattle
+			$hCmbAlgorithm = $g_hCmbABAlgorithm
+			$hCmbSelectTroop = $g_hCmbABSelectTroop
+			$hChkKing = $g_hchkRankedBattleKingAttack
+			$hChkQueen = $g_hchkRankedBattleQueenAttack
+			$hChkWarden = $g_hchkRankedBattleWardenAttack
+			$hChkChampion = $g_hchkRankedBattleChampionAttack
+			$hChkDropCC = $g_hchkRankedBattleDropCC
+			$hCmbWardenMode = $g_hCmbABWardenMode
+			$hCmbSiege = $g_hCmbABSiege
+			$hChkDropEmptySiege = $g_hchkRankedBattleDropEmptySiege
+		Case Else
+			Return
+	EndSwitch
 
-Func SaveConfig_600_29_LB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
-	ApplyConfig_600_29_LB(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "ABAtkAlgorithm", $g_aiAttackAlgorithm[$LB])
-	_Ini_Add("attack", "ABSelectTroop", $g_aiAttackTroopSelection[$LB])
-	_Ini_Add("attack", "ABKingAtk", BitAND($g_aiAttackUseHeroes[$LB], $eHeroKing))
-	_Ini_Add("attack", "ABQueenAtk", BitAND($g_aiAttackUseHeroes[$LB], $eHeroQueen))
-	_Ini_Add("attack", "ABWardenAtk", BitAND($g_aiAttackUseHeroes[$LB], $eHeroWarden))
-	_Ini_Add("attack", "ABChampionAtk", BitAND($g_aiAttackUseHeroes[$LB], $eHeroChampion))
-	_Ini_Add("attack", "ABDropCC", $g_abAttackDropCC[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABLightSpell", $g_abAttackUseLightSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABHealSpell", $g_abAttackUseHealSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABRageSpell", $g_abAttackUseRageSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABJumpSpell", $g_abAttackUseJumpSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABFreezeSpell", $g_abAttackUseFreezeSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABCloneSpell", $g_abAttackUseCloneSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABInvisibilitySpell", $g_abAttackUseInvisibilitySpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABRecallSpell", $g_abAttackUseRecallSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABPoisonSpell", $g_abAttackUsePoisonSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABEarthquakeSpell", $g_abAttackUseEarthquakeSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABHasteSpell", $g_abAttackUseHasteSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABSkeletonSpell", $g_abAttackUseSkeletonSpell[$LB] ? 1 : 0)
-	;_Ini_Add("attack", "ABBatSpell", $g_abAttackUseBatSpell[$LB] ? 1 : 0)
+	If $hCmbAlgorithm <> 0 Then
+		$iSel = _GUICtrlComboBox_GetCurSel($hCmbAlgorithm)
+		If $iSel >= 0 Then $g_aiAttackAlgorithm[$iMode] = $iSel
+	EndIf
+	If $hCmbSelectTroop <> 0 Then
+		$iSel = _GUICtrlComboBox_GetCurSel($hCmbSelectTroop)
+		If $iSel >= 0 Then $g_aiAttackTroopSelection[$iMode] = $iSel
+	EndIf
 
-	_Ini_Add("attack", "ABAtkUseWardenMode", $g_aiAttackUseWardenMode[$LB])
-	_Ini_Add("attack", "ABAtkUseSiege", $g_aiAttackUseSiege[$LB])
-	_Ini_Add("attack", "ABDropEmptySiege", $g_bDropEmptySiege[$LB] ? 1 : 0)
+	$iMask = 0
+	If $hChkKing <> 0 Then
+		If GUICtrlRead($hChkKing) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroKing)
+	Else
+		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroKing) = $eHeroKing Then $iMask = BitOR($iMask, $eHeroKing)
+	EndIf
+	If $hChkQueen <> 0 Then
+		If GUICtrlRead($hChkQueen) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroQueen)
+	Else
+		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroQueen) = $eHeroQueen Then $iMask = BitOR($iMask, $eHeroQueen)
+	EndIf
+	If $hChkWarden <> 0 Then
+		If GUICtrlRead($hChkWarden) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroWarden)
+	Else
+		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroWarden) = $eHeroWarden Then $iMask = BitOR($iMask, $eHeroWarden)
+	EndIf
+	If $hChkChampion <> 0 Then
+		If GUICtrlRead($hChkChampion) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroChampion)
+	Else
+		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroChampion) = $eHeroChampion Then $iMask = BitOR($iMask, $eHeroChampion)
+	EndIf
+	$g_aiAttackUseHeroes[$iMode] = $iMask
 
-	SaveConfig_600_29_LB_Standard()
-
-	SaveConfig_600_29_LB_Scripted()
-
-EndFunc   ;==>SaveConfig_600_29_LB
-
-Func SaveConfig_600_29_LB_Standard()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Attack / Standard <><><><>
-	ApplyConfig_600_29_LB_Standard(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "LBStandardAlgorithm", $g_aiAttackStdDropOrder[$LB])
-	_Ini_Add("attack", "ABDeploy", $g_aiAttackStdDropSides[$LB])
-	_Ini_Add("attack", "ABSmartAttackRedArea", $g_abAttackStdSmartAttack[$LB] ? 1 : 0)
-	_Ini_Add("attack", "ABSmartAttackDeploy", $g_aiAttackStdSmartDeploy[$LB])
-	_Ini_Add("attack", "ABSmartAttackGoldMine", $g_abAttackStdSmartNearCollectors[$LB][0] ? 1 : 0)
-	_Ini_Add("attack", "ABSmartAttackElixirCollector", $g_abAttackStdSmartNearCollectors[$LB][1] ? 1 : 0)
-	_Ini_Add("attack", "ABSmartAttackDarkElixirDrill", $g_abAttackStdSmartNearCollectors[$LB][2] ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_29_LB_Standard
-
-Func SaveConfig_600_29_LB_Scripted()
-	; <><><><> Attack Plan / Search & Attack / Activebase / Attack / Scripted <><><><>
-	ApplyConfig_600_29_LB_Scripted(GetApplyConfigSaveAction())
-	_Ini_Add("attack", "RedlineRoutineAB", $g_aiAttackScrRedlineRoutine[$LB])
-	_Ini_Add("attack", "DroplineEdgeAB", $g_aiAttackScrDroplineEdge[$LB])
-	_Ini_Add("attack", "ScriptAB", $g_sAttackScrScriptName[$LB])
-EndFunc   ;==>SaveConfig_600_29_LB_Scripted
-
-Func SaveConfig_600_30()
-	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
-	ApplyConfig_600_30(GetApplyConfigSaveAction())
-	_Ini_Add("shareattack", "ShareAttack", $g_bShareAttackEnable ? 1 : 0)
-	_Ini_Add("shareattack", "minGold", $g_iShareMinGold)
-	_Ini_Add("shareattack", "minElixir", $g_iShareMinElixir)
-	_Ini_Add("shareattack", "minDark", $g_iShareMinDark)
-	_Ini_Add("shareattack", "Message", $g_sShareMessage)
-	_Ini_Add("attack", "TakeLootSnapShot", $g_bTakeLootSnapShot ? 1 : 0)
-	_Ini_Add("attack", "ScreenshotLootInfo", $g_bScreenshotLootInfo ? 1 : 0)
-EndFunc   ;==>SaveConfig_600_30
-
-Func SaveConfig_600_30_DB()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
-	ApplyConfig_600_30_DB(GetApplyConfigSaveAction())
-	_Ini_Add("endbattle", "chkDBTimeStopAtk", $g_abStopAtkNoLoot1Enable[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtDBTimeStopAtk", $g_aiStopAtkNoLoot1Time[$DB])
-	_Ini_Add("endbattle", "chkDBTimeStopAtk2", $g_abStopAtkNoLoot2Enable[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtDBTimeStopAtk2", $g_aiStopAtkNoLoot2Time[$DB])
-	_Ini_Add("endbattle", "txtDBMinGoldStopAtk2", $g_aiStopAtkNoLoot2MinGold[$DB])
-	_Ini_Add("endbattle", "txtDBMinElixirStopAtk2", $g_aiStopAtkNoLoot2MinElixir[$DB])
-	_Ini_Add("endbattle", "txtDBMinDarkElixirStopAtk2", $g_aiStopAtkNoLoot2MinDark[$DB])
-	_Ini_Add("endbattle", "chkDBEndNoResources", $g_abStopAtkNoResources[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkDBEndOneStar", $g_abStopAtkOneStar[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkDBEndTwoStars", $g_abStopAtkTwoStars[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkDBPercentageHigher", $g_abStopAtkPctHigherEnable[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtDBPercentageHigher", $g_aiStopAtkPctHigherAmt[$DB])
-	_Ini_Add("endbattle", "chkDBPercentageChange", $g_abStopAtkPctNoChangeEnable[$DB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtDBPercentageChange", $g_aiStopAtkPctNoChangeTime[$DB])
-EndFunc   ;==>SaveConfig_600_30_DB
-
-Func SaveConfig_600_30_LB()
-	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
-	ApplyConfig_600_30_LB(GetApplyConfigSaveAction())
-	_Ini_Add("endbattle", "chkABTimeStopAtk", $g_abStopAtkNoLoot1Enable[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtABTimeStopAtk", $g_aiStopAtkNoLoot1Time[$LB])
-	_Ini_Add("endbattle", "chkABTimeStopAtk2", $g_abStopAtkNoLoot2Enable[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtABTimeStopAtk2", $g_aiStopAtkNoLoot2Time[$LB])
-	_Ini_Add("endbattle", "txtABMinGoldStopAtk2", $g_aiStopAtkNoLoot2MinGold[$LB])
-	_Ini_Add("endbattle", "txtABMinElixirStopAtk2", $g_aiStopAtkNoLoot2MinElixir[$LB])
-	_Ini_Add("endbattle", "txtABMinDarkElixirStopAtk2", $g_aiStopAtkNoLoot2MinDark[$LB])
-	_Ini_Add("endbattle", "chkABEndNoResources", $g_abStopAtkNoResources[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkABEndOneStar", $g_abStopAtkOneStar[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkABEndTwoStars", $g_abStopAtkTwoStars[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "chkDESideEB", $g_bDESideEndEnable ? 1 : 0)
-	_Ini_Add("endbattle", "txtDELowEndMin", $g_iDESideEndMin)
-	_Ini_Add("endbattle", "chkDisableOtherEBO", $g_bDESideDisableOther ? 1 : 0)
-	_Ini_Add("endbattle", "chkDEEndAq", $g_bDESideEndAQWeak ? 1 : 0)
-	_Ini_Add("endbattle", "chkDEEndBk", $g_bDESideEndBKWeak ? 1 : 0)
-	_Ini_Add("endbattle", "chkDEEndOneStar", $g_bDESideEndOneStar ? 1 : 0)
-	_Ini_Add("endbattle", "chkABPercentageHigher", $g_abStopAtkPctHigherEnable[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtABPercentageHigher", $g_aiStopAtkPctHigherAmt[$LB])
-	_Ini_Add("endbattle", "chkABPercentageChange", $g_abStopAtkPctNoChangeEnable[$LB] ? 1 : 0)
-	_Ini_Add("endbattle", "txtABPercentageChange", $g_aiStopAtkPctNoChangeTime[$LB])
-EndFunc   ;==>SaveConfig_600_30_LB
+	If $hChkDropCC <> 0 Then $g_abAttackDropCC[$iMode] = (GUICtrlRead($hChkDropCC) = $GUI_CHECKED)
+	If $hCmbWardenMode <> 0 Then
+		$iSel = _GUICtrlComboBox_GetCurSel($hCmbWardenMode)
+		If $iSel >= 0 Then $g_aiAttackUseWardenMode[$iMode] = $iSel
+	EndIf
+	If $hCmbSiege <> 0 Then
+		$iSel = _GUICtrlComboBox_GetCurSel($hCmbSiege)
+		If $iSel >= 0 Then $g_aiAttackUseSiege[$iMode] = $iSel
+	EndIf
+	If $hChkDropEmptySiege <> 0 Then $g_bDropEmptySiege[$iMode] = (GUICtrlRead($hChkDropEmptySiege) = $GUI_CHECKED)
+EndFunc   ;==>_SaveConfig_CSVMod_SyncAttackModeFromGui
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: SaveConfig_AttackCSV
@@ -1077,27 +1082,6 @@ Func SaveConfig_AttackCSV()
 	_Ini_Add("attackcsv", "recalc_vector_targets", $g_sCSVRecalcVectorTargets)
 	_Ini_Add("attackcsv", "precache_mode", $g_iCSVPrecacheMode)
 EndFunc   ;==>SaveConfig_AttackCSV
-
-Func SaveConfig_600_31()
-	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
-	ApplyConfig_600_31(GetApplyConfigSaveAction())
-	For $i = 6 To 14
-		_Ini_Add("collectors", "lvl" & $i & "Enabled", $g_abCollectorLevelEnabled[$i] ? 1 : 0)
-		_Ini_Add("collectors", "lvl" & $i & "fill", $g_aiCollectorLevelFill[$i])
-	Next
-	_Ini_Add("search", "chkDisableCollectorsFilter", $g_bCollectorFilterDisable ? 1 : 0)
-	_Ini_Add("collectors", "minmatches", $g_iCollectorMatchesMin)
-	_Ini_Add("collectors", "tolerance", $g_iCollectorToleranceOffset)
-EndFunc   ;==>SaveConfig_600_31
-
-Func SaveConfig_600_33()
-	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
-	_Ini_Add("DropOrder", "chkDropOrder", $g_bCustomDropOrderEnable ? 1 : 0)
-	_Ini_Add("Smartfarm", "ChkForceEdgeSmartfarm", $g_bChkForceEdgeSmartfarm ? 1 : 0)
-	For $p = 0 To UBound($g_aiCmbCustomDropOrder) - 1
-		_Ini_Add("DropOrder", "cmbDropOrder" & $p, $g_aiCmbCustomDropOrder[$p])
-	Next
-EndFunc   ;==>SaveConfig_600_33
 
 Func SaveConfig_600_35_1()
 	; <><><><> Bot / Options <><><><>

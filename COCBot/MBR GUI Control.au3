@@ -5,7 +5,7 @@
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: GkevinOD (2014)
-; Modified ......: Hervidero (2015), kaganus (08-2015), CodeSlinger69 (01-2017)
+; Modified ......: Hervidero (2015), kaganus (08-2015), CodeSlinger69 (01-2017), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
@@ -27,23 +27,15 @@ Global $g_hFrmBot_WNDPROC_ptr = 0
 #include "MBR GUI Control Variables.au3"
 #include "GUI\MBR GUI Control Bottom.au3"
 #include "GUI\MBR GUI Control Tab General.au3"
-#include "GUI\MBR GUI Control Child Army.au3"
 #include "GUI\MBR GUI Control Tab Village.au3"
-#include "GUI\MBR GUI Control Tab Search.au3"
-#include "GUI\MBR GUI Control Child Attack.au3"
-#include "GUI\MBR GUI Control Tab DropOrder.au3"
-#include "GUI\MBR GUI Control Tab EndBattle.au3"
-#include "GUI\MBR GUI Control Tab SmartZap.au3"
 #include "GUI\MBR GUI Control Tab Stats.au3"
 #include "GUI\MBR GUI Control Collectors.au3"
-#include "GUI\MBR GUI Control Attack Standard.au3"
-#include "GUI\MBR GUI Control Attack Scripted.au3"
+#include "GUI\MBR GUI Control Attack CSV Mod.au3"
 #include "GUI\MBR GUI Control Achievements.au3"
 #include "GUI\MBR GUI Control Notify.au3"
 #include "GUI\MBR GUI Control Child Upgrade.au3"
 #include "GUI\MBR GUI Control Donate.au3"
 #include "GUI\MBR GUI Control Bot Options.au3"
-#include "GUI\MBR GUI Control Preset.au3"
 #include "GUI\MBR GUI Control Child Misc.au3"
 #include "GUI\MBR GUI Control BuilderBase.au3"
 #include "GUI\MBR GUI Control Android.au3"
@@ -90,8 +82,7 @@ Func InitializeMainGUI($bGuiModeUpdate = False)
 		GUICtrlSetState($g_hChkDebugOCRDonate, $GUI_SHOW + $GUI_ENABLE)
 		GUICtrlSetState($g_hChkMakeIMGCSV, $GUI_SHOW + $GUI_ENABLE)
 		GUICtrlSetState($g_hChkdebugAttackCSV, $GUI_SHOW + $GUI_ENABLE)
-		GUICtrlSetState($g_hChkDebugSmartZap, $GUI_SHOW + $GUI_ENABLE)
-		GUICtrlSetState($g_hbtnAttNow, $GUI_SHOW + $GUI_ENABLE)
+		;~ GUICtrlSetState($g_hChkDebugSmartZap, $GUI_SHOW + $GUI_ENABLE)
 	EndIf
 
 	; GUI events and messages
@@ -607,14 +598,14 @@ Func GUIControl_WM_COMMAND($hWind, $iMsg, $wParam, $lParam)
 			Local $RuntimeA = $g_bRunState
 			$g_bRunState = True
 			Setlog("Prepare Attack test")
-			PrepareAttack($DB, False)
+			PrepareAttack($Battle, False)
 			$g_bRunState = $RuntimeA
 		Case $g_hBtnTestQuickTrainsimgloc
 
 			Local $RuntimeA = $g_bRunState
 			$g_bRunState = True
 			Setlog("Prepare Attack test - Remaining troops")
-			PrepareAttack($DB, True)
+			PrepareAttack($Battle, True)
 			$g_bRunState = $RuntimeA
 	EndSwitch
 
@@ -729,16 +720,16 @@ Func GUIControl_WM_NOTIFY($hWind, $iMsg, $wParam, $lParam)
 			tabVillage()
 		Case $g_hGUI_DONATE_TAB
 			tabDONATE()
-		Case $g_hGUI_ATTACK_TAB
-			tabAttack()
-		Case $g_hGUI_TRAINARMY_TAB
-			tabARMY()
-		Case $g_hGUI_SEARCH_TAB
-			tabSEARCH()
-		Case $g_hGUI_DEADBASE_TAB
-			tabDeadbase()
-		Case $g_hGUI_ACTIVEBASE_TAB
-			tabActivebase()
+		;~ Case $g_hGUI_ATTACK_TAB
+		;~ 	tabAttack()
+		;~ Case $g_hGUI_TRAINARMY_TAB
+		;~ 	tabARMY()
+		;~ Case $g_hGUI_SEARCH_TAB
+		;~ 	tabSEARCH()
+		;~ Case $g_hGUI_DEADBASE_TAB
+		;~ 	tabDeadbase()
+		;~ Case $g_hGUI_ACTIVEBASE_TAB
+		;~ 	tabActivebase()
 		Case $g_hGUI_BOT_TAB
 			tabBot()
 		Case Else
@@ -1135,6 +1126,7 @@ Func BotGuiModeToggle()
 			GUICtrlDelete($g_hTabLog)
 			GUICtrlDelete($g_hTabVillage)
 			GUICtrlDelete($g_hTabAttack)
+			GUICtrlDelete($g_hTabCSVMod)
 			GUICtrlDelete($g_hGUI_BB)
 			GUICtrlDelete($g_hTabBot)
 			GUICtrlDelete($g_hTabAbout)
@@ -1145,15 +1137,16 @@ Func BotGuiModeToggle()
 			GUICtrlDelete($g_hGUI_UPGRADE_TAB)
 			GUICtrlDelete($g_hGUI_NOTIFY_TAB)
 
-			GUICtrlDelete($g_hGUI_ATTACK_TAB)
-			GUICtrlDelete($g_hGUI_TRAINARMY_TAB)
-			GUICtrlDelete($g_hGUI_TRAINARMY_ARMY_TAB)
-			GUICtrlDelete($g_hGUI_TRAINARMY_ORDER_TAB)
-			GUICtrlDelete($g_hGUI_SEARCH_TAB)
-			GUICtrlDelete($g_hGUI_DEADBASE_TAB)
-			GUICtrlDelete($g_hGUI_ACTIVEBASE_TAB)
-			GUICtrlDelete($g_hGUI_ATTACKOPTION_TAB)
-			GUICtrlDelete($g_hGUI_STRATEGIES_TAB)
+			;~ GUICtrlDelete($g_hGUI_ATTACK_TAB)
+			;~ GUICtrlDelete($g_hGUI_TRAINARMY_TAB)
+			;~ GUICtrlDelete($g_hGUI_TRAINARMY_ARMY_TAB)
+			;~ GUICtrlDelete($g_hGUI_TRAINARMY_ORDER_TAB)
+			;~ GUICtrlDelete($g_hGUI_SEARCH_TAB)
+			;~ GUICtrlDelete($g_hGUI_DEADBASE_TAB)
+			;~ GUICtrlDelete($g_hGUI_ACTIVEBASE_TAB)
+			;~ GUICtrlDelete($g_hGUI_ATTACKOPTION_TAB)
+			;~ GUICtrlDelete($g_hGUI_STRATEGIES_TAB)
+			GUICtrlDelete($g_hGUI_CSVMOD)
 			GUICtrlDelete($g_hGUI_BOT_TAB)
 			GUICtrlDelete($g_hGUI_LOG_SA)
 			GUICtrlDelete($g_hGUI_STATS_TAB)
@@ -1668,7 +1661,8 @@ Func tabMain()
 	Select
 		Case $tabidx = 0 ; Log
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
@@ -1676,26 +1670,38 @@ Func tabMain()
 
 		Case $tabidx = 1 ; Village
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_VILLAGE)
 			tabVillage()
 
-		Case $tabidx = 2 ; Attack
+		;~ Case $tabidx = 2 ; Attack
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_LOG)
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_BOT)
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_BB)
+		;~ 	GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
+		;~ 	GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ATTACK)
+		;~ 	tabAttack()
+
+		Case $tabidx = 2 ; CSV Mod
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ATTACK)
-			tabAttack()
+			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD)
 
 		Case $tabidx = 3 ; BuilderBase
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_BB)
@@ -1704,7 +1710,8 @@ Func tabMain()
 		Case $tabidx = 4 ; Bot
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_BOT)
@@ -1713,7 +1720,8 @@ Func tabMain()
 		Case $tabidx = 5 ; About
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ABOUT)
@@ -1721,7 +1729,8 @@ Func tabMain()
 		Case Else
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
 			GUISetState(@SW_HIDE, $g_hGUI_VILLAGE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			;~ GUISetState(@SW_HIDE, $g_hGUI_ATTACK)
+			GUISetState(@SW_HIDE, $g_hGUI_CSVMOD)
 			GUISetState(@SW_HIDE, $g_hGUI_BOT)
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 	EndSelect
@@ -1760,126 +1769,6 @@ Func tabVillage()
 	EndSelect
 
 EndFunc   ;==>tabVillage
-
-Func tabAttack()
-	If $g_iGuiMode <> 1 Then Return
-	Local $tabidx = GUICtrlRead($g_hGUI_ATTACK_TAB)
-	Select
-		Case $tabidx = 0 ; ARMY tab
-			GUISetState(@SW_HIDE, $g_hGUI_STRATEGIES)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_TRAINARMY)
-			GUISetState(@SW_HIDE, $g_hGUI_SEARCH)
-			tabARMY()
-		Case $tabidx = 1 ; SEARCH tab
-			GUISetState(@SW_HIDE, $g_hGUI_STRATEGIES)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_SEARCH)
-			tabSEARCH()
-		Case $tabidx = 2 ; NewSmartZap tab
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_STRATEGIES)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY)
-			GUISetState(@SW_HIDE, $g_hGUI_SEARCH)
-	EndSelect
-EndFunc   ;==>tabAttack
-
-Func tabARMY()
-	If $g_iGuiMode <> 1 Then Return
-	Local $tabidx = GUICtrlRead($g_hGUI_TRAINARMY_TAB)
-
-	Select
-		Case $tabidx = 0 ; Army tab
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_TRAINARMY_ARMY)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_TRAINORDER)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_OPTIONS)
-
-		Case $tabidx = 1 ; Train Order tab
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_ARMY)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_TRAINARMY_TRAINORDER)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_OPTIONS)
-
-		Case $tabidx = 2 ; Options tab
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_ARMY)
-			GUISetState(@SW_HIDE, $g_hGUI_TRAINARMY_TRAINORDER)
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_TRAINARMY_OPTIONS)
-
-	EndSelect
-
-EndFunc   ;==>tabARMY
-
-Func tabSEARCH()
-	If $g_iGuiMode <> 1 Then Return
-	Local $tabidx = GUICtrlRead($g_hGUI_SEARCH_TAB)
-	Local $tabdbx = _GUICtrlTab_GetItemRect($g_hGUI_SEARCH_TAB, 0) ;get array of deadbase Tabitem rectangle coordinates, index 2,3 will be lower right X,Y coordinates (not needed: 0,1 = top left x,y)
-	Local $tababx = _GUICtrlTab_GetItemRect($g_hGUI_SEARCH_TAB, 1) ;idem for activebase
-	Local $tabblx = _GUICtrlTab_GetItemRect($g_hGUI_SEARCH_TAB, 2) ;idem for bully
-	Select
-		Case $tabidx = 0 ; Deadbase tab
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_BULLY)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACKOPTION)
-
-			If GUICtrlRead($g_hChkDeadbase) = $GUI_CHECKED Then
-				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_DEADBASE)
-				GUICtrlSetState($g_hLblDeadbaseDisabled, $GUI_HIDE)
-			Else
-				GUISetState(@SW_HIDE, $g_hGUI_DEADBASE)
-				GUICtrlSetState($g_hLblDeadbaseDisabled, $GUI_SHOW)
-			EndIf
-
-			GUICtrlSetPos($g_hChkActivebase, $tababx[2] - 15, $tababx[3] - 15) ; use x,y coordinate of tabitem rectangle bottom right corner to dynamically reposition the checkbox control (for translated tabnames)
-			GUICtrlSetPos($g_hChkBully, $tabblx[2] - 15, $tabblx[3] - 15)
-
-			GUICtrlSetPos($g_hChkDeadbase, $tabdbx[2] - 15, $tabdbx[3] - 17)
-			tabDeadbase()
-		Case $tabidx = 1 ; Activebase tab
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_BULLY)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACKOPTION)
-
-			If GUICtrlRead($g_hChkActivebase) = $GUI_CHECKED Then
-				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ACTIVEBASE)
-				GUICtrlSetState($g_hLblActivebaseDisabled, $GUI_HIDE)
-			Else
-				GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE)
-				GUICtrlSetState($g_hLblActivebaseDisabled, $GUI_SHOW)
-			EndIf
-
-			GUICtrlSetPos($g_hChkDeadbase, $tabdbx[2] - 15, $tabdbx[3] - 15)
-			GUICtrlSetPos($g_hChkBully, $tabblx[2] - 15, $tabblx[3] - 15)
-
-			GUICtrlSetPos($g_hChkActivebase, $tababx[2] - 15, $tababx[3] - 17)
-			tabActivebase()
-		Case $tabidx = 2 ; Bully tab
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_ATTACKOPTION)
-
-			If GUICtrlRead($g_hChkBully) = $GUI_CHECKED Then
-				GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_BULLY)
-				GUICtrlSetState($g_hLblBullyDisabled, $GUI_HIDE)
-			Else
-				GUISetState(@SW_HIDE, $g_hGUI_BULLY)
-				GUICtrlSetState($g_hLblBullyDisabled, $GUI_SHOW)
-			EndIf
-
-			GUICtrlSetPos($g_hChkDeadbase, $tabdbx[2] - 15, $tabdbx[3] - 15)
-			GUICtrlSetPos($g_hChkActivebase, $tababx[2] - 15, $tababx[3] - 15)
-
-			GUICtrlSetPos($g_hChkBully, $tabblx[2] - 15, $tabblx[3] - 17)
-			; Bully has no tabs
-		Case $tabidx = 3 ; Options
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE)
-			GUISetState(@SW_HIDE, $g_hGUI_BULLY)
-
-			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_ATTACKOPTION)
-
-			GUICtrlSetPos($g_hChkDeadbase, $tabdbx[2] - 15, $tabdbx[3] - 15)
-			GUICtrlSetPos($g_hChkActivebase, $tababx[2] - 15, $tababx[3] - 15)
-			GUICtrlSetPos($g_hChkBully, $tabblx[2] - 15, $tabblx[3] - 15)
-	EndSelect
-
-EndFunc   ;==>tabSEARCH
 
 Func tabDONATE()
 	If $g_iGuiMode <> 1 Then Return
@@ -1947,44 +1836,6 @@ Func tabBot()
 	EndSelect
 EndFunc   ;==>tabBot
 
-Func tabDeadbase()
-	If $g_iGuiMode <> 1 Then Return
-	Local $tabidx = GUICtrlRead($g_hGUI_DEADBASE_TAB)
-	Select
-		;			Case $tabidx = 0 ; Search tab
-
-		Case $tabidx = 1 ; Attack tab
-			cmbDBAlgorithm()
-
-			;			Case $tabidx = 2 ; End Battle tab
-
-		Case Else
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_STANDARD)
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SCRIPTED)
-			GUISetState(@SW_HIDE, $g_hGUI_DEADBASE_ATTACK_SMARTFARM)
-	EndSelect
-
-EndFunc   ;==>tabDeadbase
-
-Func tabActivebase()
-	If $g_iGuiMode <> 1 Then Return
-	Local $tabidx = GUICtrlRead($g_hGUI_ACTIVEBASE_TAB)
-	Select
-		;			Case $tabidx = 0 ; Search tab
-
-		Case $tabidx = 1 ; Attack tab
-			cmbABAlgorithm()
-
-			;			Case $tabidx = 2 ; End Battle tab
-
-		Case Else
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_STANDARD)
-			GUISetState(@SW_HIDE, $g_hGUI_ACTIVEBASE_ATTACK_SCRIPTED)
-
-	EndSelect
-
-EndFunc   ;==>tabActivebase
-
 ;---------------------------------------------------
 ; Extra Functions used on GUI Control
 ;---------------------------------------------------
@@ -2002,15 +1853,11 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 	Switch $nCtrl
 		Case $g_hTabMain
 			; the icons for main tab
-			Local $aIconIndex = [$eIcnHourGlass, $eIcnTH14, $eIcnAttack, $eIcnBuilderHall, $eIcnGUI, $eIcnInfo]
+			Local $aIconIndex = [$eIcnHourGlass, $eIcnTH14, $eIcnAttack, $eIcnEdit, $eIcnBuilderHall, $eIcnGUI, $eIcnInfo]
 
 		Case $g_hGUI_VILLAGE_TAB
 			; the icons for village tab
 			Local $aIconIndex = [$eIcnTH1, $eIcnCC, $eIcnLaboratory, $eIcnAchievements, $eIcnTelegram]
-
-		Case $g_hGUI_TRAINARMY_TAB
-			; the icons for army tab
-			Local $aIconIndex = [$eIcnTrain, $eIcnGem, $eIcnReOrder, $eIcnOptions]
 
 		Case $g_hGUI_MISC_TAB
 			Local $aIconIndex = [$eIcnTH10, $eIcnStrongMan, $eIcnClanCapital, $eIcnGoldStar]
@@ -2027,26 +1874,6 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 			; the icons for NOTIFY tab
 			Local $aIconIndex = [$eIcnTelegram, $eIcnHourGlass]
 
-		Case $g_hGUI_ATTACK_TAB
-			; the icons for attack tab
-			Local $aIconIndex = [$eIcnTrain, $eIcnMagnifier, $eIcnStrategies]
-
-		Case $g_hGUI_SEARCH_TAB
-			; the icons for SEARCH tab
-			Local $aIconIndex = [$eIcnCollector, $eIcnCC, $eIcnTH10, $eIcnTH1, $eIcnOptions]
-
-		Case $g_hGUI_DEADBASE_TAB
-			; the icons for deadbase tab
-			Local $aIconIndex = [$eIcnMagnifier, $eIcnCamp, $eIcnSilverStar, $eIcnCollector]
-
-		Case $g_hGUI_ACTIVEBASE_TAB
-			; the icons for activebase tab
-			Local $aIconIndex = [$eIcnMagnifier, $eIcnCamp, $eIcnSilverStar]
-
-		Case $g_hGUI_ATTACKOPTION_TAB
-			; the icons for Attack Options tab
-			Local $aIconIndex = [$eIcnMagnifier, $eIcnCamp, $eIcnLightSpell, $eIcnSilverStar]
-
 		Case $g_hGUI_BB_TAB
 			; the icons for BuilderBase tab
 			Local $aIconIndex = [$eIcnClockTower, $eIcnTroops]
@@ -2056,9 +1883,9 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 			Local $aIconIndex = [$eIcnOptions, $eIcnAndroid, $eIcnProfile, $eIcnProfile, $eIcnGold]
 			; The Android Robot is a Google Trademark and follows Creative Common Attribution 3.0
 
-		Case $g_hGUI_STRATEGIES_TAB
-			; the icons for strategies tab
-			Local $aIconIndex = [$eIcnReload, $eIcnCopy]
+		;~ Case $g_hGUI_STRATEGIES_TAB
+		;~ 	; the icons for strategies tab
+		;~ 	Local $aIconIndex = [$eIcnReload, $eIcnCopy]
 
 		Case $g_hGUI_STATS_TAB
 			; the icons for stats tab

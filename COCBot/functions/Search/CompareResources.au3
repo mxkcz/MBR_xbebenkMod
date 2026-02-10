@@ -5,7 +5,7 @@
 ; Parameters ....:
 ; Return values .: True if compaired resources match the search conditions, False if not
 ; Author ........: (2014)
-; Modified ......: AtoZ, Hervidero (2015), kaganus (June 2015, August 2015)
+; Modified ......: AtoZ, Hervidero (2015), kaganus (June 2015, August 2015), mxkcz
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......: VillageSearch, GetResources
@@ -35,6 +35,13 @@ Func CompareResources($pMode) ;Compares resources and returns true if conditions
 	Local $bGoldMet = (Number($g_iSearchGold) >= Number($g_iAimGold[$pMode])), $bElixirMet = (Number($g_iSearchElixir) >= Number($g_iAimElixir[$pMode]))
     Local $bDarkElixirMet = (Number($g_iSearchDark) >= Number($g_iAimDark[$pMode]))
     Local $bGoldPlusElxirMet = ((Number($g_iSearchGold) + Number($g_iSearchElixir)) >= Number($g_iAimGoldPlusElixir[$pMode]))
+
+	If $g_bSearchDisableFullResources Then
+		If $g_abFullStorage[$eLootGold] Then $bGoldMet = True
+		If $g_abFullStorage[$eLootElixir] Then $bElixirMet = True
+		If $g_abFullStorage[$eLootDarkElixir] Then $bDarkElixirMet = True
+		If $g_abFullStorage[$eLootGold] And $g_abFullStorage[$eLootElixir] Then $bGoldPlusElxirMet = True
+	EndIf
 
 	If $g_abFilterMeetOneConditionEnable[$pMode] Then
 		If $g_aiFilterMeetGE[$pMode] = 0 Then

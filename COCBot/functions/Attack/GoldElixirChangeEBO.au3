@@ -98,7 +98,7 @@ Func GoldElixirChangeEBO()
 		EndIf
 
 		;DE SPECIAL END EARLY
-		If $g_iMatchMode = $LB And $g_aiAttackStdDropSides[$LB] = 4 And $g_bDESideEndEnable Then
+		If $g_iMatchMode = $RankedBattle And $g_aiAttackStdDropSides[$RankedBattle] = 4 And $g_bDESideEndEnable Then
 			If $g_bDropQueen Or $g_bDropKing Then DELow()
 			If $g_iDarkLow = 1 Then 
 				SetLog("EXIT BECAUSE : g_iDarkLow")
@@ -202,7 +202,7 @@ Func GoldElixirChangeEBO()
 	WEnd ; END MAIN LOOP
 
 	;Priority Check... Exit To protect Hero Health
-	If $g_iMatchMode = $LB And $g_aiAttackStdDropSides[$LB] = 4 And $g_bDESideEndEnable And $g_iDarkLow = 1 Then
+	If $g_iMatchMode = $RankedBattle And $g_aiAttackStdDropSides[$RankedBattle] = 4 And $g_bDESideEndEnable And $g_iDarkLow = 1 Then
 		SetLog("Returning Now -DE-", $COLOR_SUCCESS)
 		Return False
 	EndIf
