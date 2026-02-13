@@ -1129,17 +1129,21 @@ Global $g_hTabCSVMod = 0
 Global $g_hGUI_CSVMOD = 0, $g_hGUI_AttackCSVSettings = 0
 Global $g_bCSVModReady = False
 Global $g_hGUI_CSVMOD_TAB = 0
-Global $g_hGUI_CSVMOD_TAB_ITEM1 = 0, $g_hGUI_CSVMOD_TAB_ITEM2 = 0, $g_hGUI_CSVMOD_TAB_ITEM3 = 0, $g_hGUI_CSVMOD_TAB_ITEM4 = 0, $g_hGUI_CSVMOD_TAB_ITEM5 = 0
-Global $g_hGUI_CSVMOD_TAB_ITEM6 = 0, $g_hGUI_CSVMOD_TAB_ITEM7 = 0, $g_hGUI_CSVMOD_TAB_ITEM8 = 0, $g_hGUI_CSVMOD_TAB_ITEM9 = 0, $g_hGUI_CSVMOD_TAB_ITEM10 = 0
+Global $g_hGUI_CSVMOD_TAB_ITEM1 = 0, $g_hGUI_CSVMOD_TAB_ITEM2 = 0, $g_hGUI_CSVMOD_TAB_ITEM3 = 0, $g_hGUI_CSVMOD_TAB_ITEM4 = 0
+Global $g_hGUI_CSVMOD_SETTINGS = 0, $g_hGUI_CSVMOD_SETTINGS_TAB = 0
+Global $g_hGUI_CSVMOD_SETTINGS_TAB_ATTACK = 0, $g_hGUI_CSVMOD_SETTINGS_TAB_DROP = 0, $g_hGUI_CSVMOD_SETTINGS_TAB_VECTOR = 0
+Global $g_hGUI_CSVMOD_SETTINGS_TAB_PRESETS = 0, $g_hGUI_CSVMOD_SETTINGS_TAB_SIDE = 0, $g_hGUI_CSVMOD_SETTINGS_TAB_PRECALC = 0
+Global $g_iCSVModSettingsTabX = 0, $g_iCSVModSettingsTabY = 0, $g_iCSVModSettingsTabW = 0, $g_iCSVModSettingsTabH = 0
 Global $g_ahChkMeetOne[3]
 Global $g_hchkBattleActivateSearches = 0, $g_hTxtBattleSearchesMin = 0, $g_hTxtBattleSearchesMax = 0 ; Search count limit
-Global $g_hGrpBattleFilter = 0, $g_hchkBattleWaitForCastle = 0, $g_hLblBattleSearches = 0
+Global $g_hGrpBattleFilter = 0, $g_hchkBattleWaitForCastle = 0, $g_hchkRankedBattleWaitForCastle = 0, $g_hLblBattleSearches = 0
 Global $g_hTxtDBMinGold = 0, $g_hTxtDBMinElixir = 0, $g_hTxtDBMinDarkElixir = 0
 Global $g_hPicDBMinGold = 0, $g_hPicDBMinElixir = 0, $g_hPicDBMinDarkElixir = 0
 Global $g_hChkSearchDisableFullResources = 0
 Global $g_hCmbScriptNameBattle = 0, $g_hCmbScriptNameRankedBattle = 0
 Global $g_hLblNotesScriptBattle = 0, $g_hLblCSVScriptVersionBattle = 0
 Global $g_hLblNotesScriptRankedBattle = 0, $g_hLblCSVScriptVersionRankedBattle = 0
+Global $g_hRadCSVSettingsModeBattle = 0, $g_hRadCSVSettingsModeRanked = 0
 Global $g_hChkCSVDbgSetlog = 0, $g_hChkCSVDbgClick = 0, $g_hChkCSVDbgRedArea = 0, $g_hChkCSVDbgOcr = 0
 Global $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0, $g_hChkCSVDbgAttackTiming = 0, $g_hChkCSVDbgRescan = 0
 Global $g_hLblCSVDbgSummary = 0, $g_hTxtCSVDiagnostics = 0, $g_hTxtCSVDebugLines = 0
@@ -1176,14 +1180,15 @@ Global $g_hCmbCSVFlexTroop = 0
 Global $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0
 Global $g_hCmbDBAlgorithm = 0, $g_hCmbDBSelectTroop = 0, $g_hCmbDBSiege = 0, $g_hCmbDBWardenMode = 0
 Global $g_hCmbABAlgorithm = 0, $g_hCmbABSelectTroop = 0, $g_hCmbABSiege = 0, $g_hCmbABWardenMode = 0
-Global $g_hchkBattleKingAttack = 0, $g_hchkBattleQueenAttack = 0, $g_hchkBattleWardenAttack = 0, $g_hchkBattleChampionAttack = 0, $g_hchkBattleDropCC = 0, $g_hchkBattleDropEmptySiege = 0
-Global $g_hchkRankedBattleKingAttack = 0, $g_hchkRankedBattleQueenAttack = 0, $g_hchkRankedBattleWardenAttack = 0, $g_hchkRankedBattleChampionAttack = 0, $g_hchkRankedBattleDropCC = 0, $g_hchkRankedBattleDropEmptySiege = 0
+Global $g_hchkBattleDropCC = 0, $g_hchkBattleDropEmptySiege = 0
+Global $g_hchkRankedBattleDropCC = 0, $g_hchkRankedBattleDropEmptySiege = 0
+Global $g_hchkBattleSwapEmptyBlimp = 0, $g_hchkRankedBattleSwapEmptyBlimp = 0
 Global $g_ahCSVHeroAbilityMode[4] = [0, 0, 0, 0]
 Global $g_ahCSVHeroAbilityDelay[4] = [0, 0, 0, 0]
 Global $g_hCmbCSVRedlinePreset = 0, $g_hCmbCSVDroplinePreset = 0
 Global $g_hTxtCSVCCRequest = 0
 Global $g_hBtnCSVSettingsReload = 0, $g_hBtnCSVSettingsValidate = 0, $g_hBtnCSVSettingsDebugLocate = 0, $g_hBtnCSVSettingsTestBattle = 0, $g_hBtnCSVSettingsTestDry = 0, $g_hBtnCSVSettingsRebuildPrecalc = 0
-Global $g_hBtnCSVSettingsApply = 0, $g_hBtnCSVRefreshDiagnostics = 0
+Global $g_hBtnCSVScriptSave = 0, $g_hBtnCSVRefreshDiagnostics = 0
 Global $g_hLblCSVSettingsScript = 0, $g_hLblCSVSettingsPath = 0, $g_hLblCSVSettingsLoaded = 0, $g_hLblCSVSettingsVersion = 0, $g_hLblCSVSettingsDirty = 0
 Global $g_hRadAutoQueenAbility = 0, $g_hRadManQueenAbility = 0, $g_hRadBothQueenAbility = 0, $g_hTxtManQueenAbility = 0
 Global $g_hRadAutoKingAbility = 0, $g_hRadManKingAbility = 0, $g_hRadBothKingAbility = 0, $g_hTxtManKingAbility = 0
@@ -1203,6 +1208,7 @@ Global $g_aiAttackAlgorithm[$g_iModeCount] = [0, 0, 0], $g_aiAttackTroopSelectio
 ;		$g_abAttackUseOverGrowthSpell[$g_iModeCount] = [0, 0, 0]
 
 Global $g_bDropEmptySiege[$g_iModeCount] = [0, 0, 0]
+Global $g_bSwapEmptyBlimp[$g_iModeCount] = [0, 0, 0]
 ; Attack - Standard
 Global $g_aiAttackStdDropOrder[$g_iModeCount + 1] = [0, 0, 0, 0], $g_aiAttackStdDropSides[$g_iModeCount + 1] = [3, 3, 0, 1], _
 		$g_abAttackStdSmartAttack[$g_iModeCount + 1] = [True, True, False, False], $g_aiAttackStdSmartDeploy[$g_iModeCount + 1] = [0, 0, 0, 0]

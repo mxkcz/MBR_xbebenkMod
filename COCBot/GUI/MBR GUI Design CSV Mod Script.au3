@@ -40,7 +40,15 @@ Func CreateCSVModScriptTab()
 		$g_hLblNotesScriptRankedBattle = GUICtrlCreateLabel("", $x + $iGroupW + 20, $y + 62, $iGroupW - 20, $iGroupH - 72)
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 150
+	$y += 140
+	GUICtrlCreateGroup("CSV settings target", $x, $y, $w, 38)
+		$g_hRadCSVSettingsModeBattle = GUICtrlCreateRadio("Edit Battle CSV settings", $x + 12, $y + 14, 170, 18)
+			GUICtrlSetOnEvent(-1, "CSVSettings_SelectMode_Battle")
+		$g_hRadCSVSettingsModeRanked = GUICtrlCreateRadio("Edit Ranked CSV settings", $x + 200, $y + 14, 185, 18)
+			GUICtrlSetOnEvent(-1, "CSVSettings_SelectMode_Ranked")
+	GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	$y += 45
 	GUICtrlCreateGroup("Tools", $x, $y, $w, 70)
 		Local $iBtnW = 90, $iBtnH = 22, $iBtnGap = 8
 		Local $iBtnX = $x + 10, $iBtnY = $y + 20
@@ -50,6 +58,8 @@ Func CreateCSVModScriptTab()
 			GUICtrlSetOnEvent(-1, "AttackCSVSettings_ValidateCSV")
 		$g_hBtnCSVSettingsDebugLocate = GUICtrlCreateButton("Debug Locate", $iBtnX + (($iBtnW + $iBtnGap) * 2), $iBtnY, $iBtnW, $iBtnH)
 			GUICtrlSetOnEvent(-1, "debugCSVLocateBuildings")
+		$g_hBtnCSVScriptSave = GUICtrlCreateButton("Save CSV", $iBtnX + (($iBtnW + $iBtnGap) * 3), $iBtnY, $iBtnW, $iBtnH)
+			GUICtrlSetOnEvent(-1, "AttackCSVSettings_ApplyToGUI")
 		$iBtnY += 24
 		$g_hBtnCSVSettingsTestBattle = GUICtrlCreateButton("Test Attack", $iBtnX, $iBtnY, $iBtnW, $iBtnH)
 			GUICtrlSetOnEvent(-1, "AttackCSVSettings_TestAttackBattle")

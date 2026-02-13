@@ -978,17 +978,17 @@ EndFunc   ;==>ReadConfig_600_28
 
 Func ReadConfig_600_28_DB()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
-	IniReadS($g_abAttackTypeEnable[$Battle], $g_sProfileConfigPath, "search", "DBcheck", True, "Bool")
+	IniReadS($g_abAttackTypeEnable[$Battle], $g_sProfileConfigPath, "search", "BattleCheck", True, "Bool")
 	; Search - Start Search If
 	IniReadS($g_abSearchSearchesEnable[$Battle], $g_sProfileConfigPath, "search", "chkBattleSearchSearches", True, "Bool")
-	IniReadS($g_aiSearchSearchesMin[$Battle], $g_sProfileConfigPath, "search", "DBEnableAfterCount", 1, "int")
-	IniReadS($g_aiSearchSearchesMax[$Battle], $g_sProfileConfigPath, "search", "DBEnableBeforeCount", 9999, "int")
+	IniReadS($g_aiSearchSearchesMin[$Battle], $g_sProfileConfigPath, "search", "BattleEnableAfterCount", 1, "int")
+	IniReadS($g_aiSearchSearchesMax[$Battle], $g_sProfileConfigPath, "search", "BattleEnableBeforeCount", 9999, "int")
 	IniReadS($g_abSearchCastleWaitEnable[$Battle], $g_sProfileConfigPath, "search", "chkBattleCastleWait", False, "Bool")
 	; Search - Filters
-	IniReadS($g_aiFilterMinGold[$Battle], $g_sProfileConfigPath, "search", "DBsearchGold", 80000, "int")
-	IniReadS($g_aiFilterMinElixir[$Battle], $g_sProfileConfigPath, "search", "DBsearchElixir", 80000, "int")
-	IniReadS($g_aiFilterMeetDEMin[$Battle], $g_sProfileConfigPath, "search", "DBsearchDark", 0, "int")
-	IniReadS($g_abFilterMeetOneConditionEnable[$Battle], $g_sProfileConfigPath, "search", "DBMeetOne", False, "Bool")
+	IniReadS($g_aiFilterMinGold[$Battle], $g_sProfileConfigPath, "search", "BattleSearchGold", 80000, "int")
+	IniReadS($g_aiFilterMinElixir[$Battle], $g_sProfileConfigPath, "search", "BattleSearchElixir", 80000, "int")
+	IniReadS($g_aiFilterMeetDEMin[$Battle], $g_sProfileConfigPath, "search", "BattleSearchDark", 0, "int")
+	IniReadS($g_abFilterMeetOneConditionEnable[$Battle], $g_sProfileConfigPath, "search", "BattleMeetOne", False, "Bool")
 
 	; CSV Mod battle search policy: disable legacy filters/weak-base fields.
 	$g_abSearchSpellsWaitEnable[$Battle] = False
@@ -996,7 +996,7 @@ Func ReadConfig_600_28_DB()
 	$g_aiSearchCampsPct[$Battle] = 0
 	$g_aiFilterMeetGE[$Battle] = 0
 	$g_aiFilterMinGoldPlusElixir[$Battle] = 0
-	$g_abFilterMeetDEEnable[$Battle] = False
+	$g_abFilterMeetDEEnable[$Battle] = ($g_aiFilterMeetDEMin[$Battle] > 0)
 	$g_abFilterMeetTH[$Battle] = False
 	$g_aiFilterMeetTHMin[$Battle] = 0
 	$g_abFilterMeetTHOutsideEnable[$Battle] = False
@@ -1020,16 +1020,16 @@ EndFunc   ;==>ReadConfig_600_28_DB
 
 Func ReadConfig_600_28_LB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
-	IniReadS($g_abAttackTypeEnable[$RankedBattle], $g_sProfileConfigPath, "search", "ABcheck", False, "Bool")
+	IniReadS($g_abAttackTypeEnable[$RankedBattle], $g_sProfileConfigPath, "search", "RankedBattleCheck", False, "Bool")
+	IniReadS($g_abSearchCastleWaitEnable[$RankedBattle], $g_sProfileConfigPath, "search", "chkRankedBattleCastleWait", False, "Bool")
 
-	; CSV Mod ranked battle: search filters are intentionally disabled.
+	; CSV Mod ranked battle: unsupported search filters are intentionally disabled.
 	$g_abSearchSearchesEnable[$RankedBattle] = False
 	$g_aiSearchSearchesMin[$RankedBattle] = 0
 	$g_aiSearchSearchesMax[$RankedBattle] = 0
 	$g_abSearchCampsEnable[$RankedBattle] = False
 	$g_aiSearchCampsPct[$RankedBattle] = 0
 	$g_abSearchSpellsWaitEnable[$RankedBattle] = False
-	$g_abSearchCastleWaitEnable[$RankedBattle] = False
 	$g_aiFilterMeetGE[$RankedBattle] = 0
 	$g_aiFilterMinGold[$RankedBattle] = 0
 	$g_aiFilterMinElixir[$RankedBattle] = 0
@@ -1123,12 +1123,13 @@ Func ReadConfig_600_29_DB()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Scripted <><><><>
 	IniReadS($g_aiAttackScrRedlineRoutine[$Battle], $g_sProfileConfigPath, "attack", "RedlineRoutineBattle", $g_aiAttackScrRedlineRoutine[$Battle], "Int")
 	IniReadS($g_aiAttackScrDroplineEdge[$Battle], $g_sProfileConfigPath, "attack", "DroplineEdgeBattle", $g_aiAttackScrDroplineEdge[$Battle], "Int")
-	IniReadS($g_sAttackScrScriptName[$Battle], $g_sProfileConfigPath, "attack", "ScriptDB", "Barch four fingers")
+	IniReadS($g_sAttackScrScriptName[$Battle], $g_sProfileConfigPath, "attack", "ScriptBattle", "Barch four fingers")
 	IniReadS($g_sAttackScrScriptNameRankedBattle, $g_sProfileConfigPath, "attack", "ScriptRanked", "")
 
 	IniReadS($g_aiAttackUseWardenMode[$Battle], $g_sProfileConfigPath, "attack", "DBAtkUseWardenMode", 2, "int")
 	IniReadS($g_aiAttackUseSiege[$Battle], $g_sProfileConfigPath, "attack", "DBAtkUseSiege", 4, "int")
 	IniReadS($g_bDropEmptySiege[$Battle], $g_sProfileConfigPath, "attack", "DBDropEmptySiege", False, "Bool")
+	IniReadS($g_bSwapEmptyBlimp[$Battle], $g_sProfileConfigPath, "attack", "DBSwapEmptyBlimp", False, "Bool")
 
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / SmartFarm <><><><>
 	IniReadS($g_iTxtInsidePercentage, $g_sProfileConfigPath, "SmartFarm", "InsidePercentage", 40, "int")
@@ -1183,6 +1184,7 @@ Func ReadConfig_600_29_LB()
 	IniReadS($g_aiAttackUseWardenMode[$RankedBattle], $g_sProfileConfigPath, "attack", "ABAtkUseWardenMode", 2, "int")
 	IniReadS($g_aiAttackUseSiege[$RankedBattle], $g_sProfileConfigPath, "attack", "ABAtkUseSiege", 4, "int")
 	IniReadS($g_bDropEmptySiege[$RankedBattle], $g_sProfileConfigPath, "attack", "ABDropEmptySiege", False, "Bool")
+	IniReadS($g_bSwapEmptyBlimp[$RankedBattle], $g_sProfileConfigPath, "attack", "ABSwapEmptyBlimp", False, "Bool")
 EndFunc   ;==>ReadConfig_600_29_LB
 
 Func ReadConfig_600_30()

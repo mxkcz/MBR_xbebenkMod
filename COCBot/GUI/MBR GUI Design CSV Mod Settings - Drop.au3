@@ -13,7 +13,8 @@
 ; =====================================================================================================================
 Func CreateCSVModDropsTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
-	CSVMod_GetContentBounds($x, $y, $w, $h)
+	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
+	Local $iBottom = $y + $h
 
 	GUICtrlCreateGroup("DROP ranges && REMAIN", $x, $y, $w, 200)
 		GUICtrlCreateLabel("Index", $x + 10, $y + 22, 40, 18)
@@ -41,7 +42,9 @@ Func CreateCSVModDropsTab()
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$y += 210
-	GUICtrlCreateGroup("WAIT && break conditions", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
+	Local $iWaitGroupH = $iBottom - $y
+	If $iWaitGroupH < 120 Then $iWaitGroupH = 120
+	GUICtrlCreateGroup("WAIT && break conditions", $x, $y, $w, $iWaitGroupH)
 		GUICtrlCreateLabel("Wait (sec)", $x + 10, $y + 22, 65, 18)
 		$g_hInpCSVWaitMin = GUICtrlCreateInput("0", $x + 80, $y + 20, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 		$g_hInpCSVWaitMax = GUICtrlCreateInput("0", $x + 125, $y + 20, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))

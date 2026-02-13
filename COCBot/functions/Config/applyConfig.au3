@@ -1189,7 +1189,7 @@ EndFunc   ;==>ApplyConfig_600_19
 Func ApplyConfig_CSVMod_Search_Battle($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
-			;~ If $g_hChkBattle <> 0 Then GUICtrlSetState($g_hChkBattle, $g_abAttackTypeEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			If $g_hChkBattle <> 0 Then GUICtrlSetState($g_hChkBattle, $g_abAttackTypeEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			If $g_hchkBattleActivateSearches <> 0 Then GUICtrlSetState($g_hchkBattleActivateSearches, $g_abSearchSearchesEnable[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 			If $g_hTxtBattleSearchesMin <> 0 Then GUICtrlSetData($g_hTxtBattleSearchesMin, $g_aiSearchSearchesMin[$Battle])
 			If $g_hTxtBattleSearchesMax <> 0 Then GUICtrlSetData($g_hTxtBattleSearchesMax, $g_aiSearchSearchesMax[$Battle])
@@ -1232,8 +1232,10 @@ Func ApplyConfig_CSVMod_Search_Ranked($TypeReadSave)
 	Switch $TypeReadSave
 		Case "Read"
 			If $g_hChkRankedBattle <> 0 Then GUICtrlSetState($g_hChkRankedBattle, $g_abAttackTypeEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+			If $g_hchkRankedBattleWaitForCastle <> 0 Then GUICtrlSetState($g_hchkRankedBattleWaitForCastle, $g_abSearchCastleWaitEnable[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 		Case "Save"
 			If $g_hChkRankedBattle <> 0 Then $g_abAttackTypeEnable[$RankedBattle] = (GUICtrlRead($g_hChkRankedBattle) = $GUI_CHECKED)
+			If $g_hchkRankedBattleWaitForCastle <> 0 Then $g_abSearchCastleWaitEnable[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleWaitForCastle) = $GUI_CHECKED)
 	EndSwitch
 	_ApplyConfig_CSVMod_SearchPolicy($RankedBattle, True)
 EndFunc   ;==>ApplyConfig_CSVMod_Search_Ranked
@@ -1259,7 +1261,7 @@ Func _ApplyConfig_CSVMod_SearchPolicy($iMode, $bRankedDefaults)
 	$g_aiSearchCampsPct[$iMode] = 0
 	$g_aiFilterMeetGE[$iMode] = 0
 	$g_aiFilterMinGoldPlusElixir[$iMode] = 0
-	$g_abFilterMeetDEEnable[$iMode] = False
+	$g_abFilterMeetDEEnable[$iMode] = ($bRankedDefaults ? False : ($g_aiFilterMeetDEMin[$iMode] > 0))
 	$g_abFilterMeetTH[$iMode] = False
 	$g_abFilterMeetTHOutsideEnable[$iMode] = False
 	$g_abFilterMaxMortarEnable[$iMode] = False
@@ -1284,11 +1286,11 @@ Func _ApplyConfig_CSVMod_SearchPolicy($iMode, $bRankedDefaults)
 		$g_abSearchSearchesEnable[$iMode] = False
 		$g_aiSearchSearchesMin[$iMode] = 0
 		$g_aiSearchSearchesMax[$iMode] = 0
-		$g_abSearchCastleWaitEnable[$iMode] = False
 		$g_aiFilterMinGold[$iMode] = 0
 		$g_aiFilterMinElixir[$iMode] = 0
 		$g_aiFilterMeetDEMin[$iMode] = 0
 		$g_abFilterMeetOneConditionEnable[$iMode] = False
+		$g_abFilterMeetDEEnable[$iMode] = False
 	EndIf
 EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 
@@ -1492,7 +1494,7 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 			Local $scriptname
 ;~ 			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameBattle, $indexofscript, $scriptname)
 ;~ 			$g_sAttackScrScriptName[$Battle] = $scriptname
-;~ 			IniWriteS($g_sProfileConfigPath, "attack", "ScriptDB", $g_sAttackScrScriptName[$Battle])
+;~ 			IniWriteS($g_sProfileConfigPath, "attack", "ScriptBattle", $g_sAttackScrScriptName[$Battle])
 ;~ 			Local $indexRanked = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle)
 ;~ 			Local $rankedName
 ;~ 			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRankedBattle, $indexRanked, $rankedName)

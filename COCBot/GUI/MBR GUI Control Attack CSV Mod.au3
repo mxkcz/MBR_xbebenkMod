@@ -78,9 +78,9 @@ Func AttackCSVSettings_ApplyToGUI()
 	SetDebugLog("CSV RECALC vector override = " & ($g_sCSVRecalcVectorTargets = "" ? "AUTO" : $g_sCSVRecalcVectorTargets), $COLOR_INFO)
 	AttackCSVSettings_SaveToCSV($g_iAttackCSVSettingsMode)
 	If $g_iAttackCSVSettingsMode = $RankedBattle Then
-		ApplyScriptAB()
+		ApplyScriptRankedBattle()
 	Else
-		ApplyScriptDB()
+		ApplyScriptBattle()
 	EndIf
 EndFunc   ;==>AttackCSVSettings_ApplyToGUI
 
@@ -97,6 +97,81 @@ EndFunc   ;==>CSVSettings_SetDirty
 Func CSVSettings_MarkDirty()
 	If Not $g_bCSVSettingsDirty Then CSVSettings_SetDirty(True)
 EndFunc   ;==>CSVSettings_MarkDirty
+
+; Side-effect: io (GUI state updates)
+Func CSVSettings_SelectMode_Battle()
+	CSVSettings_SelectMode($Battle)
+EndFunc   ;==>CSVSettings_SelectMode_Battle
+
+; Side-effect: io (GUI state updates)
+Func CSVSettings_SelectMode_Ranked()
+	CSVSettings_SelectMode($RankedBattle)
+EndFunc   ;==>CSVSettings_SelectMode_Ranked
+
+; Side-effect: io (GUI state updates + file read)
+Func CSVSettings_SelectMode($iMode)
+	If $iMode <> $Battle And $iMode <> $RankedBattle Then Return
+	$g_iAttackCSVSettingsMode = $iMode
+	If $g_hRadCSVSettingsModeBattle <> 0 Then GUICtrlSetState($g_hRadCSVSettingsModeBattle, ($iMode = $Battle) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadCSVSettingsModeRanked <> 0 Then GUICtrlSetState($g_hRadCSVSettingsModeRanked, ($iMode = $RankedBattle) ? $GUI_CHECKED : $GUI_UNCHECKED)
+	AttackCSVSettings_LoadFromCSV($iMode)
+	AttackCSVSettings_UpdatePrecalcStatus()
+	AttackCSVSettings_UpdateDiagnostics()
+	AttackCSVSettings_UpdateDebugPanel()
+EndFunc   ;==>CSVSettings_SelectMode
+
+; Side-effect: io (GUI state updates from globals)
+Func CSVMod_SyncAttackSettingsFromGlobals()
+	If $g_hRadAutoQueenAbility <> 0 Then GUICtrlSetState($g_hRadAutoQueenAbility, $g_iActivateQueen = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadManQueenAbility <> 0 Then GUICtrlSetState($g_hRadManQueenAbility, $g_iActivateQueen = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadBothQueenAbility <> 0 Then GUICtrlSetState($g_hRadBothQueenAbility, $g_iActivateQueen = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hTxtManQueenAbility <> 0 Then GUICtrlSetData($g_hTxtManQueenAbility, Int($g_iDelayActivateQueen / 1000))
+
+	If $g_hRadAutoKingAbility <> 0 Then GUICtrlSetState($g_hRadAutoKingAbility, $g_iActivateKing = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadManKingAbility <> 0 Then GUICtrlSetState($g_hRadManKingAbility, $g_iActivateKing = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadBothKingAbility <> 0 Then GUICtrlSetState($g_hRadBothKingAbility, $g_iActivateKing = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hTxtManKingAbility <> 0 Then GUICtrlSetData($g_hTxtManKingAbility, Int($g_iDelayActivateKing / 1000))
+
+	If $g_hRadAutoWardenAbility <> 0 Then GUICtrlSetState($g_hRadAutoWardenAbility, $g_iActivateWarden = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadManWardenAbility <> 0 Then GUICtrlSetState($g_hRadManWardenAbility, $g_iActivateWarden = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadBothWardenAbility <> 0 Then GUICtrlSetState($g_hRadBothWardenAbility, $g_iActivateWarden = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hTxtManWardenAbility <> 0 Then GUICtrlSetData($g_hTxtManWardenAbility, Int($g_iDelayActivateWarden / 1000))
+
+	If $g_hRadAutoChampionAbility <> 0 Then GUICtrlSetState($g_hRadAutoChampionAbility, $g_iActivateChampion = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadManChampionAbility <> 0 Then GUICtrlSetState($g_hRadManChampionAbility, $g_iActivateChampion = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadBothChampionAbility <> 0 Then GUICtrlSetState($g_hRadBothChampionAbility, $g_iActivateChampion = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hTxtManChampionAbility <> 0 Then GUICtrlSetData($g_hTxtManChampionAbility, Int($g_iDelayActivateChampion / 1000))
+
+	If $g_hRadAutoPrinceAbility <> 0 Then GUICtrlSetState($g_hRadAutoPrinceAbility, $g_iActivatePrince = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadManPrinceAbility <> 0 Then GUICtrlSetState($g_hRadManPrinceAbility, $g_iActivatePrince = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hRadBothPrinceAbility <> 0 Then GUICtrlSetState($g_hRadBothPrinceAbility, $g_iActivatePrince = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hTxtManPrinceAbility <> 0 Then GUICtrlSetData($g_hTxtManPrinceAbility, Int($g_iDelayActivatePrince / 1000))
+
+	If $g_hchkBattleDropCC <> 0 Then GUICtrlSetState($g_hchkBattleDropCC, $g_abAttackDropCC[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hCmbDBWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBWardenMode, $g_aiAttackUseWardenMode[$Battle])
+	If $g_hCmbDBSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBSiege, $g_aiAttackUseSiege[$Battle])
+	If $g_hchkBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkBattleDropEmptySiege, $g_bDropEmptySiege[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hchkBattleSwapEmptyBlimp <> 0 Then GUICtrlSetState($g_hchkBattleSwapEmptyBlimp, $g_bSwapEmptyBlimp[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+
+	If $g_hchkRankedBattleDropCC <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropCC, $g_abAttackDropCC[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hCmbABWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
+	If $g_hCmbABSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABSiege, $g_aiAttackUseSiege[$RankedBattle])
+	If $g_hchkRankedBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropEmptySiege, $g_bDropEmptySiege[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $g_hchkRankedBattleSwapEmptyBlimp <> 0 Then GUICtrlSetState($g_hchkRankedBattleSwapEmptyBlimp, $g_bSwapEmptyBlimp[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
+
+	chkBattleDropCC()
+	chkRankedBattleDropCC()
+EndFunc   ;==>CSVMod_SyncAttackSettingsFromGlobals
+
+Func CSVSettings_OnBattleDropCCChanged()
+	chkBattleDropCC()
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSettings_OnBattleDropCCChanged
+
+Func CSVSettings_OnRankedBattleDropCCChanged()
+	chkRankedBattleDropCC()
+	CSVSettings_MarkDirty()
+EndFunc   ;==>CSVSettings_OnRankedBattleDropCCChanged
 
 ; Side-effect: io (GUI state updates)
 Func AttackCSVSettings_UpdateHeader($sScript, $sPath, $sLoaded, $sVersion = "")
@@ -199,52 +274,6 @@ EndFunc   ;==>AttackCSVSettings_TestAttackLive
 Func AttackCSVSettings_TestAttackBattle()
 	AttackCSVSettings_TestAttackLive()
 EndFunc   ;==>AttackCSVSettings_TestAttackBattle
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: chkBattleWardenAttack
-; Description ...: Toggle battle warden mode combo based on battle warden checkbox state.
-; Syntax ........: chkBattleWardenAttack()
-; Parameters ....: None
-; Return values .: None
-; Author ........: mxkcz
-; Modified ......:
-; Remarks .......: This file is part of MyBotRun. Copyright 2016
-;                  MyBotRun is distributed under the terms of the GNU GPL
-; Related .......:
-; Link ..........:
-; Example .......:
-; =====================================================================================================================
-Func chkBattleWardenAttack()
-	If $g_hCmbDBWardenMode = 0 Or $g_hchkBattleWardenAttack = 0 Then Return
-	If GUICtrlRead($g_hchkBattleWardenAttack) = $GUI_CHECKED Then
-		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_ENABLE)
-	Else
-		GUICtrlSetState($g_hCmbDBWardenMode, $GUI_DISABLE)
-	EndIf
-EndFunc   ;==>chkBattleWardenAttack
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: chkRankedBattleWardenAttack
-; Description ...: Toggle ranked battle warden combo based on ranked battle warden checkbox state.
-; Syntax ........: chkRankedBattleWardenAttack()
-; Parameters ....: None
-; Return values .: None
-; Author ........: mxkcz
-; Modified ......:
-; Remarks .......: This file is part of MyBotRun. Copyright 2016
-;                  MyBotRun is distributed under the terms of the GNU GPL
-; Related .......:
-; Link ..........:
-; Example .......:
-; =====================================================================================================================
-Func chkRankedBattleWardenAttack()
-	If $g_hCmbABWardenMode = 0 Or $g_hchkRankedBattleWardenAttack = 0 Then Return
-	If GUICtrlRead($g_hchkRankedBattleWardenAttack) = $GUI_CHECKED Then
-		GUICtrlSetState($g_hCmbABWardenMode, $GUI_ENABLE)
-	Else
-		GUICtrlSetState($g_hCmbABWardenMode, $GUI_DISABLE)
-	EndIf
-EndFunc   ;==>chkRankedBattleWardenAttack
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: chkBattleDropCC
@@ -1137,9 +1166,8 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 	CSVWaitComboToggle()
 
 	If $g_hCmbCSVFlexTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVFlexTroop, -1)
-	For $i = 0 To UBound($g_ahCSVHeroAbilityMode) - 1
-		If $g_ahCSVHeroAbilityMode[$i] <> 0 Then _GUICtrlComboBox_SetCurSel($g_ahCSVHeroAbilityMode[$i], 3)
-		If $g_ahCSVHeroAbilityDelay[$i] <> 0 Then GUICtrlSetData($g_ahCSVHeroAbilityDelay[$i], "0")
+	For $i = 0 To 3
+		AttackCSVSettings_SetHeroControlModeDelay($i, 3, 0)
 	Next
 	If $g_hCmbCSVRedlinePreset <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVRedlinePreset, -1)
 	If $g_hCmbCSVDroplinePreset <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbCSVDroplinePreset, -1)
@@ -1940,13 +1968,6 @@ Func AttackCSVSettings_UpdateTrainLines(ByRef $aLines, $iTHCol, $iTHStart, $iTHE
 	Local $sFlexShort = ""
 	If $iFlexIndex >= 0 And $iFlexIndex < UBound($g_asTroopShortNames) Then $sFlexShort = $g_asTroopShortNames[$iFlexIndex]
 
-	Local $aHeroModes[4]
-	Local $aHeroDelays[4]
-	For $i = 0 To 3
-		$aHeroModes[$i] = _GUICtrlComboBox_GetCurSel($g_ahCSVHeroAbilityMode[$i])
-		$aHeroDelays[$i] = Number(GUICtrlRead($g_ahCSVHeroAbilityDelay[$i]))
-	Next
-
 	For $iLine = 0 To UBound($aLines) - 1
 		Local $aCols = StringSplit($aLines[$iLine], "|", 2)
 		If AttackCSVSettings_GetCommand($aCols) <> "TRAIN" Then ContinueLoop
@@ -1959,9 +1980,10 @@ Func AttackCSVSettings_UpdateTrainLines(ByRef $aLines, $iTHCol, $iTHStart, $iTHE
 
 		Local $iHeroIndex = AttackCSVSettings_GetHeroIndex($sTroop)
 		If $iHeroIndex >= 0 Then
-			Local $iMode = $aHeroModes[$iHeroIndex]
+			Local $iMode = 3, $iDelay = 0
+			AttackCSVSettings_GetHeroControlModeDelay($iHeroIndex, $iMode, $iDelay)
 			If $iMode >= 0 And $iMode <= 2 Then
-				Local $sHeroValue = String($iMode + 1) & ($aHeroDelays[$iHeroIndex] > 0 ? String($aHeroDelays[$iHeroIndex]) : "")
+				Local $sHeroValue = String($iMode + 1) & ($iDelay > 0 ? String($iDelay) : "")
 				If $bUpdateAllTH Then
 					For $i = $iTHStart To $iTHEnd
 						AttackCSVSettings_SetColumn($aCols, $i, $sHeroValue)
@@ -2124,13 +2146,79 @@ Func AttackCSVSettings_SetHeroControls($iHeroIndex, $sValue)
 	Local $sMode = StringLeft($sValue, 1)
 	Local $sDelay = StringTrimLeft($sValue, 1)
 	Local $iMode = Number($sMode) - 1
-	If $iMode < 0 Or $iMode > 2 Then
-		_GUICtrlComboBox_SetCurSel($g_ahCSVHeroAbilityMode[$iHeroIndex], 3)
+	If $iMode < 0 Or $iMode > 2 Then $iMode = 3
+	AttackCSVSettings_SetHeroControlModeDelay($iHeroIndex, $iMode, Number($sDelay))
+EndFunc   ;==>AttackCSVSettings_SetHeroControls
+
+; Side-effect: io (GUI state updates)
+Func AttackCSVSettings_SetHeroControlModeDelay($iHeroIndex, $iMode, $iDelay)
+	If $iHeroIndex < 0 Or $iHeroIndex > 3 Then Return
+	If $iMode < 0 Or $iMode > 3 Then $iMode = 3
+
+	If $g_ahCSVHeroAbilityMode[$iHeroIndex] <> 0 Then _GUICtrlComboBox_SetCurSel($g_ahCSVHeroAbilityMode[$iHeroIndex], $iMode)
+	If $g_ahCSVHeroAbilityDelay[$iHeroIndex] <> 0 Then GUICtrlSetData($g_ahCSVHeroAbilityDelay[$iHeroIndex], $iDelay)
+
+	Local $hAuto = 0, $hMan = 0, $hBoth = 0, $hDelay = 0
+	_AttackCSVSettings_GetHeroAbilityHandles($iHeroIndex, $hAuto, $hMan, $hBoth, $hDelay)
+	If $hAuto <> 0 Then GUICtrlSetState($hAuto, $iMode = 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $hMan <> 0 Then GUICtrlSetState($hMan, $iMode = 1 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $hBoth <> 0 Then GUICtrlSetState($hBoth, $iMode = 2 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	If $hDelay <> 0 Then GUICtrlSetData($hDelay, $iDelay)
+EndFunc   ;==>AttackCSVSettings_SetHeroControlModeDelay
+
+; Side-effect: io (GUI state reads)
+Func AttackCSVSettings_GetHeroControlModeDelay($iHeroIndex, ByRef $iMode, ByRef $iDelay)
+	$iMode = 3
+	$iDelay = 0
+	If $iHeroIndex < 0 Or $iHeroIndex > 3 Then Return
+
+	If $g_ahCSVHeroAbilityMode[$iHeroIndex] <> 0 Then
+		$iMode = _GUICtrlComboBox_GetCurSel($g_ahCSVHeroAbilityMode[$iHeroIndex])
+		If $g_ahCSVHeroAbilityDelay[$iHeroIndex] <> 0 Then $iDelay = Number(GUICtrlRead($g_ahCSVHeroAbilityDelay[$iHeroIndex]))
 		Return
 	EndIf
-	_GUICtrlComboBox_SetCurSel($g_ahCSVHeroAbilityMode[$iHeroIndex], $iMode)
-	If $sDelay <> "" Then GUICtrlSetData($g_ahCSVHeroAbilityDelay[$iHeroIndex], Number($sDelay))
-EndFunc   ;==>AttackCSVSettings_SetHeroControls
+
+	Local $hAuto = 0, $hMan = 0, $hBoth = 0, $hDelay = 0
+	_AttackCSVSettings_GetHeroAbilityHandles($iHeroIndex, $hAuto, $hMan, $hBoth, $hDelay)
+	If $hAuto <> 0 And GUICtrlRead($hAuto) = $GUI_CHECKED Then
+		$iMode = 0
+	ElseIf $hMan <> 0 And GUICtrlRead($hMan) = $GUI_CHECKED Then
+		$iMode = 1
+	ElseIf $hBoth <> 0 And GUICtrlRead($hBoth) = $GUI_CHECKED Then
+		$iMode = 2
+	EndIf
+	If $hDelay <> 0 Then $iDelay = Number(GUICtrlRead($hDelay))
+EndFunc   ;==>AttackCSVSettings_GetHeroControlModeDelay
+
+; Side-effect: pure (control mapping)
+Func _AttackCSVSettings_GetHeroAbilityHandles($iHeroIndex, ByRef $hAuto, ByRef $hMan, ByRef $hBoth, ByRef $hDelay)
+	$hAuto = 0
+	$hMan = 0
+	$hBoth = 0
+	$hDelay = 0
+	Switch $iHeroIndex
+		Case 0
+			$hAuto = $g_hRadAutoKingAbility
+			$hMan = $g_hRadManKingAbility
+			$hBoth = $g_hRadBothKingAbility
+			$hDelay = $g_hTxtManKingAbility
+		Case 1
+			$hAuto = $g_hRadAutoQueenAbility
+			$hMan = $g_hRadManQueenAbility
+			$hBoth = $g_hRadBothQueenAbility
+			$hDelay = $g_hTxtManQueenAbility
+		Case 2
+			$hAuto = $g_hRadAutoWardenAbility
+			$hMan = $g_hRadManWardenAbility
+			$hBoth = $g_hRadBothWardenAbility
+			$hDelay = $g_hTxtManWardenAbility
+		Case 3
+			$hAuto = $g_hRadAutoChampionAbility
+			$hMan = $g_hRadManChampionAbility
+			$hBoth = $g_hRadBothChampionAbility
+			$hDelay = $g_hTxtManChampionAbility
+	EndSwitch
+EndFunc   ;==>_AttackCSVSettings_GetHeroAbilityHandles
 
 ; Side-effect: io (GUI state updates)
 Func AttackCSVSettings_SetComboIndex($hCombo, $iIndex)
@@ -2236,10 +2324,7 @@ Func cmbScriptNameBattle()
 	EndIf
 	GUICtrlSetData($g_hLblNotesScriptBattle, $result)
 	If $g_hLblCSVScriptVersionBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionBattle, "CSV version: " & $sVersion)
-	If $g_bCSVModReady Then
-		$g_iAttackCSVSettingsMode = $Battle
-		AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
-	EndIf
+	If $g_bCSVModReady And $g_iAttackCSVSettingsMode = $Battle Then AttackCSVSettings_LoadFromCSV($Battle)
 
 EndFunc   ;==>cmbScriptNameBattle
 
@@ -2290,10 +2375,7 @@ Func cmbScriptNameRankedBattle()
 	EndIf
 	GUICtrlSetData($g_hLblNotesScriptRankedBattle, $result)
 	If $g_hLblCSVScriptVersionRankedBattle <> 0 Then GUICtrlSetData($g_hLblCSVScriptVersionRankedBattle, "CSV: " & $sVersion)
-	If $g_bCSVModReady Then
-		$g_iAttackCSVSettingsMode = $RankedBattle
-		AttackCSVSettings_LoadFromCSV($g_iAttackCSVSettingsMode)
-	EndIf
+	If $g_bCSVModReady And $g_iAttackCSVSettingsMode = $RankedBattle Then AttackCSVSettings_LoadFromCSV($RankedBattle)
 
 EndFunc   ;==>cmbScriptNameRankedBattle
 
@@ -2335,7 +2417,7 @@ Func AttackCSVAssignDefaultScriptName()
 EndFunc   ;==>AttackCSVAssignDefaultScriptName
 
 ; TODO: update for battle logic
-Func ApplyScriptDB()
+Func ApplyScriptBattle()
 	Local $iApply = 0
 	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -2373,9 +2455,9 @@ Func ApplyScriptDB()
 	For $i = 0 To UBound($aiCSVHeros) - 1
 		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
 	Next
-	If $iApply > 0 Then
-		For $h = 0 To UBound($aiCSVHeros) - 1
-			If $aiCSVHeros[$h][0] > 0 Then
+		If $iApply > 0 Then
+			For $h = 0 To UBound($aiCSVHeros) - 1
+				If $aiCSVHeros[$h][0] > 0 Then
 				Switch $h
 					Case $eHeroBarbarianKing
 						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
@@ -2395,11 +2477,6 @@ Func ApplyScriptDB()
 		radHerosApply()
 		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
 
-			If $g_hchkBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkBattleKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleKingAttack))
-			If $g_hchkBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkBattleQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleQueenAttack))
-			If $g_hchkBattleWardenAttack <> 0 Then GUICtrlSetState($g_hchkBattleWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleWardenAttack))
-			If $g_hchkBattleChampionAttack <> 0 Then GUICtrlSetState($g_hchkBattleChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkBattleChampionAttack))
-			SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
 		EndIf
 
 		If $sCSVCCReq <> "" Then
@@ -2438,10 +2515,10 @@ Func ApplyScriptDB()
 		ApplyConfig_600_11("Read")
 		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
 	EndIf
-EndFunc   ;==>ApplyScriptDB
+EndFunc   ;==>ApplyScriptBattle
 
 ; TODO: update for ranked battle logic
-Func ApplyScriptAB()
+Func ApplyScriptRankedBattle()
 	Local $iApply = 0
 	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -2497,15 +2574,9 @@ Func ApplyScriptAB()
 						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
 				EndSwitch
 			EndIf
-		Next
-		radHerosApply()
-		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
-
-			If $g_hchkRankedBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleKingAttack, $aiCSVHeros[$eHeroBarbarianKing][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleKingAttack))
-			If $g_hchkRankedBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleQueenAttack, $aiCSVHeros[$eHeroArcherQueen][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleQueenAttack))
-			If $g_hchkRankedBattleWardenAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleWardenAttack, $aiCSVHeros[$eHeroGrandWarden][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleWardenAttack))
-			If $g_hchkRankedBattleChampionAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleChampionAttack, $aiCSVHeros[$eHeroRoyalChampion][0] > 0 ? $GUI_CHECKED : GUICtrlGetState($g_hchkRankedBattleChampionAttack))
-			SetLog("CSV 'Attack with' Hero settings applied", $COLOR_SUCCESS)
+			Next
+			radHerosApply()
+			SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
 		EndIf
 
 		If $sCSVCCReq <> "" Then
@@ -2544,7 +2615,7 @@ Func ApplyScriptAB()
 		ApplyConfig_600_11("Read")
 		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
 	EndIf
-EndFunc   ;==>ApplyScriptAB
+EndFunc   ;==>ApplyScriptRankedBattle
 
 Func cmbScriptRedlineImplDB()
 	$g_aiAttackScrRedlineRoutine[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplBattle)

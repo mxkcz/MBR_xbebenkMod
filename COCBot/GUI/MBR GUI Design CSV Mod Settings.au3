@@ -1,6 +1,27 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: CreateCSVModSettingsTab
-; Description ...: Creates CSV automation, hero, and redline preset controls.
+; Description ...: Creates nested CSV Mod Settings sub-sub-tabs.
+; Syntax ........:
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+#include-once
+#include "MBR GUI Design CSV Mod Settings - Attack.au3"
+#include "MBR GUI Design CSV Mod Settings - Presets.au3"
+#include "MBR GUI Design CSV Mod Settings - Drop.au3"
+#include "MBR GUI Design CSV Mod Settings - Vector.au3"
+#include "MBR GUI Design CSV Mod Settings - Side.au3"
+#include "MBR GUI Design CSV Mod Settings - Precalc.au3"
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CreateCSVModSettingsTab
+; Description ...: Creates Settings tab content and nested sub-subtab host.
 ; Syntax ........:
 ; Parameters ....: None
 ; Return values .: None
@@ -14,36 +35,37 @@
 Func CreateCSVModSettingsTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
 	CSVMod_GetContentBounds($x, $y, $w, $h)
-	Local $aHeroNames[4] = ["King", "Queen", "Warden", "Champion"]
 
-	GUICtrlCreateGroup("CSV automation", $x, $y, $w, 175)
-		GUICtrlCreateLabel("Flex troop", $x + 10, $y + 22, 70, 18)
-		$g_hCmbCSVFlexTroop = GUICtrlCreateCombo("", $x + 90, $y + 20, 140, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		Local $iOffsetYHero = $y + 50
-		For $h = 0 To UBound($aHeroNames) - 1
-			GUICtrlCreateLabel($aHeroNames[$h], $x + 10, $iOffsetYHero + 2, 60, 18)
-			$g_ahCSVHeroAbilityMode[$h] = GUICtrlCreateCombo("", $x + 80, $iOffsetYHero, 90, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-				GUICtrlSetData(-1, "Auto|Timer|Both|None", "Auto")
-				GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-			$g_ahCSVHeroAbilityDelay[$h] = GUICtrlCreateInput("0", $x + 180, $iOffsetYHero, 40, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-				GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-			$iOffsetYHero += 23
-		Next
+	Local $iTabX = 0
+	Local $iTabY = 0
+	Local $iTabW = $w
+	Local $iTabH = $h
+	If $iTabW < 220 Then $iTabW = 220
+	If $iTabH < 180 Then $iTabH = 180
+
+	$g_hGUI_CSVMOD_SETTINGS = _GUICreate("", $w, $h, $x, $y, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_CSVMOD)
+	GUISwitch($g_hGUI_CSVMOD_SETTINGS)
+
+	$g_iCSVModSettingsTabX = $iTabX
+	$g_iCSVModSettingsTabY = $iTabY
+	$g_iCSVModSettingsTabW = $iTabW
+	$g_iCSVModSettingsTabH = $iTabH
+
+	$g_hGUI_CSVMOD_SETTINGS_TAB = GUICtrlCreateTab($iTabX, $iTabY, $iTabW, $iTabH, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
+	$g_hGUI_CSVMOD_SETTINGS_TAB_ATTACK = GUICtrlCreateTabItem("Attack")
+		CreateCSVModSettingsAttackTab()
+	$g_hGUI_CSVMOD_SETTINGS_TAB_PRESETS = GUICtrlCreateTabItem("Presets")
+		CreateCSVModSettingsPresetsTab()
+	$g_hGUI_CSVMOD_SETTINGS_TAB_DROP = GUICtrlCreateTabItem("Drop")
+		CreateCSVModDropsTab()
+	$g_hGUI_CSVMOD_SETTINGS_TAB_VECTOR = GUICtrlCreateTabItem("Vector")
+		CreateCSVModVectorTab()
+	$g_hGUI_CSVMOD_SETTINGS_TAB_SIDE = GUICtrlCreateTabItem("Side")
+		CreateCSVModSideTab()
+	$g_hGUI_CSVMOD_SETTINGS_TAB_PRECALC = GUICtrlCreateTabItem("Precalc")
+		CreateCSVModPrecalcTab()
+	GUICtrlCreateTabItem("")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 185
-	GUICtrlCreateGroup("Presets", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
-		GUICtrlCreateLabel("Redline preset", $x + 10, $y + 22, 90, 18)
-		$g_hCmbCSVRedlinePreset = GUICtrlCreateCombo("", $x + 110, $y + 20, 120, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		GUICtrlCreateLabel("Dropline preset", $x + 10, $y + 48, 90, 18)
-		$g_hCmbCSVDroplinePreset = GUICtrlCreateCombo("", $x + 110, $y + 46, 120, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
-			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		GUICtrlCreateLabel("CC request", $x + 10, $y + 74, 90, 18)
-		$g_hTxtCSVCCRequest = GUICtrlCreateInput("", $x + 110, $y + 72, 120, 18)
-			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hBtnCSVSettingsApply = GUICtrlCreateButton("Save && apply to GUI", $x + 10, $y + 105, 140, 22)
-			GUICtrlSetOnEvent(-1, "AttackCSVSettings_ApplyToGUI")
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
+	GUISwitch($g_hGUI_CSVMOD)
 EndFunc   ;==>CreateCSVModSettingsTab

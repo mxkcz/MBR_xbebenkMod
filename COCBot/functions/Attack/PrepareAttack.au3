@@ -107,7 +107,10 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 							If $pMatchMode = $Battle Or $pMatchMode = $RankedBattle Then
 								Switch $avAttackBar[$j][0]
 									Case $eCastle, $eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL
+										Local Const $iSiegeSelectBlimp = 2
+										Local Const $iSiegeSelectAny = 9
 										Local $tmpSiege = $avAttackBar[$j][0]
+										Local $bSkipDropEmptySiege = False
 										If $g_aiAttackUseSiege[$pMatchMode] <= $eSiegeMachineCount + 1 Then
 											SelectCastleOrSiege($avAttackBar[$j][0], Number($avAttackBar[$j][5]), $g_aiAttackUseSiege[$pMatchMode])
 											If $avAttackBar[$j][0] = -1 Then ; no cc troops available, do not drop a siege
@@ -116,7 +119,19 @@ Func PrepareAttack($pMatchMode = 0, $bRemaining = False) ;Assigns troops
 												If _Sleep(1500) Then Return
 												Click($g_avAttackTroops[0][2], $g_avAttackTroops[0][3])
 											EndIf
-											If $g_bDropEmptySiege[$pMatchMode] = True And $avAttackBar[$j][0] = -1 Then
+											If $g_bSwapEmptyBlimp[$pMatchMode] And $g_aiAttackUseSiege[$pMatchMode] = $iSiegeSelectBlimp And $tmpSiege = $eBattleB And $avAttackBar[$j][0] = -1 Then
+												Local $iFallbackSiege = $tmpSiege
+												SelectCastleOrSiege($iFallbackSiege, Number($avAttackBar[$j][5]), $iSiegeSelectAny)
+												If $iFallbackSiege <> -1 And $iFallbackSiege <> $eBattleB Then
+													$avAttackBar[$j][0] = $iFallbackSiege
+													$avAttackBar[$j][2] = 1
+													SetLog("SwapEmptyBlimp Enabled: using " & GetTroopName($iFallbackSiege), $COLOR_INFO)
+												Else
+													$bSkipDropEmptySiege = True
+													SetLog("SwapEmptyBlimp Enabled: no alternate siege found, skipping empty blimp drop", $COLOR_WARNING)
+												EndIf
+											EndIf
+											If $g_bDropEmptySiege[$pMatchMode] = True And $avAttackBar[$j][0] = -1 And Not $bSkipDropEmptySiege Then
 												$avAttackBar[$j][0] = $tmpSiege
 												$avAttackBar[$j][2] = 1
 												SetLog("DropEmptySiege Enabled", $COLOR_INFO)

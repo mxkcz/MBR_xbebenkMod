@@ -782,12 +782,12 @@ EndFunc   ;==>SaveConfig_CSVMod
 ; ===============================================================================================================================
 Func SaveConfig_CSVMod_Search()
 	Local $aLegacyDBSearchKeys[24] = [ _
-			"chkBattleSearchCamps", "DBEnableAfterArmyCamps", "DBMeetGE", "DBsearchGoldPlusElixir", "DBMeetDE", "DBMeetTH", "DBTHLevel", "DBMeetTHO", _
+			"chkBattleSearchCamps", "DBEnableAfterArmyCamps", "DBMeetGE", "BattleSearchGoldPlusElixir", "DBMeetDE", "DBMeetTH", "DBTHLevel", "DBMeetTHO", _
 			"DBMeetDeadEagle", "DBMeetDeadEagleSearch", _
 			"DBCheckMortar", "DBCheckWizTower", "DBCheckAirDefense", "DBCheckXBow", "DBCheckInferno", "DBCheckEagle", "DBCheckScatter", _
 			"DBWeakMortar", "DBWeakWizTower", "DBWeakAirDefense", "DBWeakXBow", "DBWeakInferno", "DBWeakEagle", "DBWeakScatter"]
-	Local $aLegacyABSearchKeys[30] = [ _
-			"chkRankedBattleSearchSearches", "ABEnableAfterCount", "ABEnableBeforeCount", "chkRankedBattleSearchCamps", "ABEnableAfterArmyCamps", "chkRankedBattleCastleWait", _
+	Local $aLegacyABSearchKeys[29] = [ _
+			"chkRankedBattleSearchSearches", "ABEnableAfterCount", "ABEnableBeforeCount", "chkRankedBattleSearchCamps", "ABEnableAfterArmyCamps", _
 			"ABMeetGE", "ABsearchGold", "ABsearchElixir", "ABsearchGoldPlusElixir", "ABMeetDE", "ABsearchDark", "ABMeetTH", "ABTHLevel", "ABMeetTHO", _
 			"ABCheckMortar", "ABCheckWizTower", "ABCheckAirDefense", "ABCheckXBow", "ABCheckInferno", "ABCheckEagle", "ABCheckScatter", _
 			"ABWeakMortar", "ABWeakWizTower", "ABWeakAirDefense", "ABWeakXBow", "ABWeakInferno", "ABWeakEagle", "ABWeakScatter", "ABMeetOne"]
@@ -813,22 +813,23 @@ Func SaveConfig_CSVMod_Search()
 	_Ini_Add("search", "DisableFullResources", $g_bSearchDisableFullResources ? 1 : 0)
 
 	; Battle (Deadbase) CSV Mod search.
-	_Ini_Add("search", "DBcheck", $g_abAttackTypeEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "BattleCheck", $g_abAttackTypeEnable[$Battle] ? 1 : 0)
 	_Ini_Add("search", "chkBattleSearchSearches", $g_abSearchSearchesEnable[$Battle] ? 1 : 0)
-	_Ini_Add("search", "DBEnableAfterCount", $g_aiSearchSearchesMin[$Battle])
-	_Ini_Add("search", "DBEnableBeforeCount", $g_aiSearchSearchesMax[$Battle])
+	_Ini_Add("search", "BattleEnableAfterCount", $g_aiSearchSearchesMin[$Battle])
+	_Ini_Add("search", "BattleEnableBeforeCount", $g_aiSearchSearchesMax[$Battle])
 	_Ini_Add("search", "chkBattleCastleWait", $g_abSearchCastleWaitEnable[$Battle] ? 1 : 0)
-	_Ini_Add("search", "DBsearchGold", $g_aiFilterMinGold[$Battle])
-	_Ini_Add("search", "DBsearchElixir", $g_aiFilterMinElixir[$Battle])
-	_Ini_Add("search", "DBsearchDark", $g_aiFilterMeetDEMin[$Battle])
-	_Ini_Add("search", "DBMeetOne", $g_abFilterMeetOneConditionEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "BattleSearchGold", $g_aiFilterMinGold[$Battle])
+	_Ini_Add("search", "BattleSearchElixir", $g_aiFilterMinElixir[$Battle])
+	_Ini_Add("search", "BattleSearchDark", $g_aiFilterMeetDEMin[$Battle])
+	_Ini_Add("search", "BattleMeetOne", $g_abFilterMeetOneConditionEnable[$Battle] ? 1 : 0)
 
 	For $i = 0 To UBound($aLegacyDBSearchKeys) - 1
 		_Ini_Delete("search", $aLegacyDBSearchKeys[$i])
 	Next
 
-	; Ranked battle keeps only mode enable.
-	_Ini_Add("search", "ABcheck", $g_abAttackTypeEnable[$RankedBattle] ? 1 : 0)
+	; Ranked battle keeps mode enable + wait for CC.
+	_Ini_Add("search", "RankedBattleCheck", $g_abAttackTypeEnable[$RankedBattle] ? 1 : 0)
+	_Ini_Add("search", "chkRankedBattleCastleWait", $g_abSearchCastleWaitEnable[$RankedBattle] ? 1 : 0)
 	For $i = 0 To UBound($aLegacyABSearchKeys) - 1
 		_Ini_Delete("search", $aLegacyABSearchKeys[$i])
 	Next
@@ -881,9 +882,10 @@ Func SaveConfig_CSVMod_Attack()
 	_Ini_Add("attack", "DBAtkUseWardenMode", $g_aiAttackUseWardenMode[$Battle])
 	_Ini_Add("attack", "DBAtkUseSiege", $g_aiAttackUseSiege[$Battle])
 	_Ini_Add("attack", "DBDropEmptySiege", $g_bDropEmptySiege[$Battle] ? 1 : 0)
+	_Ini_Add("attack", "DBSwapEmptyBlimp", $g_bSwapEmptyBlimp[$Battle] ? 1 : 0)
 	_Ini_Add("attack", "RedlineRoutineBattle", $g_aiAttackScrRedlineRoutine[$Battle])
 	_Ini_Add("attack", "DroplineEdgeBattle", $g_aiAttackScrDroplineEdge[$Battle])
-	_Ini_Add("attack", "ScriptDB", $g_sAttackScrScriptName[$Battle])
+	_Ini_Add("attack", "ScriptBattle", $g_sAttackScrScriptName[$Battle])
 
 	_Ini_Add("attack", "ABAtkAlgorithm", $g_aiAttackAlgorithm[$RankedBattle])
 	_Ini_Add("attack", "ABSelectTroop", $g_aiAttackTroopSelection[$RankedBattle])
@@ -895,9 +897,9 @@ Func SaveConfig_CSVMod_Attack()
 	_Ini_Add("attack", "ABAtkUseWardenMode", $g_aiAttackUseWardenMode[$RankedBattle])
 	_Ini_Add("attack", "ABAtkUseSiege", $g_aiAttackUseSiege[$RankedBattle])
 	_Ini_Add("attack", "ABDropEmptySiege", $g_bDropEmptySiege[$RankedBattle] ? 1 : 0)
+	_Ini_Add("attack", "ABSwapEmptyBlimp", $g_bSwapEmptyBlimp[$RankedBattle] ? 1 : 0)
 	_Ini_Add("attack", "RedlineRoutineRankedBattle", $g_aiAttackScrRedlineRoutine[$RankedBattle])
 	_Ini_Add("attack", "DroplineEdgeRankedBattle", $g_aiAttackScrDroplineEdge[$RankedBattle])
-	_Ini_Add("attack", "ScriptAB", $g_sAttackScrScriptName[$RankedBattle])
 	_Ini_Add("attack", "ScriptRanked", $g_sAttackScrScriptNameRankedBattle)
 EndFunc   ;==>SaveConfig_CSVMod_Attack
 
@@ -988,33 +990,26 @@ EndFunc   ;==>_SaveConfig_CSVMod_SyncHeroAbilityFromGui
 ; ===============================================================================================================================
 Func _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
 	Local $hCmbAlgorithm = 0, $hCmbSelectTroop = 0
-	Local $hChkKing = 0, $hChkQueen = 0, $hChkWarden = 0, $hChkChampion = 0
-	Local $hChkDropCC = 0, $hCmbWardenMode = 0, $hCmbSiege = 0, $hChkDropEmptySiege = 0
-	Local $iMask = 0, $iSel = 0
+	Local $hChkDropCC = 0, $hCmbWardenMode = 0, $hCmbSiege = 0, $hChkDropEmptySiege = 0, $hChkSwapEmptyBlimp = 0
+	Local $iSel = 0
 
 	Switch $iMode
 		Case $Battle
 			$hCmbAlgorithm = $g_hCmbDBAlgorithm
 			$hCmbSelectTroop = $g_hCmbDBSelectTroop
-			$hChkKing = $g_hchkBattleKingAttack
-			$hChkQueen = $g_hchkBattleQueenAttack
-			$hChkWarden = $g_hchkBattleWardenAttack
-			$hChkChampion = $g_hchkBattleChampionAttack
 			$hChkDropCC = $g_hchkBattleDropCC
 			$hCmbWardenMode = $g_hCmbDBWardenMode
 			$hCmbSiege = $g_hCmbDBSiege
 			$hChkDropEmptySiege = $g_hchkBattleDropEmptySiege
+			$hChkSwapEmptyBlimp = $g_hchkBattleSwapEmptyBlimp
 		Case $RankedBattle
 			$hCmbAlgorithm = $g_hCmbABAlgorithm
 			$hCmbSelectTroop = $g_hCmbABSelectTroop
-			$hChkKing = $g_hchkRankedBattleKingAttack
-			$hChkQueen = $g_hchkRankedBattleQueenAttack
-			$hChkWarden = $g_hchkRankedBattleWardenAttack
-			$hChkChampion = $g_hchkRankedBattleChampionAttack
 			$hChkDropCC = $g_hchkRankedBattleDropCC
 			$hCmbWardenMode = $g_hCmbABWardenMode
 			$hCmbSiege = $g_hCmbABSiege
 			$hChkDropEmptySiege = $g_hchkRankedBattleDropEmptySiege
+			$hChkSwapEmptyBlimp = $g_hchkRankedBattleSwapEmptyBlimp
 		Case Else
 			Return
 	EndSwitch
@@ -1028,29 +1023,6 @@ Func _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
 		If $iSel >= 0 Then $g_aiAttackTroopSelection[$iMode] = $iSel
 	EndIf
 
-	$iMask = 0
-	If $hChkKing <> 0 Then
-		If GUICtrlRead($hChkKing) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroKing)
-	Else
-		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroKing) = $eHeroKing Then $iMask = BitOR($iMask, $eHeroKing)
-	EndIf
-	If $hChkQueen <> 0 Then
-		If GUICtrlRead($hChkQueen) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroQueen)
-	Else
-		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroQueen) = $eHeroQueen Then $iMask = BitOR($iMask, $eHeroQueen)
-	EndIf
-	If $hChkWarden <> 0 Then
-		If GUICtrlRead($hChkWarden) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroWarden)
-	Else
-		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroWarden) = $eHeroWarden Then $iMask = BitOR($iMask, $eHeroWarden)
-	EndIf
-	If $hChkChampion <> 0 Then
-		If GUICtrlRead($hChkChampion) = $GUI_CHECKED Then $iMask = BitOR($iMask, $eHeroChampion)
-	Else
-		If BitAND($g_aiAttackUseHeroes[$iMode], $eHeroChampion) = $eHeroChampion Then $iMask = BitOR($iMask, $eHeroChampion)
-	EndIf
-	$g_aiAttackUseHeroes[$iMode] = $iMask
-
 	If $hChkDropCC <> 0 Then $g_abAttackDropCC[$iMode] = (GUICtrlRead($hChkDropCC) = $GUI_CHECKED)
 	If $hCmbWardenMode <> 0 Then
 		$iSel = _GUICtrlComboBox_GetCurSel($hCmbWardenMode)
@@ -1061,6 +1033,7 @@ Func _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
 		If $iSel >= 0 Then $g_aiAttackUseSiege[$iMode] = $iSel
 	EndIf
 	If $hChkDropEmptySiege <> 0 Then $g_bDropEmptySiege[$iMode] = (GUICtrlRead($hChkDropEmptySiege) = $GUI_CHECKED)
+	If $hChkSwapEmptyBlimp <> 0 Then $g_bSwapEmptyBlimp[$iMode] = (GUICtrlRead($hChkSwapEmptyBlimp) = $GUI_CHECKED)
 EndFunc   ;==>_SaveConfig_CSVMod_SyncAttackModeFromGui
 
 ; #FUNCTION# ====================================================================================================================

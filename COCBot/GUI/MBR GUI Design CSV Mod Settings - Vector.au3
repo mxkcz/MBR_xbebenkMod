@@ -13,7 +13,8 @@
 ; =====================================================================================================================
 Func CreateCSVModVectorTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
-	CSVMod_GetContentBounds($x, $y, $w, $h)
+	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
+	Local $iBottom = $y + $h
 	Local $sCSVVectorList = "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z"
 	Local $sCSVTargetBuildings = "PRIO|TOWNHALL|EAGLE|INFERNO|XBOW|WIZTOWER|SUPERWIZTW|MORTAR|AIRDEFENSE|SWEEPER|MONOLITH|FIRESPITTER|MULTIARCHER|MULTIGEAR|RICOCHETCA|SCATTER|REVENGETW|EX-WALL|IN-WALL"
 
@@ -54,7 +55,9 @@ Func CreateCSVModVectorTab()
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$y += 180
-	GUICtrlCreateGroup("PRIO preview (top 3 per side)", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
-		$g_hTxtCSVPrioPreview = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, $g_iSizeHGrpTab1 - $y - 35, BitOR($ES_READONLY, $WS_VSCROLL))
+	Local $iPreviewGroupH = $iBottom - $y
+	If $iPreviewGroupH < 110 Then $iPreviewGroupH = 110
+	GUICtrlCreateGroup("PRIO preview (top 3 per side)", $x, $y, $w, $iPreviewGroupH)
+		$g_hTxtCSVPrioPreview = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, $iPreviewGroupH - 25, BitOR($ES_READONLY, $WS_VSCROLL))
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc   ;==>CreateCSVModVectorTab

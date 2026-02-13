@@ -438,7 +438,7 @@ Func GUIControl_WM_COMMAND($hWind, $iMsg, $wParam, $lParam)
 	; WM_SYSCOMAND msdn: https://msdn.microsoft.com/en-us/library/windows/desktop/ms646360(v=vs.85).aspx
 	CheckRedrawBotWindow(Default, Default, "GUIControl_WM_COMMAND")
 
-	Switch $nID
+		Switch $nID
 		Case $g_hTxtRunFunction
 			Local $Focused
 			$Focused = ControlGetFocus($hWind)
@@ -730,11 +730,13 @@ Func GUIControl_WM_NOTIFY($hWind, $iMsg, $wParam, $lParam)
 		;~ 	tabDeadbase()
 		;~ Case $g_hGUI_ACTIVEBASE_TAB
 		;~ 	tabActivebase()
-		Case $g_hGUI_BOT_TAB
-			tabBot()
-		Case Else
-			$bCheckEmbeddedShield = False
-	EndSwitch
+			Case $g_hGUI_BOT_TAB
+				tabBot()
+			Case $g_hGUI_CSVMOD_TAB
+				tabCSVMod()
+			Case Else
+				$bCheckEmbeddedShield = False
+		EndSwitch
 
 	If $bCheckEmbeddedShield Then
 		; check shield status
@@ -1696,6 +1698,7 @@ Func tabMain()
 			GUISetState(@SW_HIDE, $g_hGUI_BB)
 			GUISetState(@SW_HIDE, $g_hGUI_ABOUT)
 			GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD)
+			tabCSVMod()
 
 		Case $tabidx = 3 ; BuilderBase
 			GUISetState(@SW_HIDE, $g_hGUI_LOG)
@@ -1736,6 +1739,19 @@ Func tabMain()
 	EndSelect
 
 EndFunc   ;==>tabMain
+
+Func tabCSVMod()
+	If $g_iGuiMode <> 1 Then Return
+	If $g_hGUI_CSVMOD_TAB = 0 Then Return
+
+	Local $tabidx = GUICtrlRead($g_hGUI_CSVMOD_TAB)
+	Select
+		Case $tabidx = 2 ; Settings tab
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SETTINGS)
+		Case Else
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
+	EndSelect
+EndFunc   ;==>tabCSVMod
 
 Func tabVillage()
 	If $g_iGuiMode <> 1 Then Return

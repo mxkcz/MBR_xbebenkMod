@@ -13,7 +13,8 @@
 ; =====================================================================================================================
 Func CreateCSVModPrecalcTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
-	CSVMod_GetContentBounds($x, $y, $w, $h)
+	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
+	Local $iBottom = $y + $h
 
 	GUICtrlCreateGroup("Precache mode", $x, $y, $w, 110)
 		$g_hRadCSVPrecacheConservative = GUICtrlCreateRadio("Conservative", $x + 10, $y + 22, 100, 18)
@@ -32,7 +33,9 @@ Func CreateCSVModPrecalcTab()
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$y += 120
-	GUICtrlCreateGroup("Precalc status", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
-		$g_hTxtCSVPrecalcStatus = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, $g_iSizeHGrpTab1 - $y - 35, BitOR($ES_READONLY, $WS_VSCROLL))
+	Local $iStatusGroupH = $iBottom - $y
+	If $iStatusGroupH < 100 Then $iStatusGroupH = 100
+	GUICtrlCreateGroup("Precalc status", $x, $y, $w, $iStatusGroupH)
+		$g_hTxtCSVPrecalcStatus = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, $iStatusGroupH - 25, BitOR($ES_READONLY, $WS_VSCROLL))
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc   ;==>CreateCSVModPrecalcTab

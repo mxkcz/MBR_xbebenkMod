@@ -19,6 +19,7 @@ Func CreateCSVModSearchTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
 	CSVMod_GetContentBounds($x, $y, $w, $h)
 	Local $hTab = GUICtrlCreateTab($x, $y, $w, $h, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
+	
 	CreateAttackSearch()
 
 	GUICtrlCreateTabItem("")
@@ -28,13 +29,23 @@ EndFunc   ;==>CreateCSVModSearchTab
 Func CreateAttackSearch()
 	Local $sTxtTip = ""
 	Local $x = 25, $y = 45
-	GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design CSV Mod Search", "Group_01", "Start Search IF"), $x - 20, $y - 20, 190, $g_iSizeHGrpTab4)
+	GUICtrlCreateGroup("Normal Battle", $x - 20, $y - 20, 190, 78)
 	$x -= 15
-		$g_hchkBattleWaitForCastle = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design CSV Mod Search", "ChkWaitForCastle", "Wait for Clan Castle"), $x, $y, -1, -1)
+		$g_hChkBattle = GUICtrlCreateCheckbox("Enable Battle Search", $x, $y, 150, 18)
+		$g_hchkBattleWaitForCastle = GUICtrlCreateCheckbox(GetTranslatedFileIni("MBR GUI Design CSV Mod Search", "ChkWaitForCastle", "Wait for Clan Castle"), $x, $y + 22, -1, -1)
 			_GUICtrlSetTip(-1, GetTranslatedFileIni("MBR GUI Design CSV Mod Search", "ChkWaitForCastle_Info_01", "Wait until your Clan Castle is filled, as requested."))
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	Local $x = 220, $y = 45
+	$x = 25
+	$y = 130
+	GUICtrlCreateGroup("Ranked Battle", $x - 20, $y - 20, 190, 78)
+	$x -= 15
+		$g_hChkRankedBattle = GUICtrlCreateCheckbox("Enable Ranked Search", $x, $y, 160, 18)
+		$g_hchkRankedBattleWaitForCastle = GUICtrlCreateCheckbox("Wait for Clan Castle", $x, $y + 22, -1, -1)
+	GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	$x = 220
+	$y = 45
 	$g_hGrpBattleFilter = GUICtrlCreateGroup(GetTranslatedFileIni("MBR GUI Design CSV Mod Search", "Group_02", "Filters"), $x - 20, $y - 20, 225, $g_iSizeHGrpTab4)
 	$x -= 15
 	Local $xStartColumn = $x

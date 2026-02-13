@@ -13,7 +13,7 @@
 ; =====================================================================================================================
 Func CreateCSVModSideTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
-	CSVMod_GetContentBounds($x, $y, $w, $h)
+	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
 	Local $aSideWeightNames[7] = ["Gold Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall"]
 	Local $aSideBWeightNames[14] = ["Eagle", "Inferno", "X-Bow", "Wizard Tower/Super Wiz", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer", "Multi Gear", "Ricochet Cannon", "Revenge Tower"]
 
