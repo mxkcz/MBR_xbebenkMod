@@ -822,6 +822,7 @@ Func SaveConfig_CSVMod_Search()
 	_Ini_Add("search", "BattleSearchElixir", $g_aiFilterMinElixir[$Battle])
 	_Ini_Add("search", "BattleSearchDark", $g_aiFilterMeetDEMin[$Battle])
 	_Ini_Add("search", "BattleMeetOne", $g_abFilterMeetOneConditionEnable[$Battle] ? 1 : 0)
+	_Ini_Add("search", "BattleUseLegacyDeadbaseGate", $g_bBattleUseLegacyDeadbaseGate ? 1 : 0)
 
 	For $i = 0 To UBound($aLegacyDBSearchKeys) - 1
 		_Ini_Delete("search", $aLegacyDBSearchKeys[$i])

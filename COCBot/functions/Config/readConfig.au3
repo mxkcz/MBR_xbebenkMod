@@ -989,6 +989,7 @@ Func ReadConfig_600_28_DB()
 	IniReadS($g_aiFilterMinElixir[$Battle], $g_sProfileConfigPath, "search", "BattleSearchElixir", 80000, "int")
 	IniReadS($g_aiFilterMeetDEMin[$Battle], $g_sProfileConfigPath, "search", "BattleSearchDark", 0, "int")
 	IniReadS($g_abFilterMeetOneConditionEnable[$Battle], $g_sProfileConfigPath, "search", "BattleMeetOne", False, "Bool")
+	IniReadS($g_bBattleUseLegacyDeadbaseGate, $g_sProfileConfigPath, "search", "BattleUseLegacyDeadbaseGate", False, "Bool")
 
 	; CSV Mod battle search policy: disable legacy filters/weak-base fields.
 	$g_abSearchSpellsWaitEnable[$Battle] = False

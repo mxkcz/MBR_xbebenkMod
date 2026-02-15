@@ -39,6 +39,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	Local $iSkipped = 0
 	Local $bReturnToPickupHero = False
 	Local $bLoggedRedline = False
+	Local $bLegacyDeadbaseGateEnabled = $g_bBattleUseLegacyDeadbaseGate
 	Local $abHeroUse[$eHeroCount] = [False, False, False, False]
 	For $i = 0 To $eHeroCount - 1
 		$abHeroUse[$i] = ($g_abSearchSearchesEnable[$Battle] ? IsUnitUsed($Battle, $eKing + $i) : False) _
@@ -75,6 +76,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 	Else
 		SetLogCentered(" Restart To Search ", Default, $COLOR_INFO)
 	EndIf
+	If $bLegacyDeadbaseGateEnabled Then SetLog("Battle legacy deadbase gate is enabled", $COLOR_INFO)
 
 	If $g_bSearchAttackNowEnable Then
 		If $g_abSearchSearchesEnable[$Battle] Then GUICtrlSetState($g_hBtnAttackNowDB, $GUI_SHOW)
@@ -123,12 +125,13 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		SuspendAndroid()
 
 		; ---------------- CHECK THE ACTIVE MODE  --------------------------------------------
-		; $dbase = true if dead base found
+		; $bBattleDeadbasePassed = true when Battle deadbase compatibility gate (if enabled) passes
 		; $match[$i] = result of check between gui settings and target village resources
 		; $isModeActive[$i] = the mode it is active or not (cups, research, army %)
 		Local $noMatchTxt = ""
-		Local $dbBase = False
+		Local $bBattleDeadbasePassed = True
 		Local $match[$g_iModeCount]
+		Local $checkDeadBase = False
 		Global $isModeActive[$g_iModeCount]
 		For $i = 0 To $g_iModeCount - 1
 			$match[$i] = False
@@ -200,14 +203,14 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 
 		; ----------------- CHECK DEAD BASE -------------------------------------------------
 		If Not $g_bRunState Then Return
-		; check deadbase
-		Local $checkDeadBase = $match[$Battle] Or $match[$RankedBattle]
+		; Optional compatibility check: gate Battle mode with legacy deadbase detection.
+		$checkDeadBase = $bLegacyDeadbaseGateEnabled And $match[$Battle]
 		If $checkDeadBase Then
-			$dbBase = checkDeadBase()
+			$bBattleDeadbasePassed = checkDeadBase()
 		EndIf
 
 		; ----------------- CHECK WEAK BASE -------------------------------------------------
-		If (IsWeakBaseActive($Battle) And $dbBase And ($match[$Battle] Or $g_abFilterMeetOneConditionEnable[$Battle])) Or _
+		If (IsWeakBaseActive($Battle) And $bBattleDeadbasePassed And ($match[$Battle] Or $g_abFilterMeetOneConditionEnable[$Battle])) Or _
 				(IsWeakBaseActive($RankedBattle) And ($match[$RankedBattle] Or $g_abFilterMeetOneConditionEnable[$RankedBattle])) Then
 			; check twice if Eagle is active
 			Local $maxTry = 1
@@ -223,7 +226,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 				EndIf
 				Local $bIsWeak = False
 				For $i = 0 To $g_iModeCount - 2
-					If IsWeakBaseActive($i) And (($i = $Battle And $dbBase) Or $i <> $Battle) And ($match[$i] Or $g_abFilterMeetOneConditionEnable[$i]) Then
+					If IsWeakBaseActive($i) And (($i = $Battle And $bBattleDeadbasePassed) Or $i <> $Battle) And ($match[$i] Or $g_abFilterMeetOneConditionEnable[$i]) Then
 						If getIsWeak($weakBaseValues, $i) Then
 							$match[$i] = True
 							$bIsWeak = True
@@ -253,7 +256,7 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			SetLog("Ranked Battle League Mode", $COLOR_SUCCESS)
 			$match[$Battle] = False
 			$match[$RankedBattle] = True
-			$dbBase = False
+			$bBattleDeadbasePassed = False
 			SetLog("Force attacking Ranked Battle", $COLOR_INFO)
 		EndIf
 
@@ -265,9 +268,9 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			$g_iMatchMode = $RankedBattle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
-		ElseIf $match[$Battle] And $dbBase Then
+		ElseIf $match[$Battle] And $bBattleDeadbasePassed Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
-			SetLog("      " & "Dead Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
+			SetLog("      " & "Battle Found!" & ($checkDeadBase ? " (Legacy Deadbase Gate)" : ""), $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
 			$g_iMatchMode = $Battle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
@@ -283,10 +286,8 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 			EndIf
 		EndIf
 
-		If $match[$Battle] And Not $dbBase Then
+		If $match[$Battle] And Not $bBattleDeadbasePassed Then
 			$noMatchTxt &= ", Not a " & $g_asModeText[$Battle]
-		ElseIf $match[$RankedBattle] And $dbBase Then
-			$noMatchTxt &= ", Not a " & $g_asModeText[$RankedBattle]
 		EndIf
 
 		If $noMatchTxt <> "" Then

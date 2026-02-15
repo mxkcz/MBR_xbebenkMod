@@ -1122,6 +1122,7 @@ Global $g_abFilterMeetOneConditionEnable[$g_iModeCount] = [False, False, False]
 Global $g_bChkDeadEagle = 0
 Global $g_iDeadEagleSearch = 0
 Global $g_bSearchDisableFullResources = False
+Global $g_bBattleUseLegacyDeadbaseGate = False ; compatibility switch: require checkDeadBase() for Battle match
 
 Global $g_hChkRankedBattle = 0, $g_hChkBattle = 0
 ; CSV Mod GUI
