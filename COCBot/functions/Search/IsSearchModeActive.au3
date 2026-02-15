@@ -15,8 +15,10 @@
 
 Func IsSearchModeActive($g_iMatchMode, $bDontCheckHeroes = False, $bNoLog = False)
 	Local $currentSearch = $g_iSearchCount + 1
-	Local $currentArmyCamps = Int($g_CurrentCampUtilization / $g_iTotalCampSpace * 100)
+	Local $currentArmyCamps = 0
+	If $g_iTotalCampSpace > 0 Then $currentArmyCamps = Int($g_CurrentCampUtilization / $g_iTotalCampSpace * 100)
 	Local $bMatchModeEnabled = False
+	Local $bForceBattleActivation = False
 
 	Local $checkSearches = Int($currentSearch) >= Int($g_aiSearchSearchesMin[$g_iMatchMode]) And Int($currentSearch) <= Int($g_aiSearchSearchesMax[$g_iMatchMode]) And $g_abSearchSearchesEnable[$g_iMatchMode]
 	Local $checkArmyCamps = Int($currentArmyCamps) >= Int($g_aiSearchCampsPct[$g_iMatchMode]) And $g_abSearchCampsEnable[$g_iMatchMode]
@@ -33,6 +35,7 @@ Func IsSearchModeActive($g_iMatchMode, $bDontCheckHeroes = False, $bNoLog = Fals
 	Switch $g_iMatchMode
 		Case $Battle
 			$bMatchModeEnabled = $g_abAttackTypeEnable[$Battle]
+			$bForceBattleActivation = True
 		Case $RankedBattle
 			$bMatchModeEnabled = $g_abAttackTypeEnable[$RankedBattle]
 		Case Else
@@ -55,6 +58,10 @@ Func IsSearchModeActive($g_iMatchMode, $bDontCheckHeroes = False, $bNoLog = Fals
 	EndIf
 
 	If Not $bMatchModeEnabled Then Return False ; exit if no DB, LB, TS mode enabled
+	If $bForceBattleActivation Then
+		$checkSearches = True
+		$checkArmyCamps = True
+	EndIf
 
 	If $bCheckHeroes And $g_bCheckSpells And $bcheckSiege And $bCheckClanCastle Then ;If $bCheckHeroes Then
 		If ($checkSearches Or $g_abSearchSearchesEnable[$g_iMatchMode] = False) And ($checkArmyCamps Or $g_abSearchCampsEnable[$g_iMatchMode] = False) Then

@@ -814,9 +814,9 @@ Func SaveConfig_CSVMod_Search()
 
 	; Battle (Deadbase) CSV Mod search.
 	_Ini_Add("search", "BattleCheck", $g_abAttackTypeEnable[$Battle] ? 1 : 0)
-	_Ini_Add("search", "chkBattleSearchSearches", $g_abSearchSearchesEnable[$Battle] ? 1 : 0)
-	_Ini_Add("search", "BattleEnableAfterCount", $g_aiSearchSearchesMin[$Battle])
-	_Ini_Add("search", "BattleEnableBeforeCount", $g_aiSearchSearchesMax[$Battle])
+	_Ini_Add("search", "chkBattleSearchSearches", 0)
+	_Ini_Add("search", "BattleEnableAfterCount", 1)
+	_Ini_Add("search", "BattleEnableBeforeCount", 9999)
 	_Ini_Add("search", "chkBattleCastleWait", $g_abSearchCastleWaitEnable[$Battle] ? 1 : 0)
 	_Ini_Add("search", "BattleSearchGold", $g_aiFilterMinGold[$Battle])
 	_Ini_Add("search", "BattleSearchElixir", $g_aiFilterMinElixir[$Battle])

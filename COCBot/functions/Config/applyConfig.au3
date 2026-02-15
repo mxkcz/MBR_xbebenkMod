@@ -1282,6 +1282,15 @@ EndFunc   ;==>ApplyConfig_CSVMod_Search_Ranked
 ; Example .......:
 ; =====================================================================================================================
 Func _ApplyConfig_CSVMod_SearchPolicy($iMode, $bRankedDefaults)
+	Local $bAdjustedBattleActivation = False
+	If $iMode = $Battle Then
+		If $g_abSearchSearchesEnable[$Battle] <> False Then $bAdjustedBattleActivation = True
+		If $g_aiSearchSearchesMin[$Battle] <> 1 Then $bAdjustedBattleActivation = True
+		If $g_aiSearchSearchesMax[$Battle] <> 9999 Then $bAdjustedBattleActivation = True
+		If $g_abSearchCampsEnable[$Battle] <> False Then $bAdjustedBattleActivation = True
+		If $g_aiSearchCampsPct[$Battle] <> 0 Then $bAdjustedBattleActivation = True
+	EndIf
+
 	$g_abSearchSpellsWaitEnable[$iMode] = False
 	$g_abSearchCampsEnable[$iMode] = False
 	$g_aiSearchCampsPct[$iMode] = 0
@@ -1305,8 +1314,12 @@ Func _ApplyConfig_CSVMod_SearchPolicy($iMode, $bRankedDefaults)
 	$g_aiFilterMaxEagleLevel[$iMode] = 0
 	$g_aiFilterMaxScatterLevel[$iMode] = 0
 	If $iMode = $Battle Then
+		$g_abSearchSearchesEnable[$Battle] = False
+		$g_aiSearchSearchesMin[$Battle] = 1
+		$g_aiSearchSearchesMax[$Battle] = 9999
 		$g_bChkDeadEagle = 0
 		$g_iDeadEagleSearch = 0
+		If $bAdjustedBattleActivation Then SetLog("CSVMod Battle activation normalized: search count and army camp gates disabled", $COLOR_INFO)
 	EndIf
 	If $bRankedDefaults Then
 		$g_abSearchSearchesEnable[$iMode] = False

@@ -869,8 +869,19 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			If _Sleep($DELAYATTACKMAIN2) Then Return
 			Return True
 		Else
-			SetLog("None of search condition match:", $COLOR_WARNING)
-			SetLog("Search or Army Camp % are out of range in search setting", $COLOR_WARNING)
+			Local $bBattleModeEnabled = $g_abAttackTypeEnable[$Battle]
+			Local $bRankedModeEnabled = $g_abAttackTypeEnable[$RankedBattle]
+			SetLog("No active search mode matched current readiness gates.", $COLOR_WARNING)
+			If Not $bBattleModeEnabled And Not $bRankedModeEnabled Then
+				SetLog("Battle and Ranked Battle are both disabled.", $COLOR_WARNING)
+			EndIf
+			If (($bBattleModeEnabled And $g_abSearchCastleWaitEnable[$Battle]) Or ($bRankedModeEnabled And $g_abSearchCastleWaitEnable[$RankedBattle])) And Not $g_bFullArmyCC Then
+				SetLog("Waiting for Clan Castle troops (castle wait enabled).", $COLOR_WARNING)
+			EndIf
+			If ($bBattleModeEnabled And $g_abSearchSiegeWaitEnable[$Battle]) Or ($bRankedModeEnabled And $g_abSearchSiegeWaitEnable[$RankedBattle]) Then
+				SetLog("Siege wait is enabled; verify required siege availability.", $COLOR_WARNING)
+			EndIf
+			If $bBattleModeEnabled Then SetLog("Battle activation policy: search count and army camp gates are ignored.", $COLOR_INFO)
 			$g_bIsSearchLimit = False
 			$g_bIsClientSyncError = False
 			If ProfileSwitchAccountEnabled() Then checkSwitchAcc()

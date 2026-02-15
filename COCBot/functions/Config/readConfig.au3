@@ -992,6 +992,9 @@ Func ReadConfig_600_28_DB()
 	IniReadS($g_bBattleUseLegacyDeadbaseGate, $g_sProfileConfigPath, "search", "BattleUseLegacyDeadbaseGate", False, "Bool")
 
 	; CSV Mod battle search policy: disable legacy filters/weak-base fields.
+	$g_abSearchSearchesEnable[$Battle] = False
+	$g_aiSearchSearchesMin[$Battle] = 1
+	$g_aiSearchSearchesMax[$Battle] = 9999
 	$g_abSearchSpellsWaitEnable[$Battle] = False
 	$g_abSearchCampsEnable[$Battle] = False
 	$g_aiSearchCampsPct[$Battle] = 0
