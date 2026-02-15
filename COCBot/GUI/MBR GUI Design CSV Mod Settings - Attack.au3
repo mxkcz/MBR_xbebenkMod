@@ -58,10 +58,10 @@ Func CreateCSVModSettingsAttackTab()
 	GUICtrlCreateGroup("Attack with / Warden && Siege", $x, $iCursorY, $w, $iAttackGroupH)
 		Local $iBattleRowY = $iCursorY + $iAttackPadY
 		_CSVMod_CreateAttackWithRow($x, $iBattleRowY, $w, "Battle", "CSVSettings_OnBattleDropCCChanged", _
-				$g_hchkBattleDropCC, $g_hCmbDBWardenMode, $g_hCmbDBSiege, $g_hchkBattleDropEmptySiege, $g_hchkBattleSwapEmptyBlimp, $bWrapSwap)
+				$g_hchkBattleDropCC, $g_hCmbBattleWardenMode, $g_hCmbBattleSiege, $g_hchkBattleDropEmptySiege, $g_hchkBattleSwapEmptyBlimp, $bWrapSwap)
 		Local $iRankedRowY = $iBattleRowY + $iModeRowH + $iAttackModeGap
 		_CSVMod_CreateAttackWithRow($x, $iRankedRowY, $w, "Ranked", "CSVSettings_OnRankedBattleDropCCChanged", _
-				$g_hchkRankedBattleDropCC, $g_hCmbABWardenMode, $g_hCmbABSiege, $g_hchkRankedBattleDropEmptySiege, $g_hchkRankedBattleSwapEmptyBlimp, $bWrapSwap)
+				$g_hchkRankedBattleDropCC, $g_hCmbRankedBattleWardenMode, $g_hCmbRankedBattleSiege, $g_hchkRankedBattleDropEmptySiege, $g_hchkRankedBattleSwapEmptyBlimp, $bWrapSwap)
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 	$iCursorY += $iAttackGroupH + $iSectionGap
 
@@ -309,6 +309,16 @@ Func CreateAttackHeroAbilityGroup($iGroupX, $iGroupY, $iGroupW)
 		$g_hRadBothPrinceAbility = GUICtrlCreateRadio(GetTranslatedFileIni("MBR GUI Design Child Attack - Options-Attack", "RadBothAbilities_Info_01", "Check Both"), $x, $y, -1, -1)
 			_GUICtrlSetTip(-1, $sTxtTip)
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
+
+	Local $ahDirtyControls[20] = [ _
+			$g_hRadAutoQueenAbility, $g_hRadManQueenAbility, $g_hRadBothQueenAbility, $g_hTxtManQueenAbility, _
+			$g_hRadAutoKingAbility, $g_hRadManKingAbility, $g_hRadBothKingAbility, $g_hTxtManKingAbility, _
+			$g_hRadAutoWardenAbility, $g_hRadManWardenAbility, $g_hRadBothWardenAbility, $g_hTxtManWardenAbility, _
+			$g_hRadAutoChampionAbility, $g_hRadManChampionAbility, $g_hRadBothChampionAbility, $g_hTxtManChampionAbility, _
+			$g_hRadAutoPrinceAbility, $g_hRadManPrinceAbility, $g_hRadBothPrinceAbility, $g_hTxtManPrinceAbility]
+	For $i = 0 To UBound($ahDirtyControls) - 1
+		If $ahDirtyControls[$i] <> 0 Then GUICtrlSetOnEvent($ahDirtyControls[$i], "CSVSettings_MarkDirty")
+	Next
 
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc   ;==>CreateAttackHeroAbilityGroup

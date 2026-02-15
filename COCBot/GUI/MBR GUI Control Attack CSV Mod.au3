@@ -148,20 +148,73 @@ Func CSVMod_SyncAttackSettingsFromGlobals()
 	If $g_hTxtManPrinceAbility <> 0 Then GUICtrlSetData($g_hTxtManPrinceAbility, Int($g_iDelayActivatePrince / 1000))
 
 	If $g_hchkBattleDropCC <> 0 Then GUICtrlSetState($g_hchkBattleDropCC, $g_abAttackDropCC[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
-	If $g_hCmbDBWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBWardenMode, $g_aiAttackUseWardenMode[$Battle])
-	If $g_hCmbDBSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBSiege, $g_aiAttackUseSiege[$Battle])
+	If $g_hCmbBattleWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbBattleWardenMode, $g_aiAttackUseWardenMode[$Battle])
+	If $g_hCmbBattleSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbBattleSiege, $g_aiAttackUseSiege[$Battle])
 	If $g_hchkBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkBattleDropEmptySiege, $g_bDropEmptySiege[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 	If $g_hchkBattleSwapEmptyBlimp <> 0 Then GUICtrlSetState($g_hchkBattleSwapEmptyBlimp, $g_bSwapEmptyBlimp[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 	If $g_hchkRankedBattleDropCC <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropCC, $g_abAttackDropCC[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
-	If $g_hCmbABWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
-	If $g_hCmbABSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABSiege, $g_aiAttackUseSiege[$RankedBattle])
+	If $g_hCmbRankedBattleWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
+	If $g_hCmbRankedBattleSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleSiege, $g_aiAttackUseSiege[$RankedBattle])
 	If $g_hchkRankedBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropEmptySiege, $g_bDropEmptySiege[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 	If $g_hchkRankedBattleSwapEmptyBlimp <> 0 Then GUICtrlSetState($g_hchkRankedBattleSwapEmptyBlimp, $g_bSwapEmptyBlimp[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 	chkBattleDropCC()
 	chkRankedBattleDropCC()
 EndFunc   ;==>CSVMod_SyncAttackSettingsFromGlobals
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVMod_ApplyScriptSelectionFromGlobals
+; Description ...: Sync script combo selection and mode-specific CSV settings from loaded globals.
+; Syntax ........: CSVMod_ApplyScriptSelectionFromGlobals()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func CSVMod_ApplyScriptSelectionFromGlobals()
+	If $g_hCmbScriptNameBattle = 0 Or $g_hCmbScriptNameRankedBattle = 0 Then Return
+
+	_CSVMod_SelectScriptByName($g_hCmbScriptNameBattle, $g_sAttackScrScriptName[$Battle])
+	_CSVMod_SelectScriptByName($g_hCmbScriptNameRankedBattle, $g_sAttackScrScriptName[$RankedBattle])
+
+	cmbScriptNameBattle()
+	cmbScriptNameRankedBattle()
+	CSVMod_SyncAttackSettingsFromGlobals()
+
+	Local $iMode = $g_iAttackCSVSettingsMode
+	If $iMode <> $Battle And $iMode <> $RankedBattle Then $iMode = $Battle
+	CSVSettings_SelectMode($iMode)
+EndFunc   ;==>CSVMod_ApplyScriptSelectionFromGlobals
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _CSVMod_SelectScriptByName
+; Description ...: Selects a script entry in a combo by exact name with safe fallback.
+; Syntax ........: _CSVMod_SelectScriptByName($hCombo, $sScript)
+; Parameters ....: $hCombo            - Script combo handle.
+;                  $sScript           - Script file stem to select.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _CSVMod_SelectScriptByName($hCombo, $sScript)
+	If $hCombo = 0 Then Return
+	Local $iSel = -1
+	If $sScript <> "" Then $iSel = _GUICtrlComboBox_FindStringExact($hCombo, $sScript)
+	If $iSel < 0 Then $iSel = _GUICtrlComboBox_GetCurSel($hCombo)
+	If $iSel < 0 And _GUICtrlComboBox_GetCount($hCombo) > 0 Then $iSel = 0
+	If $iSel >= 0 Then _GUICtrlComboBox_SetCurSel($hCombo, $iSel)
+EndFunc   ;==>_CSVMod_SelectScriptByName
 
 Func CSVSettings_OnBattleDropCCChanged()
 	chkBattleDropCC()
@@ -290,8 +343,8 @@ EndFunc   ;==>AttackCSVSettings_TestAttackBattle
 ; Example .......:
 ; =====================================================================================================================
 Func chkBattleDropCC()
-	If $g_hCmbDBSiege = 0 Or $g_hchkBattleDropCC = 0 Then Return
-	GUICtrlSetState($g_hCmbDBSiege, GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	If $g_hCmbBattleSiege = 0 Or $g_hchkBattleDropCC = 0 Then Return
+	GUICtrlSetState($g_hCmbBattleSiege, GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
 EndFunc   ;==>chkBattleDropCC
 
 ; #FUNCTION# ====================================================================================================================
@@ -309,8 +362,8 @@ EndFunc   ;==>chkBattleDropCC
 ; Example .......:
 ; =====================================================================================================================
 Func chkRankedBattleDropCC()
-	If $g_hCmbABSiege = 0 Or $g_hchkRankedBattleDropCC = 0 Then Return
-	GUICtrlSetState($g_hCmbABSiege, GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
+	If $g_hCmbRankedBattleSiege = 0 Or $g_hchkRankedBattleDropCC = 0 Then Return
+	GUICtrlSetState($g_hCmbRankedBattleSiege, GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED ? $GUI_ENABLE : $GUI_DISABLE)
 EndFunc   ;==>chkRankedBattleDropCC
 
 ; Legacy callbacks retained for applyConfig compatibility after removing old Attack tabs.
@@ -2416,109 +2469,59 @@ Func AttackCSVAssignDefaultScriptName()
 	cmbScriptNameRankedBattle()
 EndFunc   ;==>AttackCSVAssignDefaultScriptName
 
-; TODO: update for battle logic
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ApplyScriptBattle
+; Description ...: Apply Battle mode script-derived settings to current GUI/runtime state.
+; Syntax ........: ApplyScriptBattle()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func ApplyScriptBattle()
-	Local $iApply = 0
-	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVSieges[$eSiegeMachineCount] = [0, 0, 0, 0, 0, 0, 0, 0]
-	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
-	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
-	Local $sCSVCCReq = ""
-	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameBattle)
-	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle) + 1]
-
-	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
-	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
-	If Not $iApply Then
-		SetLog("CSV settings apply failed", $COLOR_ERROR)
-		Return
-	EndIf
-
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVTroops) - 1
-		If $aiCSVTroops[$i] > 0 Then $iApply += 1
-	Next
-	For $i = 0 To UBound($aiCSVSpells) - 1
-		If $aiCSVSpells[$i] > 0 Then $iApply += 1
-	Next
-	If $iApply > 0 Then
-		$g_aiArmyCustomTroops = $aiCSVTroops
-		$g_aiArmyCustomSpells = $aiCSVSpells
-		$g_aiArmyCustomSiegeMachines = $aiCSVSieges
-		ApplyConfig_600_52_2("Read")
-		SetComboTroopComp() ; GUI refresh
-		SetLog("CSV Train settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	$iApply = 0
-	For $i = 0 To UBound($aiCSVHeros) - 1
-		If $aiCSVHeros[$i][0] > 0 Then $iApply += 1
-	Next
-		If $iApply > 0 Then
-			For $h = 0 To UBound($aiCSVHeros) - 1
-				If $aiCSVHeros[$h][0] > 0 Then
-				Switch $h
-					Case $eHeroBarbarianKing
-						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
-					Case $eHeroArcherQueen
-						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
-					Case $eHeroGrandWarden
-						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
-					Case $eHeroRoyalChampion
-						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
-				EndSwitch
-			EndIf
-		Next
-		radHerosApply()
-		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
-
-		EndIf
-
-		If $sCSVCCReq <> "" Then
-			If $g_hchkBattleDropCC <> 0 Then GUICtrlSetState($g_hchkBattleDropCC, $GUI_CHECKED)
-			SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
-		EndIf
-
-	$iApply = 0
-	Local $ahchkBattleSpell = StringSplit($g_aGroupAttackBattleSpell, "#", 2)
-	If IsArray($ahchkBattleSpell) Then
-		For $i = 0 To UBound($ahchkBattleSpell) - 1
-			GUICtrlSetState($ahchkBattleSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
-			If $aiCSVSpells[$i] > 0 Then $iApply += 1
-		Next
-		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
-	EndIf
-
-	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplBattle) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplBattle, $iCSVRedlineRoutineItem - 1)
-		cmbScriptRedlineImplDB()
-		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineDB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $iCSVDroplineEdgeItem - 1)
-		cmbScriptDroplineDB()
-		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
-	EndIf
-
-	If $sCSVCCReq <> "" Then
-		$g_bRequestTroopsEnable = True
-		$g_sRequestTroopsText = $sCSVCCReq
-		ApplyConfig_600_11("Read")
-		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
-	EndIf
+	_ApplyScriptByMode($Battle)
 EndFunc   ;==>ApplyScriptBattle
 
-; TODO: update for ranked battle logic
+; #FUNCTION# ====================================================================================================================
+; Name ..........: ApplyScriptRankedBattle
+; Description ...: Apply Ranked Battle mode script-derived settings to current GUI/runtime state.
+; Syntax ........: ApplyScriptRankedBattle()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func ApplyScriptRankedBattle()
+	_ApplyScriptByMode($RankedBattle)
+EndFunc   ;==>ApplyScriptRankedBattle
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _ApplyScriptByMode
+; Description ...: Parse selected mode CSV settings and apply train/hero/spell/redline/CC values.
+; Syntax ........: _ApplyScriptByMode($iMode)
+; Parameters ....: $iMode             - Mode index ($Battle/$RankedBattle)
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func _ApplyScriptByMode($iMode)
+	If $iMode <> $Battle And $iMode <> $RankedBattle Then Return
+
 	Local $iApply = 0
 	Local $aiCSVTroops[$eTroopCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	Local $aiCSVSpells[$eSpellCount] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -2526,10 +2529,22 @@ Func ApplyScriptRankedBattle()
 	Local $aiCSVHeros[$eHeroCount][2] = [[0, 0], [0, 0], [0, 0], [0, 0]]
 	Local $iCSVRedlineRoutineItem = 0, $iCSVDroplineEdgeItem = 0
 	Local $sCSVCCReq = ""
-	Local $aTemp = _GUICtrlComboBox_GetListArray($g_hCmbScriptNameRankedBattle)
-	Local $sFilename = $aTemp[_GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle) + 1]
+	Local $hScriptCombo = ($iMode = $RankedBattle ? $g_hCmbScriptNameRankedBattle : $g_hCmbScriptNameBattle)
+	Local $hChkDropCC = ($iMode = $RankedBattle ? $g_hchkRankedBattleDropCC : $g_hchkBattleDropCC)
+	Local $hCmbRedline = ($iMode = $RankedBattle ? $g_hCmbScriptRedlineImplRankedBattle : $g_hCmbScriptRedlineImplBattle)
+	Local $hCmbDropline = ($iMode = $RankedBattle ? $g_hcmbScriptDroplineRankedBattle : $g_hcmbScriptDroplineBattle)
+	Local $sSpellGroup = ($iMode = $RankedBattle ? $GroupAttackABSpell : $g_aGroupAttackBattleSpell)
+	Local $sModeLabel = ($iMode = $RankedBattle ? "Ranked Battle" : "Battle")
 
-	SetLog("CSV settings apply starts: " & $sFilename, $COLOR_INFO)
+	Local $aTemp = _GUICtrlComboBox_GetListArray($hScriptCombo)
+	Local $iSel = _GUICtrlComboBox_GetCurSel($hScriptCombo)
+	If Not IsArray($aTemp) Or $iSel < 0 Or UBound($aTemp) <= ($iSel + 1) Then
+		SetLog("CSV settings apply failed: no " & $sModeLabel & " script selected", $COLOR_ERROR)
+		Return
+	EndIf
+	Local $sFilename = $aTemp[$iSel + 1]
+
+	SetLog("CSV settings apply starts [" & $sModeLabel & "]: " & $sFilename, $COLOR_INFO)
 	$iApply = ParseAttackCSV_Settings_variables($aiCSVTroops, $aiCSVSpells, $aiCSVSieges, $aiCSVHeros, $iCSVRedlineRoutineItem, $iCSVDroplineEdgeItem, $sCSVCCReq, $sFilename)
 	If Not $iApply Then
 		SetLog("CSV settings apply failed", $COLOR_ERROR)
@@ -2558,55 +2573,63 @@ Func ApplyScriptRankedBattle()
 	Next
 	If $iApply > 0 Then
 		For $h = 0 To UBound($aiCSVHeros) - 1
-			If $aiCSVHeros[$h][0] > 0 Then
-				Switch $h
-					Case $eHeroBarbarianKing
-						$g_iActivateKing = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateKing = $aiCSVHeros[$h][1]
-					Case $eHeroArcherQueen
-						$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
-					Case $eHeroGrandWarden
-						$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
-					Case $eHeroRoyalChampion
-						$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
-						$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
-				EndSwitch
-			EndIf
-			Next
-			radHerosApply()
-			SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
-		EndIf
+			If $aiCSVHeros[$h][0] <= 0 Then ContinueLoop
+			Switch $h
+				Case $eHeroBarbarianKing
+					$g_iActivateKing = $aiCSVHeros[$h][0] - 1
+					$g_iDelayActivateKing = $aiCSVHeros[$h][1]
+				Case $eHeroArcherQueen
+					$g_iActivateQueen = $aiCSVHeros[$h][0] - 1
+					$g_iDelayActivateQueen = $aiCSVHeros[$h][1]
+				Case $eHeroGrandWarden
+					$g_iActivateWarden = $aiCSVHeros[$h][0] - 1
+					$g_iDelayActivateWarden = $aiCSVHeros[$h][1]
+				Case $eHeroRoyalChampion
+					$g_iActivateChampion = $aiCSVHeros[$h][0] - 1
+					$g_iDelayActivateChampion = $aiCSVHeros[$h][1]
+			EndSwitch
+		Next
+		radHerosApply()
+		SetLog("CSV Hero Ability settings applied", $COLOR_SUCCESS)
+	EndIf
 
-		If $sCSVCCReq <> "" Then
-			If $g_hchkRankedBattleDropCC <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropCC, $GUI_CHECKED)
-			SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
-		EndIf
+	If $sCSVCCReq <> "" Then
+		If $hChkDropCC <> 0 Then GUICtrlSetState($hChkDropCC, $GUI_CHECKED)
+		SetLog("CSV 'Attack with' CC settings applied", $COLOR_SUCCESS)
+	EndIf
 
 	$iApply = 0
-	Local $ahchkRankedBattleSpell = StringSplit($GroupAttackABSpell, "#", 2)
-	If IsArray($ahchkRankedBattleSpell) Then
-		For $i = 0 To UBound($ahchkRankedBattleSpell) - 1
-			GUICtrlSetState($ahchkRankedBattleSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
+	Local $aChkSpell = StringSplit($sSpellGroup, "#", 2)
+	If IsArray($aChkSpell) Then
+		For $i = 0 To UBound($aChkSpell) - 1
+			GUICtrlSetState($aChkSpell[$i], $aiCSVSpells[$i] > 0 ? $GUI_CHECKED : $GUI_UNCHECKED)
 			If $aiCSVSpells[$i] > 0 Then $iApply += 1
 		Next
 		If $iApply > 0 Then SetLog("CSV 'Attack with' Spell settings applied", $COLOR_SUCCESS)
 	EndIf
 
-	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptRedlineImplRankedBattle) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplRankedBattle, $iCSVRedlineRoutineItem - 1)
-		cmbScriptRedlineImplAB()
+	If $iCSVRedlineRoutineItem > 0 And $iCSVRedlineRoutineItem <= _GUICtrlComboBox_GetCount($hCmbRedline) + 1 Then
+		_GUICtrlComboBox_SetCurSel($hCmbRedline, $iCSVRedlineRoutineItem - 1)
+		If $iMode = $RankedBattle Then
+			cmbScriptRedlineImplRankedBattle()
+		Else
+			cmbScriptRedlineImplBattle()
+		EndIf
 		SetLog("CSV Red Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVRedlineRoutineItem <> 0 Then SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
+	ElseIf $iCSVRedlineRoutineItem <> 0 Then
+		SetLog("CSV Red Line settings out of bounds", $COLOR_ERROR)
 	EndIf
-	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($g_hCmbScriptDroplineAB) + 1 Then
-		_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $iCSVDroplineEdgeItem - 1)
-		cmbScriptDroplineAB()
+
+	If $iCSVDroplineEdgeItem > 0 And $iCSVDroplineEdgeItem <= _GUICtrlComboBox_GetCount($hCmbDropline) + 1 Then
+		_GUICtrlComboBox_SetCurSel($hCmbDropline, $iCSVDroplineEdgeItem - 1)
+		If $iMode = $RankedBattle Then
+			cmbScriptDroplineRankedBattle()
+		Else
+			cmbScriptDroplineBattle()
+		EndIf
 		SetLog("CSV Drop Line settings applied", $COLOR_SUCCESS)
-	Else
-		If $iCSVDroplineEdgeItem <> 0 Then SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
+	ElseIf $iCSVDroplineEdgeItem <> 0 Then
+		SetLog("CSV Drop Line settings out of bounds", $COLOR_ERROR)
 	EndIf
 
 	If $sCSVCCReq <> "" Then
@@ -2615,32 +2638,32 @@ Func ApplyScriptRankedBattle()
 		ApplyConfig_600_11("Read")
 		SetLog("CSV CC Request settings applied", $COLOR_SUCCESS)
 	EndIf
-EndFunc   ;==>ApplyScriptRankedBattle
+EndFunc   ;==>_ApplyScriptByMode
 
-Func cmbScriptRedlineImplDB()
+Func cmbScriptRedlineImplBattle()
 	$g_aiAttackScrRedlineRoutine[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplBattle)
     If $g_aiAttackScrRedlineRoutine[$Battle] = 3 then
-        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_HIDE)
+        GUICtrlSetState($g_hcmbScriptDroplineBattle, $GUI_HIDE)
         $g_aiAttackScrDroplineEdge[$Battle] = $DROPLINE_FULL_EDGE_FIXED
     Else
-        GUICtrlSetState($g_hCmbScriptDroplineDB, $GUI_SHOW)
+        GUICtrlSetState($g_hcmbScriptDroplineBattle, $GUI_SHOW)
     Endif
-EndFunc   ;==>cmbScriptRedlineImplDB
+EndFunc   ;==>cmbScriptRedlineImplBattle
 
-Func cmbScriptRedlineImplAB()
+Func cmbScriptRedlineImplRankedBattle()
 	$g_aiAttackScrRedlineRoutine[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplRankedBattle)
     If $g_aiAttackScrRedlineRoutine[$RankedBattle] = 3 then
-        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_HIDE)
+        GUICtrlSetState($g_hcmbScriptDroplineRankedBattle, $GUI_HIDE)
         $g_aiAttackScrDroplineEdge[$RankedBattle] = $DROPLINE_FULL_EDGE_FIXED
     Else
-        GUICtrlSetState($g_hCmbScriptDroplineAB, $GUI_SHOW)
+        GUICtrlSetState($g_hcmbScriptDroplineRankedBattle, $GUI_SHOW)
     EndIf
-EndFunc   ;==>cmbScriptRedlineImplAB
+EndFunc   ;==>cmbScriptRedlineImplRankedBattle
 
-Func cmbScriptDroplineDB()
-	$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
-EndFunc   ;==>cmbScriptDroplineDB
+Func cmbScriptDroplineBattle()
+	$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hcmbScriptDroplineBattle)
+EndFunc   ;==>cmbScriptDroplineBattle
 
-Func cmbScriptDroplineAB()
-	$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
-EndFunc   ;==>cmbScriptDroplineAB
+Func cmbScriptDroplineRankedBattle()
+	$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hcmbScriptDroplineRankedBattle)
+EndFunc   ;==>cmbScriptDroplineRankedBattle

@@ -209,6 +209,7 @@
 #include "functions\Search\WeakBase.au3"
 #include "functions\Search\CompareResources.au3"
 #include "functions\Search\GetResources.au3"
+#include "functions\Search\RankedBattle.au3"
 #include "functions\Search\PrepareSearch.au3"
 #include "functions\Search\VillageSearch.au3"
 #include "functions\Search\FindTownHall.au3"

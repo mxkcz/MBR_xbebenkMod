@@ -859,7 +859,7 @@ Func SaveConfig_CSVMod_Attack()
 
 	If $sBattleScript <> "" Then $g_sAttackScrScriptName[$Battle] = $sBattleScript
 	If $sRankedScript <> "" Then $g_sAttackScrScriptName[$RankedBattle] = $sRankedScript
-	If $g_sAttackScrScriptName[$RankedBattle] <> "" Then $g_sAttackScrScriptNameRankedBattle = $g_sAttackScrScriptName[$RankedBattle]
+	$g_sAttackScrScriptNameRankedBattle = $g_sAttackScrScriptName[$RankedBattle]
 
 	_Ini_Add("attack", "ActivateQueen", $g_iActivateQueen)
 	_Ini_Add("attack", "ActivateKing", $g_iActivateKing)
@@ -900,7 +900,7 @@ Func SaveConfig_CSVMod_Attack()
 	_Ini_Add("attack", "ABSwapEmptyBlimp", $g_bSwapEmptyBlimp[$RankedBattle] ? 1 : 0)
 	_Ini_Add("attack", "RedlineRoutineRankedBattle", $g_aiAttackScrRedlineRoutine[$RankedBattle])
 	_Ini_Add("attack", "DroplineEdgeRankedBattle", $g_aiAttackScrDroplineEdge[$RankedBattle])
-	_Ini_Add("attack", "ScriptRanked", $g_sAttackScrScriptNameRankedBattle)
+	_Ini_Add("attack", "ScriptRanked", $g_sAttackScrScriptName[$RankedBattle])
 EndFunc   ;==>SaveConfig_CSVMod_Attack
 
 ; #FUNCTION# ====================================================================================================================
@@ -995,19 +995,19 @@ Func _SaveConfig_CSVMod_SyncAttackModeFromGui($iMode)
 
 	Switch $iMode
 		Case $Battle
-			$hCmbAlgorithm = $g_hCmbDBAlgorithm
-			$hCmbSelectTroop = $g_hCmbDBSelectTroop
+			$hCmbAlgorithm = $g_hCmbBattleAlgorithm
+			$hCmbSelectTroop = $g_hCmbBattleSelectTroop
 			$hChkDropCC = $g_hchkBattleDropCC
-			$hCmbWardenMode = $g_hCmbDBWardenMode
-			$hCmbSiege = $g_hCmbDBSiege
+			$hCmbWardenMode = $g_hCmbBattleWardenMode
+			$hCmbSiege = $g_hCmbBattleSiege
 			$hChkDropEmptySiege = $g_hchkBattleDropEmptySiege
 			$hChkSwapEmptyBlimp = $g_hchkBattleSwapEmptyBlimp
 		Case $RankedBattle
-			$hCmbAlgorithm = $g_hCmbABAlgorithm
-			$hCmbSelectTroop = $g_hCmbABSelectTroop
+			$hCmbAlgorithm = $g_hCmbRankedBattleAlgorithm
+			$hCmbSelectTroop = $g_hCmbRankedBattleSelectTroop
 			$hChkDropCC = $g_hchkRankedBattleDropCC
-			$hCmbWardenMode = $g_hCmbABWardenMode
-			$hCmbSiege = $g_hCmbABSiege
+			$hCmbWardenMode = $g_hCmbRankedBattleWardenMode
+			$hCmbSiege = $g_hCmbRankedBattleSiege
 			$hChkDropEmptySiege = $g_hchkRankedBattleDropEmptySiege
 			$hChkSwapEmptyBlimp = $g_hchkRankedBattleSwapEmptyBlimp
 		Case Else

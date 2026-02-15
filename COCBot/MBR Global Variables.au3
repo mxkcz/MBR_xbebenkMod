@@ -613,7 +613,7 @@ Global Enum $eBarb, $eSBarb, $eArch, $eSArch, $eGiant, $eSGiant, $eGobl, $eSGobl
 			$eWallW, $eBattleB, $eStoneS, $eSiegeB, $eLogL, $eFlameF, $eBattleD, $eTroopL, $eArmyCount
 
 ; Attack types
-Global Enum $Battle, $RankedBattle, $TB ; DeadBase, ActiveBase, TownhallBully
+Global Enum $Battle, $RankedBattle, $TB ; DeadBase, ActiveBase, TownhallBully // new: Battle, Ranked Battle
 Global Const $g_iModeCount = 3
 Global $g_iMatchMode = 0 ; 0 Battle / 1 Ranked Battle / 2 TH Bully
 Global Const $g_asModeText[3] = ["Battle", "Ranked Battle", "TH Bully"]
@@ -1175,11 +1175,11 @@ Global $g_hChkCSVDropRemaining = 0, $g_hChkCSVDropHeroes = 0, $g_hChkCSVDropSpel
 Global $g_hInpCSVWaitMin = 0, $g_hInpCSVWaitMax = 0
 Global $g_hChkCSVBreakTH = 0, $g_hChkCSVBreakSiege = 0, $g_hChkCSVBreak50 = 0, $g_hChkCSVBreakAQ = 0, $g_hChkCSVBreakBK = 0, $g_hChkCSVBreakGW = 0, $g_hChkCSVBreakRC = 0, $g_hChkCSVBreakAQBK = 0
 Global $g_hChkCSVBreakAnyHero = 0
-Global $g_hCmbScriptRedlineImplBattle = 0, $g_hCmbScriptDroplineDB = 0, $g_hCmbScriptRedlineImplRankedBattle = 0, $g_hCmbScriptDroplineAB = 0
+Global $g_hCmbScriptRedlineImplBattle = 0, $g_hcmbScriptDroplineBattle = 0, $g_hCmbScriptRedlineImplRankedBattle = 0, $g_hcmbScriptDroplineRankedBattle = 0
 Global $g_hCmbCSVFlexTroop = 0
 Global $g_hInpCSVQtyMin = 0, $g_hInpCSVQtyMax = 0
-Global $g_hCmbDBAlgorithm = 0, $g_hCmbDBSelectTroop = 0, $g_hCmbDBSiege = 0, $g_hCmbDBWardenMode = 0
-Global $g_hCmbABAlgorithm = 0, $g_hCmbABSelectTroop = 0, $g_hCmbABSiege = 0, $g_hCmbABWardenMode = 0
+Global $g_hCmbBattleAlgorithm = 0, $g_hCmbBattleSelectTroop = 0, $g_hCmbBattleSiege = 0, $g_hCmbBattleWardenMode = 0
+Global $g_hCmbRankedBattleAlgorithm = 0, $g_hCmbRankedBattleSelectTroop = 0, $g_hCmbRankedBattleSiege = 0, $g_hCmbRankedBattleWardenMode = 0
 Global $g_hchkBattleDropCC = 0, $g_hchkBattleDropEmptySiege = 0
 Global $g_hchkRankedBattleDropCC = 0, $g_hchkRankedBattleDropEmptySiege = 0
 Global $g_hchkBattleSwapEmptyBlimp = 0, $g_hchkRankedBattleSwapEmptyBlimp = 0
@@ -1216,7 +1216,7 @@ Global $g_abAttackStdSmartNearCollectors[$g_iModeCount + 1][3] = [[False, False,
 ; Attack - Scripted
 Global $g_aiAttackScrRedlineRoutine[$g_iModeCount + 1] = [$REDLINE_IMGLOC_RAW, $REDLINE_IMGLOC_RAW, 0, 0]
 Global $g_aiAttackScrDroplineEdge[$g_iModeCount + 1] = [$DROPLINE_EDGE_FIRST, $DROPLINE_EDGE_FIRST, 0, 0]
-Global $g_sAttackScrScriptName[$g_iModeCount] = ["Barch four fingers", "Barch four fingers", ""]
+Global $g_sAttackScrScriptName[$g_iModeCount] = ["BElectroLoon [TH11-18]", "ElectroLoon [TH11-18]", ""]
 
 ; End Battle
 Global $g_abStopAtkNoLoot1Enable[$g_iModeCount] = [True, True, False], $g_aiStopAtkNoLoot1Time[$g_iModeCount] = [0, 0, 0], _

@@ -285,7 +285,7 @@ EndFunc   ;==>_CSVParsePrioCapLine
 ; Name ..........: AttackCSV_GetVecUseMaskForLine
 ; Description ...: Return the precomputed vector usage mask after the given CSV line.
 ; Syntax ........: AttackCSV_GetVecUseMaskForLine($iMode, $iLine)
-; Parameters ....: $iMode             - Match mode index ($Battle/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iLine             - Zero-based CSV line index.
 ; Return values .: Success: bitmask integer (0 when unavailable).
 ; Author ........: mxkcz
@@ -767,7 +767,7 @@ EndFunc   ;==>AttackCSV_GetPreparedMakeUsage
 ; Name ..........: AttackCSV_GetTargetedOnlyCap
 ; Description ...: Resolve the targeted-only cap using per-side overrides.
 ; Syntax ........: AttackCSV_GetTargetedOnlyCap($iMode, $iDefaultCap)
-; Parameters ....: $iMode             - Match mode index ($Battle/$LB).
+; Parameters ....: $iMode             - Match mode index ($Battle/$RankedBattle).
 ;                  $iDefaultCap       - default cap when no per-side override is set.
 ; Return values .: Success: effective cap (>=0).
 ; Author ........: mxkcz

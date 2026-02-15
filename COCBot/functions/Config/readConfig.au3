@@ -214,33 +214,33 @@ Func ReadRegularConfig()
 	ReadConfig_600_18()
 	; <><><><> Village / Notify <><><><>
 	ReadConfig_600_19()
-	;~ ; <><><><> Attack Plan / Search & Attack / Bully <><><><>
-	;~ ReadConfig_600_26()
-	;~ ; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
-	;~ ReadConfig_600_28()
-	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
-	;~ ReadConfig_600_28_DB()
-	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
-	;~ ReadConfig_600_28_LB()
-	;~ ; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
-	;~ ReadConfig_600_29()
-	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Attack <><><><>
-	;~ ReadConfig_600_29_DB()
-	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
-	;~ ReadConfig_600_29_LB()
-	;~ ; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
-	;~ ReadConfig_600_30()
-	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
-	;~ ReadConfig_600_30_DB()
-	;~ ; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
-	;~ ReadConfig_600_30_LB()
-	;~ ; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
-	;~ ReadConfig_AttackCSV()
-	;~ ; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
-	;~ ReadConfig_600_31()
-	;~ ReadConfig_600_32()
-	;~ ; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
-	;~ ReadConfig_600_33()
+	; <><><><> Attack Plan / Search & Attack / Bully <><><><>
+	ReadConfig_600_26()
+	; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
+	ReadConfig_600_28()
+	; <><><><> Attack Plan / Search & Attack / Deadbase / Search <><><><>
+	ReadConfig_600_28_DB()
+	; <><><><> Attack Plan / Search & Attack / Activebase / Search <><><><>
+	ReadConfig_600_28_LB()
+	; <><><><> Attack Plan / Search & Attack / Options / Attack <><><><>
+	ReadConfig_600_29()
+	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack <><><><>
+	ReadConfig_600_29_DB()
+	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
+	ReadConfig_600_29_LB()
+	; <><><><> Attack Plan / Search & Attack / Options / End Battle <><><><>
+	ReadConfig_600_30()
+	; <><><><> Attack Plan / Search & Attack / Deadbase / End Battle <><><><>
+	ReadConfig_600_30_DB()
+	; <><><><> Attack Plan / Search & Attack / Activebase / End Battle <><><><>
+	ReadConfig_600_30_LB()
+	; <><><><> Attack Plan / Search & Attack / CSV Recalc Overrides <><><><>
+	ReadConfig_AttackCSV()
+	; <><><><> Attack Plan / Search & Attack / Deadbase / Collectors <><><><>
+	ReadConfig_600_31()
+	ReadConfig_600_32()
+	; <><><><> Attack Plan / Search & Attack / Drop Order Troops <><><><>
+	ReadConfig_600_33()
 	; <><><><> Bot / Options <><><><>
 	ReadConfig_600_35_1()
 	; <><><><> Bot / Profile / Switch Account <><><><>
@@ -1123,8 +1123,7 @@ Func ReadConfig_600_29_DB()
 	; <><><><> Attack Plan / Search & Attack / Deadbase / Attack / Scripted <><><><>
 	IniReadS($g_aiAttackScrRedlineRoutine[$Battle], $g_sProfileConfigPath, "attack", "RedlineRoutineBattle", $g_aiAttackScrRedlineRoutine[$Battle], "Int")
 	IniReadS($g_aiAttackScrDroplineEdge[$Battle], $g_sProfileConfigPath, "attack", "DroplineEdgeBattle", $g_aiAttackScrDroplineEdge[$Battle], "Int")
-	IniReadS($g_sAttackScrScriptName[$Battle], $g_sProfileConfigPath, "attack", "ScriptBattle", "Barch four fingers")
-	IniReadS($g_sAttackScrScriptNameRankedBattle, $g_sProfileConfigPath, "attack", "ScriptRanked", "")
+	IniReadS($g_sAttackScrScriptName[$Battle], $g_sProfileConfigPath, "attack", "ScriptBattle", "ElectroLoon [TH11-18]")
 
 	IniReadS($g_aiAttackUseWardenMode[$Battle], $g_sProfileConfigPath, "attack", "DBAtkUseWardenMode", 2, "int")
 	IniReadS($g_aiAttackUseSiege[$Battle], $g_sProfileConfigPath, "attack", "DBAtkUseSiege", 4, "int")
@@ -1174,12 +1173,8 @@ Func ReadConfig_600_29_LB()
 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack / Scripted <><><><>
 	IniReadS($g_aiAttackScrRedlineRoutine[$RankedBattle], $g_sProfileConfigPath, "attack", "RedlineRoutineRankedBattle", $g_aiAttackScrRedlineRoutine[$RankedBattle], "Int")
 	IniReadS($g_aiAttackScrDroplineEdge[$RankedBattle], $g_sProfileConfigPath, "attack", "DroplineEdgeRankedBattle", $g_aiAttackScrDroplineEdge[$RankedBattle], "Int")
-	IniReadS($g_sAttackScrScriptName[$RankedBattle], $g_sProfileConfigPath, "attack", "ScriptAB", "Barch four fingers")
-	If $g_sAttackScrScriptName[$RankedBattle] = "" And $g_sAttackScrScriptNameRankedBattle <> "" Then
-		$g_sAttackScrScriptName[$RankedBattle] = $g_sAttackScrScriptNameRankedBattle
-	Else
-		$g_sAttackScrScriptNameRankedBattle = $g_sAttackScrScriptName[$RankedBattle]
-	EndIf
+	IniReadS($g_sAttackScrScriptName[$RankedBattle], $g_sProfileConfigPath, "attack", "ScriptRanked", "ElectroLoon [TH11-18]")
+	$g_sAttackScrScriptNameRankedBattle = $g_sAttackScrScriptName[$RankedBattle]
 
 	IniReadS($g_aiAttackUseWardenMode[$RankedBattle], $g_sProfileConfigPath, "attack", "ABAtkUseWardenMode", 2, "int")
 	IniReadS($g_aiAttackUseSiege[$RankedBattle], $g_sProfileConfigPath, "attack", "ABAtkUseSiege", 4, "int")

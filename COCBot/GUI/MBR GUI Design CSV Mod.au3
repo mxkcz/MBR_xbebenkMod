@@ -52,10 +52,9 @@ Func CreateCSVModTab()
 	$g_hGUI_AttackCSVSettings = ($g_hGUI_CSVMOD_SETTINGS <> 0) ? $g_hGUI_CSVMOD_SETTINGS : $g_hGUI_CSVMOD
 	$g_iAttackCSVSettingsMode = $Battle
 	$g_bCSVModReady = True
-	CSVMod_SyncAttackSettingsFromGlobals()
 	ApplyConfig_CSVMod_Search_Battle("Read")
 	ApplyConfig_CSVMod_Search_Ranked("Read")
-	CSVSettings_SelectMode($Battle)
+	CSVMod_ApplyScriptSelectionFromGlobals()
 EndFunc   ;==>CreateCSVModTab
 
 ; #FUNCTION# ====================================================================================================================

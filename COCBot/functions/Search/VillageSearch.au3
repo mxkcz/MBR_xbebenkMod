@@ -258,25 +258,18 @@ Func _VillageSearch() ;Control for searching a village that meets conditions
 		EndIf
 
 		; ----------------- WRITE LOG VILLAGE FOUND AND ASSIGN VALUE AT $g_iMatchMode and exitloop  IF CONTITIONS MEET ---------------------------
-		If $match[$Battle] And $dbBase Then
+		If $match[$RankedBattle] Then
+			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
+			SetLog("      " & "Ranked Battle Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
+			$logwrited = True
+			$g_iMatchMode = $RankedBattle
+			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
+			ExitLoop
+		ElseIf $match[$Battle] And $dbBase Then
 			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
 			SetLog("      " & "Dead Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
 			$logwrited = True
 			$g_iMatchMode = $Battle
-			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
-			ExitLoop
-		ElseIf $match[$RankedBattle] And Not $dbBase Then
-			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
-			SetLog("      " & "Live Base Found!", $COLOR_SUCCESS, "Lucida Console", 7.5)
-			$logwrited = True
-			$g_iMatchMode = $RankedBattle
-			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
-			ExitLoop
-		ElseIf $match[$RankedBattle] And $g_bCollectorFilterDisable Then
-			SetLog($GetResourcesTXT, $COLOR_SUCCESS, "Lucida Console", 7.5)
-			SetLog("      " & "Live Base Found!*", $COLOR_SUCCESS, "Lucida Console", 7.5)
-			$logwrited = True
-			$g_iMatchMode = $RankedBattle
 			AttackCSV_PrecacheBuildingsFromSearch($g_iMatchMode)
 			ExitLoop
 		ElseIf $g_abAttackTypeEnable[$TB] = 1 And ($g_iSearchCount >= $g_iAtkTBEnableCount) Then ; TH bully doesn't need the resources conditions

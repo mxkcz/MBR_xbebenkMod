@@ -133,6 +133,30 @@ Func getArmyCapacityOnTrainTroops240($x_start, $y_start, $x1 = 63) ;  -> Gets qu
 	Return StringRegExpReplace(getOcrAndCapture("coc-troopcap240", $x_start, $y_start, $x1, 14, True), "[-x]", "")
 EndFunc   ;==>getArmyCapacityOnTrainTroops
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: getMatchRemain
+; Description ...: Gets complete ranked-battle match remain and max values.
+; Syntax ........: getMatchRemain([$x_start = 414[, $y_start = 475]])
+; Parameters ....: $x_start - OCR start X.
+;                  $y_start - OCR start Y.
+; Return values .: Array split by '#', empty array on failure.
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......: RankedBattle_TryJoin()
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func getMatchRemain($x_start = 414, $y_start = 475)
+	Local $sRet = "", $aRet[0]
+	$sRet = getOcrAndCapture("coc-tournament", $x_start, $y_start, 70, 22)
+	If $sRet <> "" Then
+		$aRet = StringSplit($sRet, "#", $STR_NOCOUNT)
+	EndIf
+	Return $aRet
+EndFunc   ;==>getMatchRemain
+
 Func TestAllOCR($xStart = 0, $yStart = 0, $ilength = 200, $iheight = 50)
 	If $xStart = 0 And $yStart = 0 Then
 		SetLog("Please set xStart and yStart", $COLOR_DEBUG2)

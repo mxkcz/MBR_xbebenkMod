@@ -839,7 +839,7 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 
 	If IsSearchAttackEnabled() Then
 		Local $bWaitForClanCastle = ($g_abAttackTypeEnable[$Battle] And $g_abSearchCastleWaitEnable[$Battle]) Or _
-				($g_abAttackTypeEnable[$LB] And $g_abSearchCastleWaitEnable[$LB])
+				($g_abAttackTypeEnable[$RankedBattle] And $g_abSearchCastleWaitEnable[$RankedBattle])
 		If $bWaitForClanCastle Then
 			Local $bFullClanCastle = IsFullClanCastle(True, True)
 			If Not $g_bRunState Then Return
@@ -849,7 +849,7 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 			EndIf
 		EndIf
 
-		If (IsSearchModeActive($Battle) And checkCollectors(True, False)) Or IsSearchModeActive($LB) Then
+		If (IsSearchModeActive($Battle) Or IsSearchModeActive($RankedBattle)) Then ; And checkCollectors(True, False))
 			If Not $g_bRunState Then Return
 			;If $g_bUpdateSharedPrefs And $g_bChkSharedPrefs Then PullSharedPrefs()
 			PrepareSearch()
@@ -885,22 +885,22 @@ Func AttackMain($bFirstStart = False) ;Main control for attack functions
 	Return True
 EndFunc   ;==>AttackMain
 
-Func Attack() ;Selects which algorithm
+Func Attack() ;Selects which algorithm // only scripted attack is supported
 	$g_bAttackActive = True
 	SetLog(" ====== Start Attack ====== ", $COLOR_SUCCESS)
-	If ($g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 1) Or ($g_iMatchMode = $LB And $g_aiAttackAlgorithm[$LB] = 1) Then
-		SetDebugLog("start scripted attack", $COLOR_ERROR)
-		Algorithm_AttackCSV()
-	ElseIf $g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 2 Then
-		SetDebugLog("start smart farm attack", $COLOR_ERROR)
-		; Variable to return : $Return[3]  [0] = To attack InSide  [1] = Quant. Sides  [2] = Name Sides
-		Local $Nside = ChkSmartFarm()
-		If Not $g_bRunState Then Return
-		AttackSmartFarm($Nside[1], $Nside[2])
-	Else
-		SetDebugLog("start standard attack", $COLOR_ERROR)
-		algorithm_AllTroops()
-	EndIf
+	;~ If ($g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 1) Or ($g_iMatchMode = $RankedBattle And $g_aiAttackAlgorithm[$RankedBattle] = 1) Then
+	SetDebugLog("start scripted attack", $COLOR_ERROR)
+	Algorithm_AttackCSV()
+	;~ ElseIf $g_iMatchMode = $Battle And $g_aiAttackAlgorithm[$Battle] = 2 Then
+	;~ 	SetDebugLog("start smart farm attack", $COLOR_ERROR)
+	;~ 	; Variable to return : $Return[3]  [0] = To attack InSide  [1] = Quant. Sides  [2] = Name Sides
+	;~ 	Local $Nside = ChkSmartFarm()
+	;~ 	If Not $g_bRunState Then Return
+	;~ 	AttackSmartFarm($Nside[1], $Nside[2])
+	;~ Else
+	;~ 	SetDebugLog("start standard attack", $COLOR_ERROR)
+	;~ 	algorithm_AllTroops()
+	;~ EndIf
 	$g_bAttackActive = False
 EndFunc   ;==>Attack
 

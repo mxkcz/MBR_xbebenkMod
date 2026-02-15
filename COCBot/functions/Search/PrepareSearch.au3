@@ -5,13 +5,27 @@
 ; Parameters ....:
 ; Return values .: None
 ; Author ........: Code Monkey #4
-; Modified ......: KnowJack (Aug 2015), MonkeyHunter(2015-12), xbebenk(03-2024)
+; Modified ......: KnowJack (Aug 2015), MonkeyHunter(2015-12), xbebenk(03-2024), mxkcz(02-2026)
 ; Remarks .......: This file is part of MyBot, previously known as ClashGameBot. Copyright 2015-2019
 ;                  MyBot is distributed under the terms of the GNU GPL
 ; Related .......:
 ; Link ..........: https://github.com/MyBotRun/MyBot/wiki
 ; Example .......: No
 ; ===============================================================================================================================
+; #FUNCTION# ====================================================================================================================
+; Name ..........: PrepareSearch
+; Description ...: Opens multiplayer search, attempts ranked battle join flow, and starts match search.
+; Syntax ........: PrepareSearch([$bTest = False])
+; Parameters ....: $bTest - Optional test mode flag.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......: mxkcz (2026-02)
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......: RankedBattle_TryJoin(), PrepareSearchCheckArmy()
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func PrepareSearch($bTest = False) ;Click attack button and find match button, will break shield
 
 	SetLog("Going to Attack", $COLOR_INFO)
@@ -46,17 +60,26 @@ Func PrepareSearch($bTest = False) ;Click attack button and find match button, w
 		EndIf
 		If _Sleep(1000) Then Return
 	Next
-		
-	Local $bAttackButtonFound = _ColorCheck(_GetPixelColor(255, 488, True), Hex(0xF1A522, 6), 10, Default, "FindMatch")
-	If $bAttackButtonFound Then
-		Click(160, 460, 1, 0, "FindMatch")
-		$g_bLeagueAttack = False
-		If _Sleep(1000) Then Return
-		If Not PrepareSearchCheckArmy() Then Return
-	Else
-		SetLog("FindMatch Not Found!", $COLOR_DEBUG2)
-		$g_bRestart = True
-		Return
+
+	Local $bRankedBattle = False
+	$g_bLeagueAttack = False
+	If IsSearchModeActive($RankedBattle) Then
+		$bRankedBattle = RankedBattle_TryJoin($bTest)
+	EndIf
+
+	Local $bAttackButtonFound = False
+	If Not $bRankedBattle Then
+		$bAttackButtonFound = _ColorCheck(_GetPixelColor(255, 488, True), Hex(0xF1A522, 6), 10, Default, "FindMatch")
+		If $bAttackButtonFound Then
+			Click(160, 460, 1, 0, "FindMatch")
+			$g_bLeagueAttack = False
+			If _Sleep(1000) Then Return
+			If Not PrepareSearchCheckArmy() Then Return
+		Else
+			SetLog("FindMatch Not Found!", $COLOR_DEBUG2)
+			$g_bRestart = True
+			Return
+		EndIf
 	EndIf
 	
 	$g_bCloudsActive = True ; early set of clouds to ensure no android suspend occurs that might cause infinite waits

@@ -90,6 +90,7 @@ Func applyConfig($bRedrawAtExit = True, $TypeReadSave = "Read") ;Applies the dat
 	; <><><><> CSV Mod / Search settings <><><><>
 	ApplyConfig_CSVMod_Search_Battle($TypeReadSave)
 	ApplyConfig_CSVMod_Search_Ranked($TypeReadSave)
+	ApplyConfig_CSVMod_Attack($TypeReadSave)
 	;~ ; <><><><> Attack Plan / Search & Attack / Bully <><><><>
 	;~ ApplyConfig_600_26($TypeReadSave)
 	;~ ; <><><><> Attack Plan / Search & Attack / Options / Search <><><><>
@@ -1173,6 +1174,31 @@ EndFunc   ;==>ApplyConfig_600_19
 ;~ EndFunc   ;==>ApplyConfig_600_28
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: ApplyConfig_CSVMod_Attack
+; Description ...: Apply CSV Mod attack script/mode settings between globals and GUI.
+; Syntax ........: ApplyConfig_CSVMod_Attack($TypeReadSave)
+; Parameters ....: $TypeReadSave      - "Read" to push globals to GUI, "Save" to read GUI into globals.
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func ApplyConfig_CSVMod_Attack($TypeReadSave)
+	Switch $TypeReadSave
+		Case "Read"
+			CSVMod_ApplyScriptSelectionFromGlobals()
+		Case "Save"
+			_SaveConfig_CSVMod_SyncHeroAbilityFromGui()
+			_SaveConfig_CSVMod_SyncAttackModeFromGui($Battle)
+			_SaveConfig_CSVMod_SyncAttackModeFromGui($RankedBattle)
+	EndSwitch
+EndFunc   ;==>ApplyConfig_CSVMod_Attack
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: ApplyConfig_CSVMod_Search_Battle
 ; Description ...: Apply CSV Mod battle search settings from/to GUI and normalize unsupported filters.
 ; Syntax ........: ApplyConfig_CSVMod_Search_Battle($TypeReadSave)
@@ -1387,11 +1413,11 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 	Switch $TypeReadSave
 ;~ 		Case "Read"
 ;~ 			; Attack
-;~ 			If $g_hCmbDBAlgorithm <> 0 Then
-;~ 				_GUICtrlComboBox_SetCurSel($g_hCmbDBAlgorithm, $g_aiAttackAlgorithm[$Battle])
+;~ 			If $g_hCmbBattleAlgorithm <> 0 Then
+;~ 				_GUICtrlComboBox_SetCurSel($g_hCmbBattleAlgorithm, $g_aiAttackAlgorithm[$Battle])
 ;~ 				cmbDBAlgorithm()
 ;~ 			EndIf
-;~ 			If $g_hCmbDBSelectTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBSelectTroop, $g_aiAttackTroopSelection[$Battle])
+;~ 			If $g_hCmbBattleSelectTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbBattleSelectTroop, $g_aiAttackTroopSelection[$Battle])
 ;~ 			If $g_hchkBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkBattleKingAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 			If $g_hchkBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkBattleQueenAttack, BitAND($g_aiAttackUseHeroes[$Battle], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 			If $g_hchkBattleWardenAttack <> 0 Then
@@ -1412,13 +1438,13 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 				GUICtrlSetState($g_hchkBattleDropCC, $g_abAttackDropCC[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 				chkBattleDropCC()
 ;~ 			EndIf
-;~ 			If $g_hCmbDBWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBWardenMode, $g_aiAttackUseWardenMode[$Battle])
-;~ 			If $g_hCmbDBSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbDBSiege, $g_aiAttackUseSiege[$Battle])
+;~ 			If $g_hCmbBattleWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbBattleWardenMode, $g_aiAttackUseWardenMode[$Battle])
+;~ 			If $g_hCmbBattleSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbBattleSiege, $g_aiAttackUseSiege[$Battle])
 ;~ 			If $g_hchkBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkBattleDropEmptySiege, $g_bDropEmptySiege[$Battle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 ;~ 		Case "Save"
-;~ 			If $g_hCmbDBAlgorithm <> 0 Then $g_aiAttackAlgorithm[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBAlgorithm)
-;~ 			If $g_hCmbDBSelectTroop <> 0 Then $g_aiAttackTroopSelection[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbDBSelectTroop)
+;~ 			If $g_hCmbBattleAlgorithm <> 0 Then $g_aiAttackAlgorithm[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbBattleAlgorithm)
+;~ 			If $g_hCmbBattleSelectTroop <> 0 Then $g_aiAttackTroopSelection[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbBattleSelectTroop)
 ;~ 			Local $temp1 = (BitAND($g_aiAttackUseHeroes[$Battle], $eHeroKing) = $eHeroKing ? $eHeroKing : $eHeroNone)
 ;~ 			Local $temp2 = (BitAND($g_aiAttackUseHeroes[$Battle], $eHeroQueen) = $eHeroQueen ? $eHeroQueen : $eHeroNone)
 ;~ 			Local $temp3 = (BitAND($g_aiAttackUseHeroes[$Battle], $eHeroWarden) = $eHeroWarden ? $eHeroWarden : $eHeroNone)
@@ -1430,12 +1456,12 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 			$g_aiAttackUseHeroes[$Battle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
 ;~ 			If $g_hchkBattleDropCC <> 0 Then $g_abAttackDropCC[$Battle] = (GUICtrlRead($g_hchkBattleDropCC) = $GUI_CHECKED)
 
-;~ 			If $g_hCmbDBWardenMode <> 0 Then
-;~ 				Local $iDBWardenMode = _GUICtrlComboBox_GetCurSel($g_hCmbDBWardenMode)
+;~ 			If $g_hCmbBattleWardenMode <> 0 Then
+;~ 				Local $iDBWardenMode = _GUICtrlComboBox_GetCurSel($g_hCmbBattleWardenMode)
 ;~ 				If $iDBWardenMode >= 0 Then $g_aiAttackUseWardenMode[$Battle] = $iDBWardenMode
 ;~ 			EndIf
-;~ 			If $g_hCmbDBSiege <> 0 Then
-;~ 				Local $iDBSiege = _GUICtrlComboBox_GetCurSel($g_hCmbDBSiege)
+;~ 			If $g_hCmbBattleSiege <> 0 Then
+;~ 				Local $iDBSiege = _GUICtrlComboBox_GetCurSel($g_hCmbBattleSiege)
 ;~ 				If $iDBSiege >= 0 Then $g_aiAttackUseSiege[$Battle] = $iDBSiege
 ;~ 			EndIf
 ;~ 			If $g_hchkBattleDropEmptySiege <> 0 Then $g_bDropEmptySiege[$Battle] = (GUICtrlRead($g_hchkBattleDropEmptySiege) = $GUI_CHECKED)
@@ -1475,7 +1501,7 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 	Switch $TypeReadSave
 ;~ 		Case "Read"
 ;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplBattle, $g_aiAttackScrRedlineRoutine[$Battle])
-;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineDB, $g_aiAttackScrDroplineEdge[$Battle])
+;~ 			_GUICtrlComboBox_SetCurSel($g_hcmbScriptDroplineBattle, $g_aiAttackScrDroplineEdge[$Battle])
 ;~ 			PopulateComboScriptsFilesBattle()
 ;~ 			UpdateComboScriptNameRankedBattle()
 ;~ 			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameBattle, $g_sAttackScrScriptName[$Battle])
@@ -1486,10 +1512,10 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 			EndIf
 ;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameBattle, $tempindex)
 ;~ 			cmbScriptNameBattle()
-;~ 			cmbScriptRedlineImplDB()
+;~ 			cmbScriptRedlineImplBattle()
 ;~ 		Case "Save"
 ;~ 			$g_aiAttackScrRedlineRoutine[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplBattle)
-;~ 			$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineDB)
+;~ 			$g_aiAttackScrDroplineEdge[$Battle] = _GUICtrlComboBox_GetCurSel($g_hcmbScriptDroplineBattle)
 ;~ 			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameBattle)
 ;~ 			Local $scriptname
 ;~ 			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameBattle, $indexofscript, $scriptname)
@@ -1523,11 +1549,11 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 	; <><><><> Attack Plan / Search & Attack / Activebase / Attack <><><><>
 ;~ 	Switch $TypeReadSave
 ;~ 		Case "Read"
-;~ 			If $g_hCmbABAlgorithm <> 0 Then
-;~ 				_GUICtrlComboBox_SetCurSel($g_hCmbABAlgorithm, $g_aiAttackAlgorithm[$RankedBattle])
+;~ 			If $g_hCmbRankedBattleAlgorithm <> 0 Then
+;~ 				_GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleAlgorithm, $g_aiAttackAlgorithm[$RankedBattle])
 ;~ 				cmbABAlgorithm()
 ;~ 			EndIf
-;~ 			If $g_hCmbABSelectTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABSelectTroop, $g_aiAttackTroopSelection[$RankedBattle])
+;~ 			If $g_hCmbRankedBattleSelectTroop <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleSelectTroop, $g_aiAttackTroopSelection[$RankedBattle])
 ;~ 			If $g_hchkRankedBattleKingAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleKingAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroKing) = $eHeroKing ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 			If $g_hchkRankedBattleQueenAttack <> 0 Then GUICtrlSetState($g_hchkRankedBattleQueenAttack, BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroQueen) = $eHeroQueen ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 			If $g_hchkRankedBattleWardenAttack <> 0 Then
@@ -1548,13 +1574,13 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 				GUICtrlSetState($g_hchkRankedBattleDropCC, $g_abAttackDropCC[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 ;~ 				chkRankedBattleDropCC()
 ;~ 			EndIf
-;~ 			If $g_hCmbABWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
-;~ 			If $g_hCmbABSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbABSiege, $g_aiAttackUseSiege[$RankedBattle])
+;~ 			If $g_hCmbRankedBattleWardenMode <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleWardenMode, $g_aiAttackUseWardenMode[$RankedBattle])
+;~ 			If $g_hCmbRankedBattleSiege <> 0 Then _GUICtrlComboBox_SetCurSel($g_hCmbRankedBattleSiege, $g_aiAttackUseSiege[$RankedBattle])
 ;~ 			If $g_hchkRankedBattleDropEmptySiege <> 0 Then GUICtrlSetState($g_hchkRankedBattleDropEmptySiege, $g_bDropEmptySiege[$RankedBattle] ? $GUI_CHECKED : $GUI_UNCHECKED)
 
 ;~ 		Case "Save"
-;~ 			If $g_hCmbABAlgorithm <> 0 Then $g_aiAttackAlgorithm[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABAlgorithm)
-;~ 			If $g_hCmbABSelectTroop <> 0 Then $g_aiAttackTroopSelection[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbABSelectTroop)
+;~ 			If $g_hCmbRankedBattleAlgorithm <> 0 Then $g_aiAttackAlgorithm[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbRankedBattleAlgorithm)
+;~ 			If $g_hCmbRankedBattleSelectTroop <> 0 Then $g_aiAttackTroopSelection[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbRankedBattleSelectTroop)
 ;~ 			Local $temp1 = (BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroKing) = $eHeroKing ? $eHeroKing : $eHeroNone)
 ;~ 			Local $temp2 = (BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroQueen) = $eHeroQueen ? $eHeroQueen : $eHeroNone)
 ;~ 			Local $temp3 = (BitAND($g_aiAttackUseHeroes[$RankedBattle], $eHeroWarden) = $eHeroWarden ? $eHeroWarden : $eHeroNone)
@@ -1566,12 +1592,12 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 			$g_aiAttackUseHeroes[$RankedBattle] = BitOR(Int($temp1), Int($temp2), Int($temp3), Int($temp4))
 ;~ 			If $g_hchkRankedBattleDropCC <> 0 Then $g_abAttackDropCC[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleDropCC) = $GUI_CHECKED)
 
-;~ 			If $g_hCmbABWardenMode <> 0 Then
-;~ 				Local $iABWardenMode = _GUICtrlComboBox_GetCurSel($g_hCmbABWardenMode)
+;~ 			If $g_hCmbRankedBattleWardenMode <> 0 Then
+;~ 				Local $iABWardenMode = _GUICtrlComboBox_GetCurSel($g_hCmbRankedBattleWardenMode)
 ;~ 				If $iABWardenMode >= 0 Then $g_aiAttackUseWardenMode[$RankedBattle] = $iABWardenMode
 ;~ 			EndIf
-;~ 			If $g_hCmbABSiege <> 0 Then
-;~ 				Local $iABSiege = _GUICtrlComboBox_GetCurSel($g_hCmbABSiege)
+;~ 			If $g_hCmbRankedBattleSiege <> 0 Then
+;~ 				Local $iABSiege = _GUICtrlComboBox_GetCurSel($g_hCmbRankedBattleSiege)
 ;~ 				If $iABSiege >= 0 Then $g_aiAttackUseSiege[$RankedBattle] = $iABSiege
 ;~ 			EndIf
 ;~ 			If $g_hchkRankedBattleDropEmptySiege <> 0 Then $g_bDropEmptySiege[$RankedBattle] = (GUICtrlRead($g_hchkRankedBattleDropEmptySiege) = $GUI_CHECKED)
@@ -1609,7 +1635,7 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 	Switch $TypeReadSave
 ;~ 		Case "Read"
 ;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptRedlineImplRankedBattle, $g_aiAttackScrRedlineRoutine[$RankedBattle])
-;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptDroplineAB, $g_aiAttackScrDroplineEdge[$RankedBattle])
+;~ 			_GUICtrlComboBox_SetCurSel($g_hcmbScriptDroplineRankedBattle, $g_aiAttackScrDroplineEdge[$RankedBattle])
 ;~ 			PopulateComboScriptsFilesRankedBattle()
 ;~ 			UpdateComboScriptNameRankedBattle()
 ;~ 			Local $tempindex = _GUICtrlComboBox_FindStringExact($g_hCmbScriptNameRankedBattle, $g_sAttackScrScriptName[$RankedBattle])
@@ -1620,10 +1646,10 @@ EndFunc   ;==>_ApplyConfig_CSVMod_SearchPolicy
 ;~ 			EndIf
 ;~ 			_GUICtrlComboBox_SetCurSel($g_hCmbScriptNameRankedBattle, $tempindex)
 ;~ 			cmbScriptNameRankedBattle()
-;~ 			cmbScriptRedlineImplAB()
+;~ 			cmbScriptRedlineImplRankedBattle()
 ;~ 		Case "Save"
 ;~ 			$g_aiAttackScrRedlineRoutine[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptRedlineImplRankedBattle)
-;~ 			$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hCmbScriptDroplineAB)
+;~ 			$g_aiAttackScrDroplineEdge[$RankedBattle] = _GUICtrlComboBox_GetCurSel($g_hcmbScriptDroplineRankedBattle)
 ;~ 			Local $indexofscript = _GUICtrlComboBox_GetCurSel($g_hCmbScriptNameRankedBattle)
 ;~ 			Local $scriptname
 ;~ 			_GUICtrlComboBox_GetLBText($g_hCmbScriptNameRankedBattle, $indexofscript, $scriptname)
