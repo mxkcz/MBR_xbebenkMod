@@ -35,17 +35,18 @@
 Func CreateCSVModTab()
 	$g_hGUI_CSVMOD = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $_GUI_CHILD_LEFT, $_GUI_CHILD_TOP, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hFrmBotEx)
 
+	CreateCSVModScriptTab()
+	CreateCSVModSearchTab()
+	CreateCSVModSettingsTab()
+	CreateCSVModDiagnosticsTab()
+
 	GUISwitch($g_hGUI_CSVMOD)
 	$g_hGUI_CSVMOD_TAB = GUICtrlCreateTab(0, 0, $g_iSizeWGrpTab1, $g_iSizeHGrpTab1)
 
 	$g_hGUI_CSVMOD_TAB_ITEM1 = GUICtrlCreateTabItem("Script")
-		CreateCSVModScriptTab()
 	$g_hGUI_CSVMOD_TAB_ITEM2 = GUICtrlCreateTabItem("Search")
-		CreateCSVModSearchTab()
 	$g_hGUI_CSVMOD_TAB_ITEM3 = GUICtrlCreateTabItem("Settings")
-		CreateCSVModSettingsTab()
 	$g_hGUI_CSVMOD_TAB_ITEM4 = GUICtrlCreateTabItem("Diagnostics")
-		CreateCSVModDiagnosticsTab()
 	GUICtrlCreateTabItem("")
 
 	; CSV settings logic expects a valid GUI container handle.

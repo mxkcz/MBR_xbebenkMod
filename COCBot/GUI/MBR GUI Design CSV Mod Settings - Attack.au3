@@ -63,11 +63,6 @@ Func CreateCSVModSettingsAttackTab()
 		_CSVMod_CreateAttackWithRow($x, $iRankedRowY, $w, "Ranked", "CSVSettings_OnRankedBattleDropCCChanged", _
 				$g_hchkRankedBattleDropCC, $g_hCmbRankedBattleWardenMode, $g_hCmbRankedBattleSiege, $g_hchkRankedBattleDropEmptySiege, $g_hchkRankedBattleSwapEmptyBlimp, $bWrapSwap)
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
-	$iCursorY += $iAttackGroupH + $iSectionGap
-
-	GUICtrlCreateGroup("Notes", $x, $iCursorY, $w, 40)
-		GUICtrlCreateLabel("Presets were moved to Settings -> Presets.", $x + 10, $iCursorY + 18, $w - 20, 18)
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc   ;==>CreateCSVModSettingsAttackTab
 
 

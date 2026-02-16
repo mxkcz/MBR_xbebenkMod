@@ -730,13 +730,13 @@ Func GUIControl_WM_NOTIFY($hWind, $iMsg, $wParam, $lParam)
 		;~ 	tabDeadbase()
 		;~ Case $g_hGUI_ACTIVEBASE_TAB
 		;~ 	tabActivebase()
-			Case $g_hGUI_BOT_TAB
-				tabBot()
-			Case $g_hGUI_CSVMOD_TAB
-				tabCSVMod()
-			Case Else
-				$bCheckEmbeddedShield = False
-		EndSwitch
+		Case $g_hGUI_BOT_TAB
+			tabBot()
+		Case $g_hGUI_CSVMOD_TAB
+			tabCSVMod()
+		Case Else
+			$bCheckEmbeddedShield = False
+	EndSwitch
 
 	If $bCheckEmbeddedShield Then
 		; check shield status
@@ -1740,16 +1740,56 @@ Func tabMain()
 
 EndFunc   ;==>tabMain
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: tabCSVMod
+; Description ...: Synchronizes CSV Mod subtab child-window visibility.
+; Syntax ........: tabCSVMod()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
 Func tabCSVMod()
 	If $g_iGuiMode <> 1 Then Return
 	If $g_hGUI_CSVMOD_TAB = 0 Then Return
 
 	Local $tabidx = GUICtrlRead($g_hGUI_CSVMOD_TAB)
 	Select
-		Case $tabidx = 2 ; Settings tab
-			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SETTINGS)
-		Case Else
+		Case $tabidx = 0 ; Script
+			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SCRIPT)
+			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
 			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
+			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+		Case $tabidx = 1 ; Search
+			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
+			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SEARCH)
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
+			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+		Case $tabidx = 2 ; Settings
+			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
+			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SETTINGS)
+			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+			If $g_hGUI_CSVMOD_SETTINGS_TAB <> 0 Then
+				Local $hSettingsTab = GUICtrlGetHandle($g_hGUI_CSVMOD_SETTINGS_TAB)
+				If $hSettingsTab <> 0 And _GUICtrlTab_GetCurSel($hSettingsTab) < 0 Then _GUICtrlTab_SetCurSel($hSettingsTab, 0)
+			EndIf
+		Case $tabidx = 3 ; Diagnostics
+			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
+			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
+			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+		Case Else
+			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
+			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
+			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
+			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+			If $g_bDebugSetlog Then SetDebugLog("CSV Mod: unexpected tab index " & $tabidx, $COLOR_WARNING)
 	EndSelect
 EndFunc   ;==>tabCSVMod
 
@@ -1874,6 +1914,10 @@ Func Bind_ImageList($nCtrl, ByRef $hImageList)
 		Case $g_hGUI_VILLAGE_TAB
 			; the icons for village tab
 			Local $aIconIndex = [$eIcnTH1, $eIcnCC, $eIcnLaboratory, $eIcnAchievements, $eIcnTelegram]
+
+		Case $g_hGUI_CSVMOD_TAB
+			; the icons for CSV Mod tab
+			Local $aIconIndex = [$eIcnEdit, $eIcnMagnifier, $eIcnOptions, $eIcnInfo]
 
 		Case $g_hGUI_MISC_TAB
 			Local $aIconIndex = [$eIcnTH10, $eIcnStrongMan, $eIcnClanCapital, $eIcnGoldStar]

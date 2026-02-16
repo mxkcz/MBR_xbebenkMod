@@ -374,6 +374,7 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	; Static to avoid GDI Handle leak
 	Static $g_hTabMain_ImageList = 0
 	Static $g_hGUI_VILLAGE_TAB_ImageList = 0
+	Static $g_hGUI_CSVMOD_TAB_ImageList = 0
 	Static $g_hGUI_MISC_TAB_ImageList = 0
 	Static $g_hGUI_DONATE_TAB_ImageList = 0
 	Static $g_hGUI_UPGRADE_TAB_ImageList = 0
@@ -392,6 +393,7 @@ Func CreateMainGUIControls($bGuiModeUpdate = False)
 	Bind_ImageList($g_hTabMain, $g_hTabMain_ImageList)
 
 	Bind_ImageList($g_hGUI_VILLAGE_TAB, $g_hGUI_VILLAGE_TAB_ImageList)
+	Bind_ImageList($g_hGUI_CSVMOD_TAB, $g_hGUI_CSVMOD_TAB_ImageList)
 	Bind_ImageList($g_hGUI_MISC_TAB, $g_hGUI_MISC_TAB_ImageList)
 	Bind_ImageList($g_hGUI_DONATE_TAB, $g_hGUI_DONATE_TAB_ImageList)
 	Bind_ImageList($g_hGUI_UPGRADE_TAB, $g_hGUI_UPGRADE_TAB_ImageList)

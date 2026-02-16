@@ -40,13 +40,13 @@ Func CreateCSVModSideTab()
 				GUICtrlSetLimit(-1, 99, 0)
 			GUICtrlSetOnEvent($g_ahCSVSideWeightInputs[$i], "CSVSettings_MarkDirty")
 		Next
-		$g_hBtnCSVSideZero = GUICtrlCreateButton("Zero", $x + 10, $y + 125, 70, 20)
-			GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetZero")
-		$g_hBtnCSVSideEqual = GUICtrlCreateButton("Equal", $x + 90, $y + 125, 70, 20)
-			GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetEqual")
+		;~ $g_hBtnCSVSideZero = GUICtrlCreateButton("Zero", $x + 10, $y + 125, 70, 20)
+		;~ 	GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetZero")
+		;~ $g_hBtnCSVSideEqual = GUICtrlCreateButton("Equal", $x + 90, $y + 125, 70, 20)
+		;~ 	GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetEqual")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 170
+	$y += 140
 	GUICtrlCreateGroup("SIDEB weights (defenses)", $x, $y, $w, 185)
 		Local $iColBW = Int(($w - 20) / 2)
 		Local $iLabelBW = $iColBW - 50

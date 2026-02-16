@@ -12,6 +12,11 @@
 ; Example .......:
 ; =====================================================================================================================
 Func CreateCSVModDiagnosticsTab()
+	Local $iChildX = 0
+	Local $iChildY = 25
+	$g_hGUI_CSVMOD_DIAGNOSTICS = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $iChildX, $iChildY, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_CSVMOD)
+	GUISwitch($g_hGUI_CSVMOD_DIAGNOSTICS)
+
 	Local $x = 0, $y = 0, $w = 0, $h = 0
 	CSVMod_GetContentBounds($x, $y, $w, $h)
 
@@ -43,7 +48,9 @@ Func CreateCSVModDiagnosticsTab()
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$y += 105
-	GUICtrlCreateGroup("Diagnostics tail", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
-		$g_hTxtCSVDebugLines = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, $g_iSizeHGrpTab1 - $y - 35, BitOR($ES_READONLY, $WS_VSCROLL))
+	GUICtrlCreateGroup("Diagnostics tail", $x, $y, $w, ($g_iSizeHGrpTab1 - $iChildY) - $y - 10)
+		$g_hTxtCSVDebugLines = GUICtrlCreateEdit("", $x + 10, $y + 20, $w - 20, ($g_iSizeHGrpTab1 - $iChildY) - $y - 35, BitOR($ES_READONLY, $WS_VSCROLL))
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
+
+	GUISwitch($g_hGUI_CSVMOD)
 EndFunc   ;==>CreateCSVModDiagnosticsTab

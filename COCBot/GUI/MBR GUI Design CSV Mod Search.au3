@@ -16,14 +16,14 @@
 ; Example .......:
 ; =====================================================================================================================
 Func CreateCSVModSearchTab()
-	Local $x = 0, $y = 0, $w = 0, $h = 0
-	CSVMod_GetContentBounds($x, $y, $w, $h)
-	Local $hTab = GUICtrlCreateTab($x, $y, $w, $h, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
-	
+	Local $iChildX = 0
+	Local $iChildY = 25
+	$g_hGUI_CSVMOD_SEARCH = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $iChildX, $iChildY, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_CSVMOD)
+	GUISwitch($g_hGUI_CSVMOD_SEARCH)
+
 	CreateAttackSearch()
 
-	GUICtrlCreateTabItem("")
-
+	GUISwitch($g_hGUI_CSVMOD)
 EndFunc   ;==>CreateCSVModSearchTab
 
 Func CreateAttackSearch()

@@ -12,6 +12,11 @@
 ; Example .......:
 ; =====================================================================================================================
 Func CreateCSVModScriptTab()
+	Local $iChildX = 0
+	Local $iChildY = 25
+	$g_hGUI_CSVMOD_SCRIPT = _GUICreate("", $g_iSizeWGrpTab1, $g_iSizeHGrpTab1, $iChildX, $iChildY, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_CSVMOD)
+	GUISwitch($g_hGUI_CSVMOD_SCRIPT)
+
 	Local $x = 0, $y = 0, $w = 0, $h = 0
 	CSVMod_GetContentBounds($x, $y, $w, $h)
 
@@ -70,7 +75,7 @@ Func CreateCSVModScriptTab()
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
 	$y += 80
-	GUICtrlCreateGroup("Status", $x, $y, $w, $g_iSizeHGrpTab1 - $y - 10)
+	GUICtrlCreateGroup("Status", $x, $y, $w, ($g_iSizeHGrpTab1 - $iChildY) - $y - 10)
 		$g_hLblCSVSettingsScript = GUICtrlCreateLabel("Script: -", $x + 10, $y + 20, $w - 20, 16)
 		$g_hLblCSVSettingsPath = GUICtrlCreateLabel("Path: -", $x + 10, $y + 36, $w - 20, 16)
 		$g_hLblCSVSettingsLoaded = GUICtrlCreateLabel("Loaded: -", $x + 10, $y + 52, 180, 16)
@@ -81,4 +86,6 @@ Func CreateCSVModScriptTab()
 	; Populate script lists on load
 	UpdateComboScriptNameBattle()
 	UpdateComboScriptNameRankedBattle()
+
+	GUISwitch($g_hGUI_CSVMOD)
 EndFunc   ;==>CreateCSVModScriptTab

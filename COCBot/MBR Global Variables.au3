@@ -1129,6 +1129,7 @@ Global $g_hChkRankedBattle = 0, $g_hChkBattle = 0
 Global $g_hTabCSVMod = 0
 Global $g_hGUI_CSVMOD = 0, $g_hGUI_AttackCSVSettings = 0
 Global $g_bCSVModReady = False
+Global $g_hGUI_CSVMOD_SCRIPT = 0, $g_hGUI_CSVMOD_SEARCH = 0, $g_hGUI_CSVMOD_DIAGNOSTICS = 0
 Global $g_hGUI_CSVMOD_TAB = 0
 Global $g_hGUI_CSVMOD_TAB_ITEM1 = 0, $g_hGUI_CSVMOD_TAB_ITEM2 = 0, $g_hGUI_CSVMOD_TAB_ITEM3 = 0, $g_hGUI_CSVMOD_TAB_ITEM4 = 0
 Global $g_hGUI_CSVMOD_SETTINGS = 0, $g_hGUI_CSVMOD_SETTINGS_TAB = 0

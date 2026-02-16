@@ -16,7 +16,7 @@ Func CreateCSVModDropsTab()
 	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
 	Local $iBottom = $y + $h
 
-	GUICtrlCreateGroup("DROP ranges && REMAIN", $x, $y, $w, 200)
+	GUICtrlCreateGroup("DROP ranges && REMAIN", $x, $y, $w, 180)
 		GUICtrlCreateLabel("Index", $x + 10, $y + 22, 40, 18)
 		$g_hInpCSVIndexMin = GUICtrlCreateInput("1", $x + 60, $y + 20, 35, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
@@ -51,7 +51,7 @@ Func CreateCSVModDropsTab()
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 210
+	$y += 180
 	Local $iWaitGroupH = $iBottom - $y
 	If $iWaitGroupH < 120 Then $iWaitGroupH = 120
 	GUICtrlCreateGroup("WAIT && break conditions", $x, $y, $w, $iWaitGroupH)
@@ -66,15 +66,15 @@ Func CreateCSVModDropsTab()
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
 		$g_hChkCSVBreak50 = GUICtrlCreateCheckbox("Break at 50% damage", $x + 10, $y + 90, 210, 18)
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hChkCSVBreakAQ = GUICtrlCreateCheckbox("Trigger AQ ability", $x + 10, $y + 110, 160, 18)
+		$g_hChkCSVBreakAQ = GUICtrlCreateCheckbox("Trigger AQ ability", $x + 180, $y + 50, 160, 18)
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hChkCSVBreakBK = GUICtrlCreateCheckbox("Trigger BK ability", $x + 10, $y + 130, 160, 18)
+		$g_hChkCSVBreakBK = GUICtrlCreateCheckbox("Trigger BK ability", $x + 180, $y + 70, 160, 18)
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hChkCSVBreakGW = GUICtrlCreateCheckbox("Trigger GW ability", $x + 180, $y + 110, 160, 18)
+		$g_hChkCSVBreakGW = GUICtrlCreateCheckbox("Trigger GW ability", $x + 320, $y + 50, 160, 18)
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hChkCSVBreakRC = GUICtrlCreateCheckbox("Trigger RC ability", $x + 180, $y + 130, 160, 18)
+		$g_hChkCSVBreakRC = GUICtrlCreateCheckbox("Trigger RC ability", $x + 320, $y + 70, 160, 18)
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
-		$g_hChkCSVBreakAnyHero = GUICtrlCreateCheckbox("Any hero ability combo", $x + 10, $y + 150, 200, 18)
+		$g_hChkCSVBreakAnyHero = GUICtrlCreateCheckbox("Any hero ability combo", $x + 180, $y + 90, 200, 18)
 			GUICtrlSetOnEvent(-1, "CSVWaitComboToggle")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 EndFunc   ;==>CreateCSVModDropsTab
