@@ -734,6 +734,10 @@ Func GUIControl_WM_NOTIFY($hWind, $iMsg, $wParam, $lParam)
 			tabBot()
 		Case $g_hGUI_CSVMOD_TAB
 			tabCSVMod()
+		Case $g_hGUI_CSVMOD_SETTINGS_TAB
+			tabCSVModSettings()
+		Case $g_hGUI_CSVSIDE_TAB
+			tabCSVModSide()
 		Case Else
 			$bCheckEmbeddedShield = False
 	EndSwitch
@@ -1770,16 +1774,16 @@ Func tabCSVMod()
 			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SEARCH)
 			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
 			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
-		Case $tabidx = 2 ; Settings
-			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
-			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
-			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SETTINGS)
-			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
-			If $g_hGUI_CSVMOD_SETTINGS_TAB <> 0 Then
-				Local $hSettingsTab = GUICtrlGetHandle($g_hGUI_CSVMOD_SETTINGS_TAB)
-				If $hSettingsTab <> 0 And _GUICtrlTab_GetCurSel($hSettingsTab) < 0 Then _GUICtrlTab_SetCurSel($hSettingsTab, 0)
-			EndIf
-		Case $tabidx = 3 ; Diagnostics
+			Case $tabidx = 2 ; Settings
+				If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
+				If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
+				If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_SHOWNOACTIVATE, $g_hGUI_CSVMOD_SETTINGS)
+				If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
+				If $g_hGUI_CSVMOD_SETTINGS_TAB <> 0 Then
+					Local $hSettingsTab = GUICtrlGetHandle($g_hGUI_CSVMOD_SETTINGS_TAB)
+					If $hSettingsTab <> 0 And _GUICtrlTab_GetCurSel($hSettingsTab) < 0 Then _GUICtrlTab_SetCurSel($hSettingsTab, 0)
+				EndIf
+			Case $tabidx = 3 ; Diagnostics
 			If $g_hGUI_CSVMOD_SCRIPT <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SCRIPT)
 			If $g_hGUI_CSVMOD_SEARCH <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SEARCH)
 			If $g_hGUI_CSVMOD_SETTINGS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_SETTINGS)
@@ -1791,7 +1795,73 @@ Func tabCSVMod()
 			If $g_hGUI_CSVMOD_DIAGNOSTICS <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVMOD_DIAGNOSTICS)
 			If $g_bDebugSetlog Then SetDebugLog("CSV Mod: unexpected tab index " & $tabidx, $COLOR_WARNING)
 	EndSelect
+	tabCSVModSettings()
 EndFunc   ;==>tabCSVMod
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: tabCSVModSettings
+; Description ...: Synchronizes CSV Mod Side child-host visibility for nested Settings tab selection.
+; Syntax ........: tabCSVModSettings()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func tabCSVModSettings()
+	If $g_iGuiMode <> 1 Then Return
+	If $g_hGUI_CSVMOD_TAB <> 0 And GUICtrlRead($g_hGUI_CSVMOD_TAB) <> 2 Then
+		If $g_hGUI_CSVSIDE <> 0 Then GUISetState(@SW_HIDE, $g_hGUI_CSVSIDE)
+		Return
+	EndIf
+
+	Local $bShowSideHost = False
+	If $g_hGUI_CSVMOD_SETTINGS_TAB <> 0 Then
+		Local $hSettingsTab = GUICtrlGetHandle($g_hGUI_CSVMOD_SETTINGS_TAB)
+		If $hSettingsTab <> 0 And _GUICtrlTab_GetCurSel($hSettingsTab) < 0 Then _GUICtrlTab_SetCurSel($hSettingsTab, 0)
+		$bShowSideHost = (GUICtrlRead($g_hGUI_CSVMOD_SETTINGS_TAB, 1) = $g_hGUI_CSVMOD_SETTINGS_TAB_SIDE)
+	EndIf
+	If $g_hGUI_CSVSIDE <> 0 Then GUISetState($bShowSideHost ? @SW_SHOWNOACTIVATE : @SW_HIDE, $g_hGUI_CSVSIDE)
+	If $bShowSideHost Then tabCSVModSide()
+EndFunc   ;==>tabCSVModSettings
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: tabCSVModSide
+; Description ...: Keeps CSV Mod Side nested tab selection stable.
+; Syntax ........: tabCSVModSide()
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func tabCSVModSide()
+	If $g_iGuiMode <> 1 Then Return
+	If $g_hGUI_CSVSIDE_TAB = 0 Then Return
+
+	Local $hSideTab = GUICtrlGetHandle($g_hGUI_CSVSIDE_TAB)
+	If $hSideTab = 0 Then Return
+
+	Local $iTab = _GUICtrlTab_GetCurSel($hSideTab)
+	If $iTab < 0 Then
+		_GUICtrlTab_SetCurSel($hSideTab, $g_iCSVSideTabSelected)
+		Return
+	EndIf
+	If $iTab > $g_iCSVSideTabSIDEB Then
+		_GUICtrlTab_SetCurSel($hSideTab, $g_iCSVSideTabSIDE)
+		$iTab = $g_iCSVSideTabSIDE
+	EndIf
+
+	$g_iCSVSideTabSelected = $iTab
+EndFunc   ;==>tabCSVModSide
 
 Func tabVillage()
 	If $g_iGuiMode <> 1 Then Return

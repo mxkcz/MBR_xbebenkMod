@@ -1151,11 +1151,21 @@ Global $g_hChkCSVDbgAttackCSV = 0, $g_hChkCSVDbgMakeImg = 0, $g_hChkCSVDbgAttack
 Global $g_hLblCSVDbgSummary = 0, $g_hTxtCSVDiagnostics = 0, $g_hTxtCSVDebugLines = 0
 Global $g_hRadCSVPrecacheConservative = 0, $g_hRadCSVPrecacheAggressive = 0
 Global $g_hLblCSVPrecacheBudget = 0, $g_hLblCSVPrecacheLast = 0, $g_hTxtCSVPrecalcStatus = 0
+Global Const $g_iCSVSideTabSIDE = 0, $g_iCSVSideTabSIDEB = 1
+Global $g_iCSVSideTabSelected = $g_iCSVSideTabSIDE
+Global $g_hGUI_CSVSIDE = 0, $g_hGUI_CSVSIDE_TAB = 0, $g_hGUI_CSVSIDE_TAB_SIDE = 0, $g_hGUI_CSVSIDE_TAB_SIDEB = 0
+Global Const $g_iCSVSideWeightCount = 7
+Global Const $g_iCSVSideBWeightCount = 14
+Global $g_asCSVSideWeightNames[$g_iCSVSideWeightCount] = ["Gold Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall"]
+Global $g_asCSVSideBWeightNames[$g_iCSVSideBWeightCount] = ["Eagle", "Inferno", "X-Bow", "Wizard Tower/Super Wiz", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer", "Multi Gear", "Ricochet Cannon", "Revenge Tower"]
+Global $g_hGrpCSVSideResourceForced = 0, $g_hGrpCSVSideResourceWeights = 0, $g_hGrpCSVSideDefenseWeights = 0
 Global $g_hCmbCSVForceSide = 0
-Global $g_ahCSVSideWeightInputs[7] = [0, 0, 0, 0, 0, 0, 0]
-Global $g_ahCSVSideWeightSpin[7] = [0, 0, 0, 0, 0, 0, 0]
-Global $g_ahCSVSideBWeightInputs[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-Global $g_ahCSVSideBWeightSpin[14] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Global $g_ahCSVSideWeightLabels[$g_iCSVSideWeightCount]
+Global $g_ahCSVSideWeightInputs[$g_iCSVSideWeightCount]
+Global $g_ahCSVSideWeightSpin[$g_iCSVSideWeightCount]
+Global $g_ahCSVSideBWeightLabels[$g_iCSVSideBWeightCount]
+Global $g_ahCSVSideBWeightInputs[$g_iCSVSideBWeightCount]
+Global $g_ahCSVSideBWeightSpin[$g_iCSVSideBWeightCount]
 Global $g_hBtnCSVSideZero = 0, $g_hBtnCSVSideEqual = 0
 Global $g_hBtnCSVSideBZero = 0, $g_hBtnCSVSideBEqual = 0
 Global $g_hChkCSVVectorTargeted = 0, $g_hCmbCSVTargetBuilding = 0, $g_hCmbCSVVectorVersus = 0, $g_hInpCSVRandomX = 0, $g_hInpCSVRandomY = 0
@@ -1682,7 +1692,7 @@ Global $g_aiCSVMultiGearTowerPos
 Global $g_aiCSVSuperWizTowerPos
 Global $g_aiCSVRevengeTowerPos
 Global $g_bCSVUseWizTowerForSuperWiz = False ; CSV prep: reuse Wizard Tower imgloc when Super Wiz is locked/unknown
-Global $g_aiCSVSideBWeights[14]
+Global $g_aiCSVSideBWeights[$g_iCSVSideBWeightCount]
 Global $g_bCSVLocateMine = False
 Global $g_bCSVLocateElixir = False
 Global $g_bCSVLocateDrill = False
@@ -1758,7 +1768,7 @@ Global Enum $eCSVLocateMine, $eCSVLocateElixir, $eCSVLocateDrill, $eCSVLocateSto
 Global $g_abCSVPrepLocate[$g_iModeCount][$eCSVLocateCount]
 Global $g_aCSVPrepLocateByTHWindow[$g_iModeCount][3][$eCSVLocateCount]
 Global $g_aCSVPrepTHWindow[3]
-Global $g_aiCSVPrepSideBWeights[$g_iModeCount][14]
+Global $g_aiCSVPrepSideBWeights[$g_iModeCount][$g_iCSVSideBWeightCount]
 Global $g_aiCSVPrepPrioCap[$g_iModeCount][4]
 Global $g_abCSVPrepMakeSidesUsed[$g_iModeCount][4]
 Global $g_abCSVPrepAllMakeTargeted[$g_iModeCount]

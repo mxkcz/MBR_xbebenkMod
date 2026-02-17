@@ -1,12 +1,13 @@
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: CreateCSVModSideTab
-; Description ...: Creates SIDE and SIDEB weight controls.
+; Description ...: Creates SIDE and SIDEB tabbed weight controls.
 ; Syntax ........:
 ; Parameters ....: None
 ; Return values .: None
 ; Author ........: mxkcz
 ; Modified ......: mxkcz
 ; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
 ; Related .......:
 ; Link ..........:
 ; Example .......:
@@ -14,58 +15,117 @@
 Func CreateCSVModSideTab()
 	Local $x = 0, $y = 0, $w = 0, $h = 0
 	CSVMod_GetSettingsSubTabBounds($x, $y, $w, $h)
-	Local $aSideWeightNames[7] = ["Gold Mines", "Elixir Collectors", "Dark Drills", "Gold Storage", "Elixir Storage", "Dark Storage", "Town Hall"]
-	Local $aSideBWeightNames[14] = ["Eagle", "Inferno", "X-Bow", "Wizard Tower/Super Wiz", "Mortar", "Air Defense", "Scattershot", "Sweeper", "Monolith", "Fire Spitter", "Multi Archer", "Multi Gear", "Ricochet Cannon", "Revenge Tower"]
+	If $w <= 0 Or $h <= 0 Then Return
 
-	GUICtrlCreateGroup("Forced side", $x, $y, $w, 55)
-		$g_hCmbCSVForceSide = GUICtrlCreateCombo("", $x + 10, $y + 20, $w - 20, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
+	$g_hGUI_CSVSIDE = _GUICreate("", $w, $h, $x, $y, BitOR($WS_CHILD, $WS_TABSTOP), -1, $g_hGUI_CSVMOD_SETTINGS)
+	GUISwitch($g_hGUI_CSVSIDE)
+
+	Local Const $iForcedGroupH = 55
+	Local Const $iGap = 6
+	Local $iTabY = $iForcedGroupH + $iGap
+	Local $iTabH = $h - ($iForcedGroupH + $iGap)
+	If $iTabH < 80 Then $iTabH = 80
+
+	$g_hGrpCSVSideResourceForced = GUICtrlCreateGroup("Forced side", 0, 0, $w, $iForcedGroupH)
+		$g_hCmbCSVForceSide = GUICtrlCreateCombo("", 10, 20, $w - 20, 18, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL))
 			GUICtrlSetData(-1, "Auto (weight-based)|TOP-LEFT|TOP-RIGHT|BOTTOM-LEFT|BOTTOM-RIGHT|TOP-RAND", "Auto (weight-based)")
 			GUICtrlSetOnEvent(-1, "CSVSettings_MarkDirty")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 65
-	GUICtrlCreateGroup("SIDE weights (resource)", $x, $y, $w, 160)
-		Local $iColW = Int(($w - 20) / 2)
-		Local $iLabelW = $iColW - 45
-		If $iLabelW < 70 Then $iLabelW = 70
-		Local $iInputW = $iColW - $iLabelW - 10
-		If $iInputW < 35 Then $iInputW = 35
-		If $iInputW > 50 Then $iInputW = 50
-		For $i = 0 To UBound($aSideWeightNames) - 1
-			Local $iRow = Mod($i, 4), $iCol = Int($i / 4)
-			Local $iOffsetX = $x + 10 + ($iCol * $iColW), $iOffsetY = $y + 20 + ($iRow * 30)
-			GUICtrlCreateLabel($aSideWeightNames[$i] & ":", $iOffsetX, $iOffsetY + 3, $iLabelW, 18)
-			$g_ahCSVSideWeightInputs[$i] = GUICtrlCreateInput("0", $iOffsetX + $iLabelW + 5, $iOffsetY, $iInputW, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_ahCSVSideWeightSpin[$i] = GUICtrlCreateUpdown($g_ahCSVSideWeightInputs[$i])
-				GUICtrlSetLimit(-1, 99, 0)
-			GUICtrlSetOnEvent($g_ahCSVSideWeightInputs[$i], "CSVSettings_MarkDirty")
-		Next
-		;~ $g_hBtnCSVSideZero = GUICtrlCreateButton("Zero", $x + 10, $y + 125, 70, 20)
-		;~ 	GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetZero")
-		;~ $g_hBtnCSVSideEqual = GUICtrlCreateButton("Equal", $x + 90, $y + 125, 70, 20)
-		;~ 	GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetEqual")
+	$g_hGUI_CSVSIDE_TAB = GUICtrlCreateTab(0, $iTabY, $w, $iTabH, BitOR($TCS_MULTILINE, $TCS_RIGHTJUSTIFY))
+	$g_hGUI_CSVSIDE_TAB_SIDE = GUICtrlCreateTabItem("SIDE")
+		CSVSide_CreateWeightsPage(False, 0, $iTabY + 26, $w, $iTabH - 32)
+	$g_hGUI_CSVSIDE_TAB_SIDEB = GUICtrlCreateTabItem("SIDEB")
+		CSVSide_CreateWeightsPage(True, 0, $iTabY + 26, $w, $iTabH - 32)
+	GUICtrlCreateTabItem("")
 	GUICtrlCreateGroup("", -99, -99, 1, 1)
 
-	$y += 140
-	GUICtrlCreateGroup("SIDEB weights (defenses)", $x, $y, $w, 185)
-		Local $iColBW = Int(($w - 20) / 2)
-		Local $iLabelBW = $iColBW - 50
-		If $iLabelBW < 90 Then $iLabelBW = 90
-		Local $iInputBW = $iColBW - $iLabelBW - 10
-		If $iInputBW < 35 Then $iInputBW = 35
-		If $iInputBW > 50 Then $iInputBW = 50
-		For $j = 0 To UBound($aSideBWeightNames) - 1
-			Local $iRowB = Mod($j, 7), $iColB = Int($j / 7)
-			Local $iOffsetXB = $x + 10 + ($iColB * $iColBW), $iOffsetYB = $y + 20 + ($iRowB * 23)
-			GUICtrlCreateLabel($aSideBWeightNames[$j] & ":", $iOffsetXB, $iOffsetYB + 3, $iLabelBW, 18)
-			$g_ahCSVSideBWeightInputs[$j] = GUICtrlCreateInput("0", $iOffsetXB + $iLabelBW + 5, $iOffsetYB, $iInputBW, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
-			$g_ahCSVSideBWeightSpin[$j] = GUICtrlCreateUpdown($g_ahCSVSideBWeightInputs[$j])
-				GUICtrlSetLimit(-1, 99, 0)
-			GUICtrlSetOnEvent($g_ahCSVSideBWeightInputs[$j], "CSVSettings_MarkDirty")
-		Next
-		$g_hBtnCSVSideBZero = GUICtrlCreateButton("Zero", $x + 10, $y + 155, 70, 20)
-			GUICtrlSetOnEvent(-1, "CSVSideBWeightsPresetZero")
-		$g_hBtnCSVSideBEqual = GUICtrlCreateButton("Equal", $x + 90, $y + 155, 70, 20)
-			GUICtrlSetOnEvent(-1, "CSVSideBWeightsPresetEqual")
-	GUICtrlCreateGroup("", -99, -99, 1, 1)
+	If $g_hGUI_CSVSIDE_TAB <> 0 Then
+		Local $hSideTab = GUICtrlGetHandle($g_hGUI_CSVSIDE_TAB)
+		If $hSideTab <> 0 Then
+			If $g_iCSVSideTabSelected <> $g_iCSVSideTabSIDE And $g_iCSVSideTabSelected <> $g_iCSVSideTabSIDEB Then $g_iCSVSideTabSelected = $g_iCSVSideTabSIDE
+			_GUICtrlTab_SetCurSel($hSideTab, $g_iCSVSideTabSelected)
+		EndIf
+	EndIf
+
+	GUISetState(@SW_HIDE, $g_hGUI_CSVSIDE)
+	GUISwitch($g_hGUI_CSVMOD_SETTINGS)
 EndFunc   ;==>CreateCSVModSideTab
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: CSVSide_CreateWeightsPage
+; Description ...: Creates one inner SIDE/SIDEB tab page and wires dynamic weight rows.
+; Syntax ........:
+; Parameters ....: None
+; Return values .: None
+; Author ........: mxkcz
+; Modified ......:
+; Remarks .......: This file is part of MyBotRun. Copyright 2016
+;                  MyBotRun is distributed under the terms of the GNU GPL
+; Related .......:
+; Link ..........:
+; Example .......:
+; =====================================================================================================================
+Func CSVSide_CreateWeightsPage($bSideB, $x, $y, $w, $h)
+	If $h < 60 Then $h = 60
+
+	Local $iCount = ($bSideB ? UBound($g_asCSVSideBWeightNames) : UBound($g_asCSVSideWeightNames))
+	Local $iColumns = 2
+	Local $iRowsPerColumn = Int(($iCount + $iColumns - 1) / $iColumns)
+
+	Local $iTopPad = 20
+	Local $iBottomPad = 32
+	Local $iRowStep = Int(($h - $iTopPad - $iBottomPad) / $iRowsPerColumn)
+	If $iRowStep < 16 Then $iRowStep = 16
+
+	Local $iColW = Int(($w - 20) / $iColumns)
+	Local $iLabelW = $iColW - 50
+	If $iLabelW < 90 Then $iLabelW = 90
+	Local $iInputW = $iColW - $iLabelW - 10
+	If $iInputW < 35 Then $iInputW = 35
+	If $iInputW > 50 Then $iInputW = 50
+
+	If $bSideB Then
+		$g_hGrpCSVSideDefenseWeights = GUICtrlCreateGroup("SIDEB weights (defenses)", $x, $y, $w, $h)
+	Else
+		$g_hGrpCSVSideResourceWeights = GUICtrlCreateGroup("SIDE weights (resources)", $x, $y, $w, $h)
+	EndIf
+
+	For $i = 0 To $iCount - 1
+		Local $iRow = Mod($i, $iRowsPerColumn)
+		Local $iCol = Int($i / $iRowsPerColumn)
+		Local $iOffsetX = $x + 10 + ($iCol * $iColW)
+		Local $iOffsetY = $y + $iTopPad + ($iRow * $iRowStep)
+		Local $sName = ($bSideB ? $g_asCSVSideBWeightNames[$i] : $g_asCSVSideWeightNames[$i])
+		Local $hLabel = GUICtrlCreateLabel($sName & ":", $iOffsetX, $iOffsetY + 3, $iLabelW, 18)
+		Local $hInput = GUICtrlCreateInput("0", $iOffsetX + $iLabelW + 5, $iOffsetY, $iInputW, 18, BitOR($GUI_SS_DEFAULT_INPUT, $ES_NUMBER))
+		Local $hSpin = GUICtrlCreateUpdown($hInput)
+		GUICtrlSetLimit(-1, 99, 0)
+		GUICtrlSetOnEvent($hInput, "CSVSettings_MarkDirty")
+
+		If $bSideB Then
+			$g_ahCSVSideBWeightLabels[$i] = $hLabel
+			$g_ahCSVSideBWeightInputs[$i] = $hInput
+			$g_ahCSVSideBWeightSpin[$i] = $hSpin
+		Else
+			$g_ahCSVSideWeightLabels[$i] = $hLabel
+			$g_ahCSVSideWeightInputs[$i] = $hInput
+			$g_ahCSVSideWeightSpin[$i] = $hSpin
+		EndIf
+	Next
+
+	Local $iButtonsY = $y + $h - 26
+	If $bSideB Then
+		$g_hBtnCSVSideBZero = GUICtrlCreateButton("Zero", $x + 10, $iButtonsY, 70, 20)
+			GUICtrlSetOnEvent(-1, "CSVSideBWeightsPresetZero")
+		$g_hBtnCSVSideBEqual = GUICtrlCreateButton("Equal", $x + 90, $iButtonsY, 70, 20)
+			GUICtrlSetOnEvent(-1, "CSVSideBWeightsPresetEqual")
+	Else
+		$g_hBtnCSVSideZero = GUICtrlCreateButton("Zero", $x + 10, $iButtonsY, 70, 20)
+			GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetZero")
+		$g_hBtnCSVSideEqual = GUICtrlCreateButton("Equal", $x + 90, $iButtonsY, 70, 20)
+			GUICtrlSetOnEvent(-1, "CSVSideWeightsPresetEqual")
+	EndIf
+
+	GUICtrlCreateGroup("", -99, -99, 1, 1)
+EndFunc   ;==>CSVSide_CreateWeightsPage

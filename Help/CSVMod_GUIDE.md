@@ -42,14 +42,10 @@ Header actions:
 - `Test Dry` runs a dry parse + precalc pass with no live actions.
 - `Save and apply to GUI` writes changes and applies script settings to GUI elements.
 
-Side Weights tab:
-- `SIDE` weights for resource buildings (mine, elixir, drill, storages, town hall).
-- `Forced side` selector when you want to override weight selection.
-- Presets: `Zero`, `Equal`.
-
-SIDEB Weights tab:
-- Defense weights for the SIDEB calculation.
-- Presets: `Zero`, `Equal`.
+Side tab:
+- `Weight type` radio buttons select which weights are shown (`Defenses (SIDEB)` or `Resources (SIDE)`).
+- `Defenses (SIDEB)` view: defense weights for SIDEB calculation and `Zero`/`Equal` presets.
+- `Resources (SIDE)` view: resource weights (mine, elixir, drill, storages, town hall) plus `Forced side` selector.
 
 Vectors tab:
 - Edit the selected `MAKE` vector: side, points, offset tiles, targeted building, versus order, random X/Y.
@@ -226,4 +222,3 @@ RECALC|9000       |FORCE      |
 **Compatibility Notes**
 Include `NOTE |CSV_VERSION|<version>` to surface version in the CSV Settings UI.
 Align with sample scripts in `CSV/Attack/` for column width and ordering.
-

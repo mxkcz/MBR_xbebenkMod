@@ -1018,14 +1018,14 @@ Func AttackCSVSettings_ValidateCSV()
 					$iErrors += 1
 				EndIf
 			Case "SIDE"
-				For $i = 1 To 7
+				For $i = 1 To UBound($g_ahCSVSideWeightInputs)
 					Local $sVal = AttackCSVSettings_GetValue($aCols, $i)
 					If $sVal <> "" And Not AttackCSVSettings_IsNumericValue($sVal) Then
 						SetLog("CSV validate: line " & ($iLine + 1) & " SIDE weight invalid (" & $sVal & ")", $COLOR_WARNING)
 						$iWarnings += 1
 					EndIf
 				Next
-				Local $sForce = StringUpper(AttackCSVSettings_GetValue($aCols, 8))
+				Local $sForce = StringUpper(AttackCSVSettings_GetValue($aCols, UBound($g_ahCSVSideWeightInputs) + 1))
 				If $sForce <> "" Then
 					Switch $sForce
 						Case "TOP-LEFT", "TOP-RIGHT", "BOTTOM-LEFT", "BOTTOM-RIGHT", "TOP-RAND"
@@ -1035,7 +1035,7 @@ Func AttackCSVSettings_ValidateCSV()
 					EndSwitch
 				EndIf
 			Case "SIDEB"
-				For $i = 1 To 14
+				For $i = 1 To UBound($g_ahCSVSideBWeightInputs)
 					Local $sVal = AttackCSVSettings_GetValue($aCols, $i)
 					If $sVal <> "" And Not AttackCSVSettings_IsNumericValue($sVal) Then
 						SetLog("CSV validate: line " & ($iLine + 1) & " SIDEB weight invalid (" & $sVal & ")", $COLOR_WARNING)
@@ -1242,11 +1242,11 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 		Local $sCmd = AttackCSVSettings_GetCommand($aCols)
 		Switch $sCmd
 			Case "SIDE"
-				For $i = 0 To 6
+				For $i = 0 To UBound($g_ahCSVSideWeightInputs) - 1
 					Local $sValue = AttackCSVSettings_GetValue($aCols, $i + 1)
 					If $g_ahCSVSideWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideWeightInputs[$i], $sValue)
 				Next
-				Local $sForceSide = AttackCSVSettings_GetValue($aCols, 8)
+				Local $sForceSide = AttackCSVSettings_GetValue($aCols, UBound($g_ahCSVSideWeightInputs) + 1)
 				If $g_hCmbCSVForceSide <> 0 Then
 					Local $iForceIndex = _GUICtrlComboBox_FindStringExact($g_hCmbCSVForceSide, $sForceSide)
 					If $iForceIndex = -1 Then
@@ -1256,7 +1256,7 @@ Func AttackCSVSettings_LoadFromCSV($iMode)
 					EndIf
 				EndIf
 			Case "SIDEB"
-				For $i = 0 To 13
+				For $i = 0 To UBound($g_ahCSVSideBWeightInputs) - 1
 					Local $sValue = AttackCSVSettings_GetValue($aCols, $i + 1)
 					If $g_ahCSVSideBWeightInputs[$i] <> 0 Then GUICtrlSetData($g_ahCSVSideBWeightInputs[$i], $sValue)
 				Next
@@ -1953,7 +1953,7 @@ EndFunc   ;==>AttackCSVSettings_ScanAnchors
 ; Side-effect: io (GUI state reads)
 Func AttackCSVSettings_BuildSideLine($bSideB)
 	Local $sLine = ($bSideB ? "SIDEB" : "SIDE")
-	Local $iCount = ($bSideB ? 14 : 7)
+	Local $iCount = AttackCSVSettings_GetSideWeightCount($bSideB)
 	For $i = 0 To $iCount - 1
 		$sLine &= " |0"
 	Next
@@ -1963,8 +1963,9 @@ EndFunc   ;==>AttackCSVSettings_BuildSideLine
 
 ; Side-effect: io (GUI state reads)
 Func AttackCSVSettings_UpdateSideLine(ByRef $aCols)
-	AttackCSVSettings_EnsureColumns($aCols, 9)
-	For $i = 0 To 6
+	Local $iWeightCount = AttackCSVSettings_GetSideWeightCount(False)
+	AttackCSVSettings_EnsureColumns($aCols, AttackCSVSettings_GetSideLineColumnCount(False))
+	For $i = 0 To $iWeightCount - 1
 		Local $sVal = StringStripWS(GUICtrlRead($g_ahCSVSideWeightInputs[$i]), $STR_STRIPALL)
 		If $sVal = "" Then $sVal = "0"
 		AttackCSVSettings_SetColumn($aCols, $i + 1, $sVal)
@@ -1972,18 +1973,35 @@ Func AttackCSVSettings_UpdateSideLine(ByRef $aCols)
 	Local $sForce = ""
 	Local $iForceSel = _GUICtrlComboBox_GetCurSel($g_hCmbCSVForceSide)
 	If $iForceSel > 0 Then $sForce = StringStripWS(GUICtrlRead($g_hCmbCSVForceSide), $STR_STRIPALL)
-	AttackCSVSettings_SetColumn($aCols, 8, $sForce)
+	AttackCSVSettings_SetColumn($aCols, AttackCSVSettings_GetSideForceColumn(), $sForce)
 EndFunc   ;==>AttackCSVSettings_UpdateSideLine
 
 ; Side-effect: io (GUI state reads)
 Func AttackCSVSettings_UpdateSideBLine(ByRef $aCols)
-	AttackCSVSettings_EnsureColumns($aCols, 15)
-	For $i = 0 To 13
+	Local $iWeightCount = AttackCSVSettings_GetSideWeightCount(True)
+	AttackCSVSettings_EnsureColumns($aCols, AttackCSVSettings_GetSideLineColumnCount(True))
+	For $i = 0 To $iWeightCount - 1
 		Local $sVal = StringStripWS(GUICtrlRead($g_ahCSVSideBWeightInputs[$i]), $STR_STRIPALL)
 		If $sVal = "" Then $sVal = "0"
 		AttackCSVSettings_SetColumn($aCols, $i + 1, $sVal)
 	Next
 EndFunc   ;==>AttackCSVSettings_UpdateSideBLine
+
+; Side-effect: pure (constants)
+Func AttackCSVSettings_GetSideWeightCount($bSideB)
+	Return ($bSideB ? UBound($g_ahCSVSideBWeightInputs) : UBound($g_ahCSVSideWeightInputs))
+EndFunc   ;==>AttackCSVSettings_GetSideWeightCount
+
+; Side-effect: pure (constants)
+Func AttackCSVSettings_GetSideForceColumn()
+	Return UBound($g_ahCSVSideWeightInputs) + 1
+EndFunc   ;==>AttackCSVSettings_GetSideForceColumn
+
+; Side-effect: pure (constants)
+Func AttackCSVSettings_GetSideLineColumnCount($bSideB)
+	Local $iWeightCount = AttackCSVSettings_GetSideWeightCount($bSideB)
+	Return ($bSideB ? ($iWeightCount + 1) : ($iWeightCount + 2))
+EndFunc   ;==>AttackCSVSettings_GetSideLineColumnCount
 
 ; Side-effect: io (GUI state reads)
 Func AttackCSVSettings_UpdateSettingsLine(ByRef $aLines, ByRef $iLineIndex, $sCmd, $iLastTrainLine, $iTHCol, $iTHStart, $iTHEnd, $bUpdateAllTH, $sValue, $bAllowBlank = False)
